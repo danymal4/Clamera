@@ -16,11 +16,6 @@
 			path = Clamera;
 			sourceTree = "<group>";
 		};
-		16BA8ABA2F2A512A00BA04E9 /* Views */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Views;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +32,6 @@
 		16BA8A9F2F2A490600BA04E9 = {
 			isa = PBXGroup;
 			children = (
-				16BA8ABA2F2A512A00BA04E9 /* Views */,
 				16BA8AAA2F2A490600BA04E9 /* Clamera */,
 				16BA8AA92F2A490600BA04E9 /* Products */,
 			);
@@ -68,7 +62,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				16BA8AAA2F2A490600BA04E9 /* Clamera */,
-				16BA8ABA2F2A512A00BA04E9 /* Views */,
 			);
 			name = Clamera;
 			packageProductDependencies = (
