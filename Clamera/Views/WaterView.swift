@@ -14,21 +14,32 @@ struct WaterView: View {
            ZStack {
                WaterWave()
                    .fill(Color.blue.opacity(0.6))
-                   .offset(x: move ? -20 : 20)
+               // Controls y val movements of dark blue
+                   .offset(y: move ? -10 : 50)
+               // Controls x val movements of dark blue
+                   .offset(x: move ? -0 : 10)
 
                WaterWave()
                    .fill(Color.cyan.opacity(0.4))
-                   .offset(x: move ? 20 : -20)
+               // Controls y val movements of mid blue
+                   .offset(y: move ? -25 : 30)
+               // Controls x val movements of mid blue
+                   .offset(x: move ? 0 : 10)
 
                WaterWave()
                    .fill(Color.indigo.opacity(0.3))
-                   .offset(x: move ? -10 : 10)
+               // Controls y val movements of light blue
+                   .offset(y: move ? -40 : 10)
+               // Controls x val movements of light blue
+                   .offset(x: move ? 0 : 10)
            }
-           .frame(height: 200)
+           
+           // Change based on how high waves go so that there is no blank at bottom of screen
+           .frame(height: 900)
            .clipped()
            .onAppear {
                withAnimation(
-                   .easeInOut(duration: 4)
+                .easeInOut(duration: 7)
                        .repeatForever(autoreverses: true)
                ) {
                    move.toggle()
