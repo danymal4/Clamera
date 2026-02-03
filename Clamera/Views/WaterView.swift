@@ -13,7 +13,7 @@ struct WaterView: View {
        var body: some View {
            ZStack {
                WaterWave()
-                   .fill(Color.blue.opacity(0.6))
+                   .fill(Color.cyan.opacity(0.3))
                // Controls y val movements of dark blue
                    .offset(y: move ? -10 : 50)
                // Controls x val movements of dark blue
@@ -27,7 +27,7 @@ struct WaterView: View {
                    .offset(x: move ? 0 : 10)
 
                WaterWave()
-                   .fill(Color.indigo.opacity(0.3))
+                   .fill(Color.blue.opacity(0.3))
                // Controls y val movements of light blue
                    .offset(y: move ? -40 : 10)
                // Controls x val movements of light blue
@@ -35,7 +35,7 @@ struct WaterView: View {
            }
            
            // Change based on how high waves go so that there is no blank at bottom of screen
-           .frame(height: 900)
+           .frame(height: 1900)
            .clipped()
            .onAppear {
                withAnimation(
