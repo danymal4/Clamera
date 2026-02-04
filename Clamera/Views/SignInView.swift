@@ -104,7 +104,7 @@ struct SignInView: View {
         } .offset(y:-700)
 
         
-        WaterView()
+
         
         
         }
@@ -115,7 +115,7 @@ struct SignInView: View {
 
         
     }
-}
+
 
 
 

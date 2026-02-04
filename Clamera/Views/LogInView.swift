@@ -12,6 +12,8 @@ struct LogInView: View {
        
         
         ZStack{
+            IconView()
+            
             WaterView()
             HStack {
                 
