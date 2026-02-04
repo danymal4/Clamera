@@ -9,63 +9,110 @@ import SwiftUI
 
 struct HomeView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
- 
-       
-        ZStack{
+
+        ScrollView{
             
-            WaterView().opacity(0.49)
-                .offset(y: -300)
             
-         
-            
-        
-        
-          
-            VStack{
-                Spacer()
-                Spacer()
-                Spacer()
-                Rectangle().frame(width: 300, height: 5).opacity(0.6)
+            ZStack{
                 
-                ZStack{
-                    Rectangle().frame(width: 140, height: 20).opacity(0.8).colorInvert().cornerRadius(90).opacity(0.38)
-                    Text("Recent Catches")
+                
+                VStack{
                     
-                   
+                    Spacer()
+                    
+                    Text("Clamera").font(.system(size: UIScreen.main.bounds.width * 0.1))
+                
+                    
+                    Spacer()
+                    Spacer()
+                    Spacer()
+                    Spacer()
+                    
+                    
                 }
-              
-      
-                HStack{
+                
+                
+                
+                WaterShipView()
+                    .offset(y: -70)
+                
+                
+                IconView()
+                
+                
+                
+                
+                
+                
+                VStack{
                     Spacer()
                     Spacer()
                     Spacer()
-                  
-                    //make a button
+                    Spacer()
+                    
+                    
+                    
+                    
+                    
+                    
+                    ZStack{
+                        Rectangle().opacity(0.8).colorInvert().cornerRadius(90).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.4, 2000),
+                                                                                                   height: min(UIScreen.main.bounds.width * 0.1, 2000))
+                        
+                        Text("Recent Catches").font(.system(size: UIScreen.main.bounds.width * 0.05))
+                        
+                        
+                    }
+                    
+                    
+                    
+                    HStack{
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        
+                        //make a button
+                        
+                        
+                        ZStack{
+                            
+                            
+                            
+                            
+                            Rectangle().opacity(0.8).colorInvert().cornerRadius(30).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.825, 2000),
+                                                                                                       height: min(UIScreen.main.bounds.width * 0.475, 2000))
+                            
+                            Image("PictureFish").resizable().aspectRatio(contentMode: .fit).cornerRadius(20).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                                                                                                   height: min(UIScreen.main.bounds.width * 0.5, 2000))
+                            
+                            
+                            
+                            
+                        }
+                        
+                        
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        
+                    }
+                    
                     
                  
                     
-                    Image("PictureFish").resizable().aspectRatio(contentMode: .fit).cornerRadius(30)
+           
+            
+             
                     
                     
-                    
-                    Spacer()
-                    Spacer()
-                    Spacer()
                     
                 }
                 
-                    
-
-                    
-                
-                
-                Spacer()
-                Spacer()
-                
-            }
-            
-        }
+            }}
         
         
     }
