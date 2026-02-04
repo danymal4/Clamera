@@ -68,11 +68,13 @@ struct LogInView: View {
                             .cornerRadius(20)
                         
                     }
+                   
                     
                     
                 }
                 
             }
+            .position(x: 200, y: 200)
             
             
             
