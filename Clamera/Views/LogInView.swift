@@ -13,20 +13,26 @@ struct LogInView: View {
         
         ZStack{
             WaterView()
+                .position(x:201, y: 400)
+                
             HStack {
                 
                 VStack{
-                    HStack{
-                        Text("<")
-                    }
+                 
+                        
+                    
+                 
                     
                     
                     
-                    HStack {
+                    ZStack {
                         Text("Clamera")
                             .font(.custom("IslandMoments-Regular", size: 70))
                             .bold()
                             .foregroundStyle(Color.clameraBlue)
+                        Text("<")
+                            .padding(.trailing, 300)
+                            .font(.custom("IslandMoments-Regular", size: 70))
                         
                     }
                     
@@ -70,8 +76,27 @@ struct LogInView: View {
                     }
                    
                     
+                    ZStack{
+                        Rectangle()
+                            .frame(width: 200, height: 40)
+                            .foregroundStyle(Color.clameraBlue)
+                            .cornerRadius(20)
+                        Text("Continue")
+                            .font(.custom("HelveticaNeue-Thin", size: 15))
+                            .foregroundStyle(Color.white)
+                            .bold()
+                            
+                            
+                         
+                            
+                        
+                    }
+                    
+                    
                     
                 }
+                
+                
                 
             }
             .position(x: 200, y: 200)
