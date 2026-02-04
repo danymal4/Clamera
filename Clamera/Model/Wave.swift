@@ -36,8 +36,8 @@ struct WaterWave: Shape {
         }
 
         // Close the shape to ensure it's filled
-        path.addLine(to: CGPoint(x: endX, y: rect.height))
-        path.addLine(to: CGPoint(x: startX, y: rect.height))
+        path.addLine(to: CGPoint(x: endX, y: rect.height * 10))
+        path.addLine(to: CGPoint(x: startX, y: rect.height * 10))
         path.closeSubpath()
 
         return path
