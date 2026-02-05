@@ -21,7 +21,7 @@ struct AquariumManageView: View {
                 Text("<")
             }
             Spacer()
-        }.padding().padding(.top, -190)
+        }.padding().padding(.top, -370)
         ZStack{
           
             
@@ -38,13 +38,13 @@ struct AquariumManageView: View {
                         size: UIScreen.main.bounds.width * 0.3
                     ))
                     .opacity(0.9)
-                    .foregroundStyle(.blue).padding(.top, -620)
+                    .foregroundStyle(.blue).padding(.top, -750)
                 
             }
         }.padding(.bottom, -4000)
      
-        Rectangle().opacity(0.8).colorInvert().cornerRadius(90).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                                                                   height: min(UIScreen.main.bounds.width * 0.9, 2000))
+        Rectangle().opacity(0.8).colorInvert().cornerRadius(40).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                                                                   height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.bottom, -280)
         
         
         VStack {
