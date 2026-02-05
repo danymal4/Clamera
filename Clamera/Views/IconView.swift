@@ -3,23 +3,31 @@
 //  Clamera
 //
 //  Created by Ellis Kamplain (student LM) on 2/3/26.
-//
-
 import SwiftUI
 
 struct IconView: View {
+    
+    // ✅ Only change: use EnvironmentObject instead of @Binding
+    @EnvironmentObject var tabRouter: TabRouter
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack {
                 Spacer()
-                Image("fisherman")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 50, height: 50)
-                    .clipShape(Circle()).overlay(Circle().stroke(Color.white, lineWidth: 1))
-               
+                
+                Button {
+                    
+                    tabRouter.viewState = .profile
+                } label: {
+                    Image("fisherman")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 50, height: 50)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                }
+                .padding(.horizontal, 23)
             }
-            .padding(.horizontal, 23)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
     }
@@ -27,4 +35,5 @@ struct IconView: View {
 
 #Preview {
     IconView()
+        .environmentObject(TabRouter()) // ✅ Only change for preview
 }

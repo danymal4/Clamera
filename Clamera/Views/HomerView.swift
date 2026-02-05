@@ -11,27 +11,28 @@ enum ViewState{
     case home, aquarium, profile, caught, album
 }
 
+
+final class TabRouter: ObservableObject {
+    @Published var viewState: ViewState = .home
+}
 struct HomerView: View {
     
-    @State var viewState: ViewState = .home
+    // Replace @State with @StateObject
+    @StateObject private var tabRouter = TabRouter()
     
-    
-     init() {
-         // Make the system TabBar background fully transparent
-         let appearance = UITabBarAppearance()
-         appearance.configureWithTransparentBackground() // <- key
-         UITabBar.appearance().standardAppearance = appearance
-         if #available(iOS 15.0, *) {
-             UITabBar.appearance().scrollEdgeAppearance = appearance
-         }
-     }
+    init() {
+        // Make the system TabBar background fully transparent
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        UITabBar.appearance().standardAppearance = appearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+        }
+    }
     
     var body: some View {
-        
-        
-        
-        TabView(selection: $viewState) {
-           
+        TabView(selection: $tabRouter.viewState) { // <- bind to environment object
+            
             ZStack {
                 Color.clear.ignoresSafeArea()
                 HomeView()
@@ -41,48 +42,32 @@ struct HomerView: View {
                 Label("Home", systemImage: "house")
             }
             
-            
             ZStack {
-                
-               CatchView()
+                CatchView()
             }
             .tag(ViewState.caught)
             .tabItem {
                 Label("Catch", systemImage: "fish")
-                       
-                    
             }
             
-            
-            
-            
             ZStack {
-                
                 AquariumView()
             }
             .tag(ViewState.aquarium)
             .tabItem {
-                Image("aquariumIcon")  .renderingMode(.template).foregroundColor(viewState == .aquarium ? .blue : .gray)
-                    // this ensures the tab tints correctly
-                   Text("Aquarium")
-                       
-                    
+                Image("aquariumIcon")
+                    .renderingMode(.template)
+                    .foregroundColor(tabRouter.viewState == .aquarium ? .blue : .gray)
+                Text("Aquarium")
             }
             
-            
             ZStack {
-                
                 AlbumView()
             }
             .tag(ViewState.album)
             .tabItem {
-               
                 Label("Album", systemImage: "book")
-                    
             }
-            
-         
-           
             
             ZStack {
                 Color.clear.ignoresSafeArea()
@@ -93,12 +78,11 @@ struct HomerView: View {
                 Label("Profile", systemImage: "person")
             }
         }
-      
-
+        .environmentObject(tabRouter) // <- provide it to all children
     }
-    
 }
 
 #Preview {
     HomerView()
+        .environmentObject(TabRouter()) // <- preview needs it
 }

@@ -8,13 +8,18 @@
 import SwiftUI
 
 struct HomeView: View {
+    
+  
+    
     var body: some View {
      
         ScrollView{
             
             
             ZStack{
-                IconView().padding(.horizontal, 8)
+                
+             
+                IconView()
                 
                 VStack{
                     
@@ -134,5 +139,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
+    HomeView().environmentObject(TabRouter())
 }

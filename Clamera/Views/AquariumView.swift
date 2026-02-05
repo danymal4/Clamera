@@ -20,6 +20,7 @@ struct AquariumView: View {
             
             ZStack {
                 
+            
                 IconView()
                 
                 VStack {
@@ -101,6 +102,6 @@ struct AquariumView: View {
 }
 
 #Preview {
-    AquariumView()
+    AquariumView().environmentObject(TabRouter())
 }
 
