@@ -103,12 +103,7 @@ struct SignInView: View {
                 .position(x: 200, y: -18)
             
         }
-        
-        
-            
-        
 
-        
     }
 }
 
