@@ -102,10 +102,16 @@ struct SignInView: View {
                 .padding(.trailing, 40)
                 .position(x: 200, y: -18)
             
+        } .offset(y:-700)
+
+        
+
+        
+        
         }
 
     }
-}
+
 
 
 

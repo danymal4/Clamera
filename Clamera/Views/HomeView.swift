@@ -9,20 +9,24 @@ import SwiftUI
 
 struct HomeView: View {
     var body: some View {
-
+     
         ScrollView{
             
             
             ZStack{
-                
+                IconView().padding(.horizontal, 8)
                 
                 VStack{
                     
                     Spacer()
                     
-                    Text("Clamera").font(.system(size: UIScreen.main.bounds.width * 0.1))
+                    
+                    Text("Home")                        .font(.custom("IslandMoments-Regular",  size: UIScreen.main.bounds.width * 0.3)).opacity(0.9)
+                    
+
                 
                     
+                    Spacer()
                     Spacer()
                     Spacer()
                     Spacer()
@@ -34,10 +38,10 @@ struct HomeView: View {
                 
                 
                 WaterShipView()
-                    .offset(y: -70)
+                    .offset(y: -58)
                 
                 
-                IconView()
+            
                 
                 
                 
@@ -53,54 +57,56 @@ struct HomeView: View {
                     
                     
                     
-                    
-                    
-                    ZStack{
-                        Rectangle().opacity(0.8).colorInvert().cornerRadius(90).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.4, 2000),
-                                                                                                   height: min(UIScreen.main.bounds.width * 0.1, 2000))
-                        
-                        Text("Recent Catches").font(.system(size: UIScreen.main.bounds.width * 0.05))
-                        
-                        
-                    }
-                    
-                    
-                    
-                    HStack{
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        
-                        //make a button
-                        
-                        
+                    VStack{
+              
                         ZStack{
+                            Rectangle().opacity(0.8).colorInvert().cornerRadius(90).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.5, 2000),
+                                                                                                       height: min(UIScreen.main.bounds.width * 0.1, 2000))
                             
-                            
-                            
-                            
-                            Rectangle().opacity(0.8).colorInvert().cornerRadius(30).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.825, 2000),
-                                                                                                       height: min(UIScreen.main.bounds.width * 0.475, 2000))
-                            
-                            Image("PictureFish").resizable().aspectRatio(contentMode: .fit).cornerRadius(20).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                                                                                                   height: min(UIScreen.main.bounds.width * 0.5, 2000))
-                            
-                            
+                            Text("Recent Catches").font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold()
                             
                             
                         }
                         
                         
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
                         
-                    }
-                    
+                        HStack{
+                            Spacer()
+                            Spacer()
+                            Spacer()
+                            Spacer()
+                            Spacer()
+                            
+                            //make a button
+                            
+                            
+                            ZStack{
+                                
+                                
+                                
+                                
+                                Rectangle().opacity(0.8).colorInvert().cornerRadius(30).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.845, 2000),
+                                                                                                           height: min(UIScreen.main.bounds.width * 0.495, 2000))
+                                
+                                Image("PictureFish").resizable().aspectRatio(contentMode: .fit).cornerRadius(20).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                                                                                                       height: min(UIScreen.main.bounds.width * 0.5, 2000))
+                                
+                                
+                                
+                                
+                            }
+                            
+                            
+                            Spacer()
+                            Spacer()
+                            Spacer()
+                            Spacer()
+                            Spacer()
+                            
+                            
+                        }
+                        
+                    }.padding(.bottom, 65)
                     
                  
                     
@@ -112,8 +118,17 @@ struct HomeView: View {
                     
                 }
                 
-            }}
-        
+            }}.padding(.bottom, -4000)
+      
+        VStack {
+                      Spacer()
+                      Rectangle()
+                          .fill(Color.white.opacity(0.6))
+                          .frame(height: 83)
+                           // or safeAreaInset if you want
+                  }
+              
+              .edgesIgnoringSafeArea(.bottom)
         
     }
 }

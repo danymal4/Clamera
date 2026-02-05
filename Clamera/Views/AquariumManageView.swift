@@ -8,11 +8,58 @@
 import SwiftUI
 
 struct AquariumManageView: View {
+    @Binding var editState: EditState
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+      
+        IconView()
+        
+        HStack{
+            Button {
+                editState = .notEditing
+            } label: {
+                Text("<")
+            }
+            Spacer()
+        }.padding().padding(.top, -370)
+        ZStack{
+          
+            
+            
+           
+            
+            
+           
+            WaterView().offset(y: -550)
+            VStack{
+                Text("Manage")
+                    .font(.custom(
+                        "IslandMoments-Regular",
+                        size: UIScreen.main.bounds.width * 0.3
+                    ))
+                    .opacity(0.9)
+                    .foregroundStyle(.blue).padding(.top, -750)
+                
+            }
+        }.padding(.bottom, -4000)
+     
+        Rectangle().opacity(0.8).colorInvert().cornerRadius(40).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                                                                   height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.bottom, -280)
+        
+        
+        VStack {
+                      Spacer()
+                      Rectangle()
+                          .fill(Color.white.opacity(0.6))
+                          .frame(height: 83)
+                           // or safeAreaInset if you want
+                  }
+              
+              .edgesIgnoringSafeArea(.bottom)
+        
     }
 }
 
 #Preview {
-    AquariumManageView()
+    AquariumManageView(editState: Binding.constant(.editing))
 }

@@ -36,9 +36,6 @@ struct WaterView: View {
                // Controls x val movements of light blue
                    .offset(x: move ? 0 : 10)
          
-             
-          
-               
                
                
            }
@@ -50,7 +47,8 @@ struct WaterView: View {
            
            // Change based on how high waves go so that there is no blank at bottom of screen
         
-           
+           .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height)
+           .ignoresSafeArea(edges: .top) 
            .onAppear {
                withAnimation(
                 .easeInOut(duration: 7)
