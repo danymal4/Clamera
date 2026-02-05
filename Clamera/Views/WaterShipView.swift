@@ -11,16 +11,26 @@ struct WaterShipView: View {
     @State private var move = false
 
        var body: some View {
-        
+      
            ZStack(alignment: .top) {
-            
+        
                
-               WaterWave()
-                   .fill(Color.cyan.opacity(0.15))
-               // Controls y val movements of dark blue
-                   .offset(y: move ? -10 : 50)
-               // Controls x val movements of dark blue
-                   .offset(x: move ? -0 : 10)
+               
+               
+                  
+                     
+                     Image("waterWave").resizable().scaledToFit().offset(y: 365)
+                       .offset(y: move ? -10 : 50)
+                       .offset(x: move ? 0 : 10).opacity(0.75)
+                     
+               Image("flat") // your flat image
+                         .resizable()
+                         .frame(height: 600 )  // adjust height as needed
+                         .clipped().offset(y: 777.6 ).offset(y: move ? -10 : 50).opacity(0.75)
+                      
+                     
+               
+               
                
                WaterWave()
                    .fill(Color.cyan.opacity(0.2))
@@ -43,7 +53,7 @@ struct WaterShipView: View {
                    .mask(
                        ZStack {
                            Color.white
-                           WaterWave()     .offset(y: (move ? -40 : 10) )
+                          WaterWave()     .offset(y: (move ? -40 : 10) )
                               
                                .fill(Color.black)  // cut out wave area
                                .blendMode(.destinationOut).scaleEffect(y: 1.0015, anchor: .top)
@@ -118,15 +128,15 @@ struct WaterShipView: View {
            .onAppear {
                withAnimation(
                 .easeInOut(duration: 7)
-                       .repeatForever(autoreverses: true)
+                .repeatForever(autoreverses: true)
                ) {
                    move.toggle()
                }
+               
+               
            }
        }
     }
-
-
 #Preview {
     WaterShipView()
 }
