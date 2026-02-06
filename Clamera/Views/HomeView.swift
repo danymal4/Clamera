@@ -9,112 +9,51 @@ import SwiftUI
 
 struct HomeView: View {
     var body: some View {
-
-        ScrollView{
-            
-            
-            ZStack{
-                
-                
-                VStack{
-                    
-                    Spacer()
-                    
-                    Text("Clamera").font(.system(size: UIScreen.main.bounds.width * 0.1))
-                
-                    
-                    Spacer()
-                    Spacer()
-                    Spacer()
-                    Spacer()
-                    
-                    
-                }
-                
-                
-                
-                WaterShipView()
-                    .offset(y: -70)
-                
-                
-                IconView()
-                
-                
-                
-                
-                
-                
-                VStack{
-                    Spacer()
-                    Spacer()
-                    Spacer()
-                    Spacer()
-                    
-                    
-                    
-                    
-                    
-                    
-                    ZStack{
-                        Rectangle().opacity(0.8).colorInvert().cornerRadius(90).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.4, 2000),
-                                                                                                   height: min(UIScreen.main.bounds.width * 0.1, 2000))
+        
+        
+        ZStack{
+            IconView()
+            ScrollView{
+                ZStack{
+                    VStack{
                         
-                        Text("Recent Catches").font(.system(size: UIScreen.main.bounds.width * 0.05))
+                        Spacer()
                         
-                        
+                        Text("Clamera")
+                            .font(.custom("IslandMoments-Regular", size: 90))
+                            .foregroundStyle(.blue)
+                        Spacer(minLength: 600)
                     }
                     
-                    
-                    
-                    HStack{
+                    WaterShipView()
+                        .offset(y: -70)
+
+                    VStack{
                         Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        
-                        //make a button
-                        
                         
                         ZStack{
-                            
-                            
-                            
-                            
-                            Rectangle().opacity(0.8).colorInvert().cornerRadius(30).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.825, 2000),
-                                                                                                       height: min(UIScreen.main.bounds.width * 0.475, 2000))
-                            
-                            Image("PictureFish").resizable().aspectRatio(contentMode: .fit).cornerRadius(20).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                                                                                                   height: min(UIScreen.main.bounds.width * 0.5, 2000))
-                            
-                            
-                            
-                            
+                            Rectangle().opacity(0.8).colorInvert().cornerRadius(90).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.4, 2000),
+                                                                                                       height: min(UIScreen.main.bounds.width * 0.1, 2000))
+                            Text("Recent Catches").font(.system(size: UIScreen.main.bounds.width * 0.05))
                         }
                         
-                        
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                        
+                        HStack{
+                            Spacer(minLength: 40)
+                            
+                            //make a button
+                            ZStack{
+                                Rectangle().opacity(0.8).colorInvert().cornerRadius(30).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.825, 2000),
+                                                                                                           height: min(UIScreen.main.bounds.width * 0.475, 2000))
+                                
+                                Image("PictureFish").resizable().aspectRatio(contentMode: .fit).cornerRadius(20).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                                                                                                       height: min(UIScreen.main.bounds.width * 0.5, 2000))
+                            }
+                            Spacer(minLength: 40)
+                        }
                     }
-                    
-                    
-                 
-                    
-           
-            
-             
-                    
-                    
-                    
                 }
-                
-            }}
-        
-        
+            }
+        }
     }
 }
 
