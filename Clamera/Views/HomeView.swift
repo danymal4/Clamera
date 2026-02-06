@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct HomeView: View {
+
     
   
-    
+
     var body: some View {
-     
+
         ScrollView{
             
             
@@ -123,6 +124,7 @@ struct HomeView: View {
                     
                 }
                 
+
             }}.padding(.bottom, -4000)
       
         VStack {
@@ -134,9 +136,13 @@ struct HomeView: View {
                   }
               
               .edgesIgnoringSafeArea(.bottom)
+
+            }}
         
-    }
-}
+
+        
+    
+
 
 #Preview {
     HomeView().environmentObject(TabRouter())

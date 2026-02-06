@@ -12,7 +12,7 @@ struct ProfileView: View {
         
         ZStack{
         
-            WaterView()
+            WaterView().offset(y: -120)
    
             
             VStack{
