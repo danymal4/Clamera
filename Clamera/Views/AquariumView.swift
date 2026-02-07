@@ -45,16 +45,7 @@ struct AquariumView: View {
                             .padding(.bottom, 65)
                             .scaleEffect(1.45)
                         
-                        // filter
-                        Rectangle()
-                            .cornerRadius(10)
-                            .foregroundStyle(.green)
-                            .opacity(0.1)
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.82, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.45, 2000)
-                            ).padding(.bottom, 80)
-                        
+                       
                         
                     }
                     
@@ -63,9 +54,44 @@ struct AquariumView: View {
                     
                     
                     
+                }
+               
+                Image("floor").resizable().frame(
+                    width: min(UIScreen.main.bounds.width * 0.84, 2000),
+                    height: min(UIScreen.main.bounds.width * 0.2, 2000)
+                ).padding(.top, 272).padding(.horizontal, 50).opacity(0.85)
+                
+                
+                // chest
+               // HStack{
+                    
+               //     Spacer()
+                //    Image("chest").resizable().frame(
+                  //      width: min(UIScreen.main.bounds.width * 0.3, 2000),
+                 //       height: min(UIScreen.main.bounds.width * 0.2, 2000)
+                 //   ).padding(.top, 250).padding(.horizontal, 50).opacity(0.82)
+                    
+              //  }
+            
+                ZStack{
+                    // filter
+                    Rectangle()
+                        .cornerRadius(5)
+                        .foregroundStyle(.green)
+                        .opacity(0.1)
+                        .frame(
+                            width: min(UIScreen.main.bounds.width * 0.84, 2000),
+                            height: min(UIScreen.main.bounds.width * 0.475, 2000)
+                        ).padding(.bottom, -162)
                     
                 }
+                
+                
+                
                 FishMoveView()
+                
+               
+                
                 VStack {
                     Spacer()
                     
