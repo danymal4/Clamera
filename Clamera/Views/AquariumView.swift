@@ -12,6 +12,8 @@ enum EditState{
 struct AquariumView: View {
    
     
+    // note filter status should both increase green opacity and  decrease the opacity of ur fish in the aquarium
+    
     @State var editState: EditState = .notEditing
     
     var body: some View {
