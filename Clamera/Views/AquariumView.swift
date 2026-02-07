@@ -43,6 +43,7 @@ struct AquariumView: View {
                             .padding(.bottom, 65)
                             .scaleEffect(1.45)
                         
+                        // filter
                         Rectangle()
                             .cornerRadius(10)
                             .foregroundStyle(.green)
@@ -123,7 +124,7 @@ struct AquariumView: View {
                 
                 WaterView()
                     .frame(height: UIScreen.main.bounds.height + 400)
-                    .offset(y: -150) // same visual you had
+                    .offset(y: -130) // same visual you had
                     .allowsHitTesting(false)
                 
             )

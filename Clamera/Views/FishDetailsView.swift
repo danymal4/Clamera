@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct FishDetailsView: View {
+ 
+    @State var pinned: Bool = true
+    
     var body: some View {
         
       
@@ -82,29 +85,24 @@ struct FishDetailsView: View {
                 .frame(width: 335, height: 265)
                 .clipShape(RoundedRectangle(cornerRadius: 20)).padding(.bottom, 210)
             
-           
-            HStack{
-                Spacer()
-                
-                
-            
-                Circle().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                               height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 20).padding(.top, -255).colorInvert().opacity(0.8)
-            }
                  
             HStack {
                 Spacer()
             
            
                 Button {
-                    
+                    pinned.toggle()
+                } label: {
+                    Image(pinned ? "anchorUnpinned" : "anchor")
+                        .resizable()
+                        .frame(
+                            width: min(UIScreen.main.bounds.width * 0.08, 180),
+                            height: min(UIScreen.main.bounds.width * 0.1, 180)
+                        )
+                        .padding(.trailing, 30)
+                        .padding(.top, 190).foregroundStyle(.white).opacity(0.9)
                 }
-                
-                label: {
-                    Image("pinned").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                      height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 15).padding(.top, -255)
-                    
-                }
+
                     
                 
                 }
