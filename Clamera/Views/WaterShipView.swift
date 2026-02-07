@@ -21,7 +21,7 @@ struct WaterShipView: View {
                      
                      Image("waterWave").resizable().scaledToFit().offset(y: 365)
                        .offset(y: move ? -10 : 50)
-                       .offset(x: move ? 0 : 10).opacity(0.75)
+                       .opacity(0.75)
                      
                Image("flat") // your flat image
                          .resizable()

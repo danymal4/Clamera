@@ -23,6 +23,7 @@ struct AquariumView: View {
             
                 IconView()
                 
+                
                 VStack {
                     Text("Aquarium")
                         .font(.custom(
@@ -32,37 +33,71 @@ struct AquariumView: View {
                         .opacity(0.9)
                         .foregroundStyle(.blue)
                     
-                    Image("Aquarium")
-                        .resizable()
-                        .frame(
-                            width: min(UIScreen.main.bounds.width * 0.7, 2000),
-                            height: min(UIScreen.main.bounds.width * 0.8, 700)
-                        )
-                        .padding(.bottom, 65)
-                        .scaleEffect(1.45)
+                    ZStack{
+                        Image("Aquarium")
+                            .resizable()
+                            .frame(
+                                width: min(UIScreen.main.bounds.width * 0.7, 2000),
+                                height: min(UIScreen.main.bounds.width * 0.8, 700)
+                            )
+                            .padding(.bottom, 65)
+                            .scaleEffect(1.45)
+                        
+                        Rectangle()
+                            .cornerRadius(10)
+                            .foregroundStyle(.green)
+                            .opacity(0.1)
+                            .frame(
+                                width: min(UIScreen.main.bounds.width * 0.82, 2000),
+                                height: min(UIScreen.main.bounds.width * 0.45, 2000)
+                            ).padding(.bottom, 80)
+                        
+                        
+                    }
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                 }
-                
+                FishMoveView()
                 VStack {
                     Spacer()
                     
                     ZStack {
-                        Rectangle()
-                            .cornerRadius(30)
-                            .colorInvert()
-                            .opacity(0.3)
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.2, 90)
-                            )
+                     
+                        
                         Button{
                             editState = .editing
                         }
                         label:{
-                            Text("Manage")
-                                .font(.system(size: UIScreen.main.bounds.width * 0.07)).foregroundStyle(.black)
-                                .opacity(0.8)
-                                .bold()
+                            
+                            Rectangle()
+                                .cornerRadius(30)
+                                .foregroundStyle(.white)
+                                .opacity(0.3)
+                                .frame(
+                                    width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                    height: min(UIScreen.main.bounds.width * 0.2, 90)
+                                )
+                            
+                            
+                            
+                            
                         }
+                        
+                        
+                        
+                  
+                        
+                        Text("Manage")
+                            .font(.system(size: UIScreen.main.bounds.width * 0.07)).foregroundStyle(.black)
+                            .opacity(0.8)
+                            .bold()
+                        
+                      
                     }
                     .padding(.bottom, 40)
                         
@@ -75,6 +110,8 @@ struct AquariumView: View {
                             width: min(UIScreen.main.bounds.width * 1, 2000),
                             height: min(UIScreen.main.bounds.width * 0.205, 90)
                         ).padding(.bottom, -330)
+                    
+                    
                     
                     
                 }
