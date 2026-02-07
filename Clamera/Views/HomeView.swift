@@ -21,8 +21,7 @@ struct HomeView: View {
             
             ZStack{
                 
-             
-                IconView().padding(.horizontal, 10)
+            
                 
                 VStack{
                     
@@ -49,7 +48,8 @@ struct HomeView: View {
                     .offset(y: -58)
                 
                 
-            
+                
+                   IconView().padding(.horizontal, 10)
                 
                 
                 
