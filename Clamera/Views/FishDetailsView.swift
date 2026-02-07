@@ -16,9 +16,8 @@ struct FishDetailsView: View {
           
             IconView()
             WaterView().offset(y: -170)
-            
-         
-         
+           
+          
             
             ZStack{
                 Rectangle()
@@ -66,7 +65,7 @@ struct FishDetailsView: View {
            
             
             Rectangle()
-                .cornerRadius(40)
+                .cornerRadius(30)
                 .foregroundStyle(.white)
                 .opacity(0.3)
                 .frame(width: 365, height: 290).padding(.bottom, 210)
@@ -84,6 +83,32 @@ struct FishDetailsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20)).padding(.bottom, 210)
             
            
+            HStack{
+                Spacer()
+                
+                
+            
+                Circle().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
+                               height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 20).padding(.top, -255).colorInvert().opacity(0.8)
+            }
+                 
+            HStack {
+                Spacer()
+            
+           
+                Button {
+                    
+                }
+                
+                label: {
+                    Image("pinned").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
+                                                      height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 15).padding(.top, -255)
+                    
+                }
+                    
+                
+                }
+            
             
             VStack{
                 
