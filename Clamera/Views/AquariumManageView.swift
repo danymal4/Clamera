@@ -18,7 +18,7 @@ struct AquariumManageView: View {
             Button {
                 editState = .notEditing
             } label: {
-                Text("<")
+                Text("< back")
             }
             Spacer()
         }.padding().padding(.top, -370)
@@ -45,6 +45,26 @@ struct AquariumManageView: View {
      
         Rectangle().opacity(0.8).colorInvert().cornerRadius(40).opacity(0.3).frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
                                                                                    height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.bottom, -280)
+       
+        VStack{
+            HStack {
+                Text("Filter Status")
+                Spacer()
+            }
+           
+            HStack {
+                Text("Remove Fish")
+                Spacer()
+            }
+            
+        }.padding(.horizontal, 40)
+        
+        
+      
+        
+      
+        
+        
         
         
         VStack {
@@ -52,7 +72,7 @@ struct AquariumManageView: View {
                       Rectangle()
                           .fill(Color.white.opacity(0.6))
                           .frame(height: 83)
-                           // or safeAreaInset if you want
+                         
                   }
               
               .edgesIgnoringSafeArea(.bottom)

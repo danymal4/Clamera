@@ -9,7 +9,8 @@ import SwiftUI
 
 struct SignInView: View {
     var body: some View{
-        
+
+
         WaterView()
             .position(x: 200, y: 650)
         

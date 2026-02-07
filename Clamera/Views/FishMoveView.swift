@@ -64,7 +64,7 @@ struct FishMoveView: View {
                             .rotation3DEffect(.degrees(facingRight ? 0 : 180), axis: (x: 0, y: 1, z: 0))
                             .rotationEffect(.degrees(tailAngle))
                             .offset(x: xOffset, y: yOffset)
-                            .opacity(0.9)
+                            .opacity(0.98)
                             .zIndex(z)
                             .animation(.easeInOut(duration: 0.3), value: facingRight)
                             .onTapGesture {

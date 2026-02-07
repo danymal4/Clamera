@@ -14,13 +14,15 @@ struct HomeView: View {
 
     var body: some View {
 
+
+
         ScrollView{
             
             
             ZStack{
                 
              
-                IconView()
+                IconView().padding(.horizontal, 10)
                 
                 VStack{
                     
@@ -137,7 +139,9 @@ struct HomeView: View {
               
               .edgesIgnoringSafeArea(.bottom)
 
+
             }}
+
         
 
         

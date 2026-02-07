@@ -17,8 +17,7 @@ struct FishDetailsView: View {
             IconView()
             WaterView().offset(y: -170)
             
-            Image("fishSchool").resizable().scaledToFit().frame(width: min(UIScreen.main.bounds.width * 0.2, 2000),
-                                                                height: min(UIScreen.main.bounds.width * 0.2, 2000)).padding().padding(.top, 200).padding(.trailing, 250)
+         
          
             
             ZStack{
@@ -33,14 +32,14 @@ struct FishDetailsView: View {
             HStack{
                 Spacer()
                 Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                     height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).padding(.top, 300).opacity(0.9)
+                                                     height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).padding(.top, 325).opacity(0.9)
             }
             
             
             HStack{
                 Spacer()
                 Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                                  height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).padding(.top, 430).colorMultiply(.gray).opacity(0.2)
+                                                                  height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).padding(.top, 435).colorMultiply(.gray).opacity(0.2)
             }
             
             
@@ -88,11 +87,11 @@ struct FishDetailsView: View {
             
             VStack{
                 
-                Text("Description").font(.title).bold()
-                    .padding()
+                Text("Description").font(.title2).bold().padding(.top, 8)
+                    
                     
              
-                  
+                Text("cool fish I found with sam").opacity(0.6)
                 
                     Text("Add to Aquarium")
                         .font(.system(size: UIScreen.main.bounds.width * 0.04))
@@ -121,7 +120,7 @@ struct FishDetailsView: View {
           
                     
                 
-            }.padding(.top, 290)
+            }.padding(.top, 300)
     
             Rectangle()
                 .fill(Color.white.opacity(0.6))

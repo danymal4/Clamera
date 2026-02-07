@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		401DF3052F339B410011B1E1 /* Exceptions for "Clamera" folder in "Clamera" target */ = {
+		317E5ACA2F3226A400149285 /* Exceptions for "Clamera" folder in "Clamera" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +24,7 @@
 		16BA8AAA2F2A490600BA04E9 /* Clamera */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				401DF3052F339B410011B1E1 /* Exceptions for "Clamera" folder in "Clamera" target */,
+				317E5ACA2F3226A400149285 /* Exceptions for "Clamera" folder in "Clamera" target */,
 			);
 			path = Clamera;
 			sourceTree = "<group>";
