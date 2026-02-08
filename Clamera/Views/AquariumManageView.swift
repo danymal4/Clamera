@@ -2,57 +2,45 @@ import SwiftUI
 
 struct AquariumManageView: View {
     @Binding var editState: EditState
-    @State var speed: Double = 5
-    @State var scale: Double = 5
     @State var isDropdown: Bool = false
 
-    // scale factor (so spacing grows slightly on larger screens)
-    
-    // customize will change filter colors
-    
-    
+    @State private var speedValues: [Double] = [5, 5, 5]
+    @State private var scaleValues: [Double] = [5, 5, 5]
+
+    func speedText(_ value: Double) -> String {
+        if value >= 7 { return "fast" }
+        if value >= 4 { return "medium" }
+        return "slow"
+    }
+
+    func scaleText(_ value: Double) -> String {
+        if value >= 7 { return "large" }
+        if value >= 4 { return "normal" }
+        return "small"
+    }
+
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
 
     var body: some View {
         ZStack {
 
-            // MARK: - Background
-          
-            WaterView().offset(y: -300)
-            
-            WaterView().offset(y: -700)
-            WaterView().offset(y: 200)
-            
-            WaterView().offset(y: 300)
-            WaterView().offset(y: 300).opacity(0.5)
-            
-          
-            Image("ripples").resizable() .frame(
-                width: min(UIScreen.main.bounds.width * 1, 2000),
-                height: min(UIScreen.main.bounds.width * 2.1, 2000)
-            ).opacity(0.03)
-            
-            IconView().padding(.top, 40)
+            Image("fishBackground")
+                .resizable().scaledToFill()
+                .edgesIgnoringSafeArea(.all)
 
-            // MARK: - Back Button
+            IconView()
+
             VStack {
                 HStack {
-                    Button {
-                        editState = .notEditing
-                    } label: {
-                        Text("< back")
-                    }
+                    Button { editState = .notEditing } label: { Text("< back") }
                     Spacer()
                 }
-                .padding().padding(.top, 40)
-                
+                .padding()
+                .padding(.top, 40)
 
                 Spacer()
             }
 
-         
-
-            // MARK: - Big Clear Rectangle
             Rectangle()
                 .opacity(0.45)
                 .colorInvert()
@@ -62,7 +50,7 @@ struct AquariumManageView: View {
                     height: min(UIScreen.main.bounds.width * 0.98, 2000)
                 )
                 .padding(.bottom, -15)
-            
+
             Rectangle()
                 .opacity(0.25)
                 .colorInvert()
@@ -73,13 +61,10 @@ struct AquariumManageView: View {
                 )
                 .padding(.bottom, -15)
 
-            // MARK: - Content inside rectangle
             VStack(alignment: .leading, spacing: 15) {
 
-                // Fish Label + Dropdown Button (always visible)
                 HStack {
                     Text("Fish")
-                          // small downward shift if needed
                         .animation(.easeInOut(duration: 0.25), value: isDropdown)
 
                     Button {
@@ -89,7 +74,6 @@ struct AquariumManageView: View {
                     } label: {
                         Image(systemName: isDropdown ? "chevron.up" : "chevron.down")
                             .foregroundStyle(.black)
-                        
                     }
 
                     Spacer()
@@ -97,14 +81,13 @@ struct AquariumManageView: View {
                 .padding(.top, 20)
                 .padding(.horizontal, 60)
 
-
-                // MARK: - Replaceable Content
                 ZStack {
 
-                    // Fish Icons + Sliders
                     if !isDropdown {
                         VStack(spacing: 8) {
-                            ForEach(0..<3) { i in
+
+                            ForEach(0..<3, id: \.self) { i in
+
                                 ZStack {
                                     Rectangle()
                                         .opacity(0.3)
@@ -114,31 +97,12 @@ struct AquariumManageView: View {
                                             width: min(UIScreen.main.bounds.width * 0.8, 2000),
                                             height: min(UIScreen.main.bounds.width * 0.25, 2000)
                                         )
-                                    
-                                    HStack{
-                                        Spacer()
-                                        
-                                        Button{
-                                            
-                                        }
-                                      
-                                        label: {
-                                           
-                                
-                                            Image("remove").resizable()
-                                                .frame(
-                                                    width: min(UIScreen.main.bounds.width * 0.05, 180),
-                                                    height: min(UIScreen.main.bounds.width * 0.05, 180)
-                                                )
-                                                .opacity(0.9)
-                                              
-                                      
-                                        }.padding(.bottom, 65)  .padding(.horizontal, 45)
-                                        }
 
                                     HStack {
-                                        let fishImages = ["puffer", "clownFish", "grouper"]
-                                        Image(fishImages[i])
+
+                                        Spacer().frame(width: 10)
+
+                                        Image(["puffer", "clownFish", "grouper"][i])
                                             .resizable()
                                             .frame(
                                                 width: min(UIScreen.main.bounds.width * 0.13, 180),
@@ -149,32 +113,43 @@ struct AquariumManageView: View {
                                                 Circle().colorInvert().opacity(0.5)
                                             )
 
-                                        VStack {
-                                            Slider(value: $speed, in: 1...10)
-                                            Slider(value: $scale, in: 1...10)
+                                        VStack(alignment: .leading, spacing: 5) {
+
+                                            HStack(spacing: 8) {
+                                                Text(speedText(speedValues[i]))
+                                                    .frame(width: 70, alignment: .leading) // fixed width
+                                                Slider(value: $speedValues[i], in: 1...10)
+                                            }
+                                            HStack(spacing: 8) {
+                                                Text(scaleText(scaleValues[i]))
+                                                    .frame(width: 70, alignment: .leading) // fixed width
+                                                Slider(value: $scaleValues[i], in: 1...10)
+                                            }
                                         }
-                                        Spacer()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                                        Spacer().frame(width: 10)
                                     }
                                     .padding(.horizontal, 60)
                                     .padding(.vertical, 10)
                                 }
+
                             }
+
                         }
-                        .transition(.opacity).padding(.bottom, 20)
+                        .transition(.opacity)
+                        .padding(.bottom, 20)
                     }
 
-                    // Dropdown Menu
                     if isDropdown {
                         VStack(alignment: .leading, spacing: 40) {
-
                             Text("Filter status").padding(.top, 25)
                             Text("Customize")
                             Text("Clear")
 
-                            // Invisible layout spacer
                             Rectangle()
                                 .fill(Color.clear)
-                                .frame(height: 20 * vScale) // tweak this to adjust spacing up/down
+                                .frame(height: 20 * vScale)
 
                         }
                         .padding(.horizontal, 60)
@@ -183,11 +158,8 @@ struct AquariumManageView: View {
                         )
                     }
                 }
-
             }
-          
 
-            // MARK: - Bottom White Bar
             VStack {
                 Spacer()
                 Rectangle()

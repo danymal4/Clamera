@@ -42,9 +42,9 @@ struct FishDetailsView: View {
                 label: {
                     
                     Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                         height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).opacity(0.9)
+                                                         height: min(UIScreen.main.bounds.width * 0.13, 180)).opacity(0.9)
                     
-                }.padding(.top, 325)
+                }.padding(.top, 325).padding(.trailing, 45)
                 }
             
             
@@ -58,8 +58,8 @@ struct FishDetailsView: View {
                 label: {
                     
                     Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                         height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).colorMultiply(.gray).opacity(0.2)
-                }.padding(.top, 435)
+                                                         height: min(UIScreen.main.bounds.width * 0.13, 180)).colorMultiply(.gray).opacity(0.2)
+                }.padding(.top, 435).padding(.trailing, 45)
             }
             
             
