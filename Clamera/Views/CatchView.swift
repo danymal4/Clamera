@@ -12,7 +12,7 @@ struct CatchView: View {
     @State var editState: EditState = .notEditing
 
     // Base iPhone size for scaling
-    let baseWidth: CGFloat = 390
+    let baseWidth: CGFloat = 403
     let baseHeight: CGFloat = 844
 
     var hScale: CGFloat { min(UIScreen.main.bounds.width / baseWidth, 1.2) }
@@ -70,7 +70,7 @@ struct CatchView: View {
                             .aspectRatio(contentMode: .fit)
                             .clipShape(Circle())
                             .frame(
-                                width: min(UIScreen.main.bounds.width * 0.25, 130), // slightly bigger
+                                width: min(UIScreen.main.bounds.width * 0.25, 220), // slightly bigger
                                 height: min(UIScreen.main.bounds.width * 0.3, 160) // slightly bigger
                             )
                             .opacity(0.9)
@@ -82,8 +82,8 @@ struct CatchView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(
-                                    width: min(UIScreen.main.bounds.width * 0.36, 190), // slightly bigger
-                                    height: min(UIScreen.main.bounds.width * 0.36, 190) // slightly bigger
+                                    width: min(UIScreen.main.bounds.width * 0.36, 220), // slightly bigger
+                                    height: min(UIScreen.main.bounds.width * 0.36, 220) // slightly bigger
                                 )
                         }
                         .offset(y: 20 * vScale)

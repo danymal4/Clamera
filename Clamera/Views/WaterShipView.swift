@@ -10,6 +10,7 @@ import SwiftUI
 struct WaterShipView: View {
     @State private var move = false
 
+    // try fixing issue with scaling  by setting wave to y position of other ones plus a fixed amount
        var body: some View {
       
            ZStack(alignment: .top) {

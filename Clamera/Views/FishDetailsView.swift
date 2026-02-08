@@ -16,9 +16,11 @@ struct FishDetailsView: View {
       
         
         ZStack{
-          
-            IconView()
-            WaterView().offset(y: -170)
+            
+            WaterView().offset(y: -350)
+         
+            IconView().padding(.top, 60)
+
            
           
             
@@ -33,23 +35,35 @@ struct FishDetailsView: View {
            
             HStack{
                 Spacer()
-                Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                     height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).padding(.top, 325).opacity(0.9)
-            }
+              
+                Button {
+                    
+                }
+                label: {
+                    
+                    Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
+                                                         height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).opacity(0.9)
+                    
+                }.padding(.top, 325)
+                }
             
             
             HStack{
                 Spacer()
-                Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                                                  height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).padding(.top, 435).colorMultiply(.gray).opacity(0.2)
+                
+                Button {
+                    
+                }
+                
+                label: {
+                    
+                    Image("clownFish").resizable().frame(width: min(UIScreen.main.bounds.width * 0.13, 180),
+                                                         height: min(UIScreen.main.bounds.width * 0.13, 180)).padding(.trailing, 45).colorMultiply(.gray).opacity(0.2)
+                }.padding(.top, 435)
             }
             
             
-            
-            
-            Text("Nemo")
-                .font(.custom("IslandMoments-Regular",  size: UIScreen.main.bounds.width * 0.3)).opacity(0.9).padding(.top, -360).foregroundStyle(.blue)
-                
+        
             HStack{
                 Text("Species: Clownfish").font(.system(size: UIScreen.main.bounds.width * 0.03)).opacity(0.8).padding(.top, 550)
            
@@ -99,9 +113,9 @@ struct FishDetailsView: View {
                             width: min(UIScreen.main.bounds.width * 0.08, 180),
                             height: min(UIScreen.main.bounds.width * 0.1, 180)
                         )
-                        .padding(.trailing, 30)
-                        .padding(.top, 190).foregroundStyle(.white).opacity(0.9)
-                }
+                        .foregroundStyle(.white).opacity(0.9)
+                } .padding(.trailing, 30)
+                    .padding(.top, 190)
 
                     
                 
@@ -147,9 +161,9 @@ struct FishDetailsView: View {
     
             Rectangle()
                 .fill(Color.white.opacity(0.6))
-                .frame(height: 83).padding(.top, 730)
+                .frame(height: 83).padding(.top, 790)
                  
-        }.padding(.top, 80)
+        }.padding(.top, 20)
   
      
                       

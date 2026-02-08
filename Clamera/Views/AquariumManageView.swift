@@ -7,6 +7,10 @@ struct AquariumManageView: View {
     @State var isDropdown: Bool = false
 
     // scale factor (so spacing grows slightly on larger screens)
+    
+    // customize will change filter colors
+    
+    
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
 
     var body: some View {
@@ -112,21 +116,24 @@ struct AquariumManageView: View {
                                         )
                                     
                                     HStack{
+                                        Spacer()
+                                        
                                         Button{
                                             
                                         }
+                                      
                                         label: {
                                            
-                                            Spacer()
+                                
                                             Image("remove").resizable()
                                                 .frame(
                                                     width: min(UIScreen.main.bounds.width * 0.05, 180),
                                                     height: min(UIScreen.main.bounds.width * 0.05, 180)
                                                 )
                                                 .opacity(0.9)
-                                                .padding(.horizontal, 45).padding(.bottom, 65)
+                                              
                                       
-                                        }
+                                        }.padding(.bottom, 65)  .padding(.horizontal, 45)
                                         }
 
                                     HStack {
