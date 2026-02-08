@@ -8,120 +8,113 @@
 import SwiftUI
 
 struct CatchView: View {
-   
+
     @State var editState: EditState = .notEditing
-    
-    
+
+    // Base iPhone size for scaling
+    let baseWidth: CGFloat = 390
+    let baseHeight: CGFloat = 844
+
+    var hScale: CGFloat { min(UIScreen.main.bounds.width / baseWidth, 1.2) }
+    var vScale: CGFloat { min(UIScreen.main.bounds.height / baseHeight, 1.2) }
+
     var body: some View {
-        
+
         if editState == .notEditing {
-            ZStack{
-                
-                
-                
-                
-                
-                WaterView().offset(y: -375)
-                IconView().offset(y: 85)
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                VStack{
-                    ZStack{
-                        Rectangle().frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                          height: min(UIScreen.main.bounds.width * 1.2, 2000))
-                        
-                        .foregroundStyle(Color.gray.opacity(0.4)).compositingGroup()
-                        .cornerRadius(20)
-                        HStack{
+
+            ZStack {
+
+                // Background layers
+                WaterView()
+                    .offset(y: -375 * vScale)
+
+                // IconView slightly higher
+                IconView()
+                    
+
+                // Main content VStack
+                VStack(spacing: 20 * vScale) {
+
+                    // Top rectangle with fish image
+                    ZStack {
+                        Rectangle()
+                            .frame(
+                                width: min(UIScreen.main.bounds.width * 0.8, 750), // slightly bigger
+                                height: min(UIScreen.main.bounds.width * 1.2, 750) // slightly bigger
+                            )
+                            .foregroundStyle(Color.gray.opacity(0.4))
+                            .compositingGroup()
+                            .cornerRadius(20)
+
+                        HStack(spacing: 20 * hScale) {
                             Text("Fish image")
                                 .font(.custom("HelveticaNeue-Thin", size: 20))
                                 .bold()
+
                             Image("FishIcon")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .clipShape(Circle())
-                                .frame(width: min(UIScreen.main.bounds.width * 0.3, 2000),
-                                       height: min(UIScreen.main.bounds.width * 0.3, 2000))
-                            
+                                .frame(
+                                    width: min(UIScreen.main.bounds.width * 0.3, 160), // slightly bigger
+                                    height: min(UIScreen.main.bounds.width * 0.3, 160) // slightly bigger
+                                )
                         }
-                    }.padding(.top, -40)
-                    HStack{
-                        VStack{
-                            
-                            
-                            Image("CameraIcon")
+                    }
+
+                    // Camera icon + upload button
+                    HStack(alignment: .center, spacing: 20 * hScale) {
+
+                        Image("CameraIcon")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(Circle())
+                            .frame(
+                                width: min(UIScreen.main.bounds.width * 0.25, 130), // slightly bigger
+                                height: min(UIScreen.main.bounds.width * 0.3, 160) // slightly bigger
+                            )
+                            .opacity(0.9)
+
+                        Button {
+                            editState = .editing
+                        } label: {
+                            Image("uploadIcon")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .clipShape(Circle())
-                                .frame(width: min(UIScreen.main.bounds.width * 0.25, 2000),
-                                       height: min(UIScreen.main.bounds.width * 0.3, 2000)).opacity(0.9)
-                            
-                        }.padding(.horizontal, 25)
-                        VStack{
-                            ZStack{
-                                
-                                
-                                
-                                Button {
-                                    editState = .editing
-                                }
-                                
-                                label: {
-                                    
-                                    
-                                    Image("uploadIcon")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                    
-                                        .frame(width: min(UIScreen.main.bounds.width * 0.36, 2000),
-                                               height: min(UIScreen.main.bounds.width * 0.36, 2000)).padding(.top, 40)
-                                }
-                                
-                                
-                                
-                            }
-                            
+                                .frame(
+                                    width: min(UIScreen.main.bounds.width * 0.36, 190), // slightly bigger
+                                    height: min(UIScreen.main.bounds.width * 0.36, 190) // slightly bigger
+                                )
                         }
-                    }.padding(.top, -30)
-                    
-                    
-                    
-                    
-                }.padding(.top, 135)
-                
-                
-                
-            }
-            
-            
-            
-            
-            
-            Spacer()
-            Rectangle()
-                .fill(Color.white.opacity(0.6))
-                .frame(height: 83).padding(.top, 810)
-            // or safeAreaInset if you want
-            
-            
-            
-        }
-        
-        else{
+                        .offset(y: 20 * vScale)
+
+                    }
+                    .offset(y: -20 * vScale)
+                    .offset(x: 10 * vScale)
+
+                }
+                // Bring entire content up a bit
+                .padding(.top, 80 * vScale)
+
+                // Bottom white bar
+                VStack {
+                    Spacer()
+                    Rectangle()
+                        .fill(Color.white.opacity(0.6))
+                        .frame(height: 83)
+                }
+                .edgesIgnoringSafeArea(.bottom)
+
+            } // ZStack
+
+        } else {
             CatchManageView(editState: $editState)
         }
-        
     }
-    
+}
+
+#Preview {
+    CatchView()
 }
 
 #Preview {

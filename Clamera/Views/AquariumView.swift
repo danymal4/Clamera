@@ -57,12 +57,12 @@ struct AquariumView: View {
                 }
                
                 Image("floor").resizable().frame(
-                    width: min(UIScreen.main.bounds.width * 0.84, 2000),
+                    width: min(UIScreen.main.bounds.width * 0.815, 2000),
                     height: min(UIScreen.main.bounds.width * 0.2, 2000)
-                ).padding(.top, 272).padding(.horizontal, 50).opacity(0.85)
+                ).padding(.top, 260).padding(.horizontal, 50).opacity(0.85)
                 
                 
-                // chest
+           
                // HStack{
                     
                //     Spacer()
@@ -78,11 +78,11 @@ struct AquariumView: View {
                     Rectangle()
                         .cornerRadius(5)
                         .foregroundStyle(.green)
-                        .opacity(0.1)
+                        .opacity(0.05)
                         .frame(
                             width: min(UIScreen.main.bounds.width * 0.84, 2000),
-                            height: min(UIScreen.main.bounds.width * 0.475, 2000)
-                        ).padding(.bottom, -162)
+                            height: min(UIScreen.main.bounds.width * 0.46, 2000)
+                        ).padding(.bottom, -159)
                     
                 }
                 
