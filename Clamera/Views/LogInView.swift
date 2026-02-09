@@ -8,112 +8,86 @@
 import SwiftUI
 
 struct LogInView: View {
-    var body: some View {
-       
+    var body: some View{
         
-        ZStack{
-            IconView()
+        WaterView()
+            .position(x: 200, y: 480)
+        
+        HStack {
             
-            WaterView()
-                .position(x:201, y: 400)
-                
-            HStack {
-                
-                VStack{
-                 
-                        
+            VStack{
+                HStack {
+                    Text("Clamera")
+                        .font(.custom("IslandMoments-Regular", size: 90))
+                        .foregroundStyle(.blue)
                     
-                 
+                }.position(x: 200, y: 40)
+                HStack {
+                    Text("Log In")
+                        .font(.custom("HelveticaNeue-Thin", size: 20))
+                        .bold()
                     
+                }.position(x: 200,y:50)
+                HStack {
+                    Text("Enter your email and password to log in")
+                        .font(.custom("HelveticaNeue-Thin", size: 18))
                     
-                    
-                    ZStack {
-                        Text("Clamera")
-                            .font(.custom("IslandMoments-Regular", size: 70))
-                            .bold()
-                            .foregroundStyle(Color.clameraBlue)
-                        Text("<")
-                            .padding(.trailing, 300)
-                            .font(.custom("IslandMoments-Regular", size: 70))
-                        
-                    }
-                    
-                    
-                    
-                    
-                    HStack {
-                        Text("Login info ")
-                            .font(.custom("HelveticaNeue-Thin", size: 25))
-                            .bold()
-                        
-                    }
-                    HStack{
-                        Text("Email")
-                            .font(.custom("HelveticaNeue-Thin", size: 20))
-                            .bold()
-                    }
-                    
-                    
-                    HStack{
-                        Rectangle()
-                            .frame(width: 250, height: 40)
-                            .foregroundStyle(Color.clameraBlue.opacity(0.5))
-                            .cornerRadius(20)
-                    }
-                    
-                    
-                    HStack{
-                        Text("Password")
-                            .font(.custom("HelveticaNeue-Thin", size: 20))
-                            .bold()
-                    }
-                    
-                    
-                    HStack{
-                        Rectangle()
-                            .frame(width: 250, height: 40)
-                            .foregroundStyle(Color.clameraBlue.opacity(0.5))
-                            .cornerRadius(20)
-                        
-                    }
-                   
-                    
-                    ZStack{
-                        Rectangle()
-                            .frame(width: 200, height: 40)
-                            .foregroundStyle(Color.clameraBlue)
-                            .cornerRadius(20)
-                        Text("Continue")
-                            .font(.custom("HelveticaNeue-Thin", size: 15))
-                            .foregroundStyle(Color.white)
-                            .bold()
-                            
-                            
-                         
-                            
-                        
-                    }
-                    
-                    
-                    
-                }
-                
-                
+                } .position(x: 200, y:20)
                 
             }
-            .position(x: 200, y: 200)
             
             
-            
-            
-        }
+        } .position(x:200, y:-40)
         
+        ZStack{
+            Text("<")
+                .font(.custom("HelveticaNeue-Thin", size: 40))
+                .bold()
+                .position(x: 40, y: -160)
+                
+            
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 2)
+                .foregroundStyle(.white)
+                .frame(width: 350, height: 50)
+                
+            Text("email@​domain.com")
+                .foregroundStyle(.gray)
+                .bold()
+                .padding(.trailing, 170)
+            
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 2)
+                .foregroundStyle(.white)
+                .frame(width: 350, height: 50)
+                .position(x: 200, y:160)
+                
+            Text("Password123")
+                .foregroundStyle(.gray)
+                .bold()
+                .padding(.trailing, 220)
+                .position(x: 200, y:160)
+            
+        }.position(x: 200, y: -120)
+        
+        
+        
+        ZStack{
+            Rectangle()
+                .foregroundStyle(.blue)
+                .frame(width: 350, height: 50)
+                .cornerRadius(10)
+                .position(x: 200, y:-185)
+            
+            
+            Text("Continue")
+                .foregroundStyle(.white)
+                .bold()
+                .position(x: 200, y:-185)
+            
         }
     }
-
-
-
-
+    }
 #Preview {
     LogInView()
 }

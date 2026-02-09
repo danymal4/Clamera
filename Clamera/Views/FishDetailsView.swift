@@ -103,6 +103,7 @@ struct FishDetailsView: View {
             HStack {
                 Spacer()
             
+
            
                 Button {
                     pinned.toggle()
@@ -121,6 +122,20 @@ struct FishDetailsView: View {
                 
                 }
             
+
+            Text("Cool fish I found named Nemo")
+                .foregroundStyle(.gray)
+                .font(.custom("", size: 20))
+                .position(x: 200, y: 630)
+            
+            Text("Add to Aquarium")
+                .font(.custom("", size: 20))
+                .position(x: 107, y: 680)
+            
+            Text("Remove From Aquarium")
+                .font(.custom("", size: 20))
+                .position(x: 140, y: 725)
+
             
             VStack{
                 
