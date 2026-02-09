@@ -31,7 +31,7 @@ struct HomerView: View {
     }
     
     var body: some View {
-        TabView(selection: $tabRouter.viewState) { // <- bind to environment object
+        TabView(selection: $tabRouter.viewState) { 
             
             ZStack {
                 Color.clear.ignoresSafeArea()

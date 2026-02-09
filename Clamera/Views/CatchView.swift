@@ -122,6 +122,3 @@ struct CatchView: View {
     CatchView()
 }
 
-#Preview {
-    CatchView()
-}
