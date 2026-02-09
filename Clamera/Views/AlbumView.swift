@@ -10,7 +10,7 @@ import SwiftUI
 struct AlbumView: View {
     var body: some View {
         ZStack {
-            WaterView()
+            WaterView().offset(y: -2000)
             VStack {
                 Text("Album")
                     .font(.custom("IslandMoments-Regular", size: 90))
@@ -39,8 +39,15 @@ struct AlbumView: View {
                 ScrollView {
                     HStack {
                         VStack {
-                            Rectangle()
-                                .aspectRatio(contentMode: .fit)
+                           
+                            Button {
+                                
+                            }
+                            
+                            label:{
+                                Rectangle()
+                                    .aspectRatio(contentMode: .fit)
+                            }
                             Text("Fish")
                                 .font(Font(Constants.tabFont))
                         }.padding()
@@ -129,7 +136,18 @@ struct AlbumView: View {
                     }
                 }
             }
-        }
+        }.padding(.bottom, -4000)
+        VStack {
+                      Spacer()
+                      Rectangle()
+                          .fill(Color.white.opacity(0.6))
+                          .frame(height: 83)
+                           // or safeAreaInset if you want
+                  }
+              
+              .edgesIgnoringSafeArea(.bottom)
+        
+      
     }
 }
 
