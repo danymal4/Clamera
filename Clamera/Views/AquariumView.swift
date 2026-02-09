@@ -23,7 +23,7 @@ struct AquariumView: View {
 
             ZStack {
 
-                IconView().padding(.horizontal, 15)
+                IconView().padding(.horizontal, 12)
 
                 VStack {
                     Text("Aquarium")

@@ -65,16 +65,21 @@ struct CatchView: View {
                     // Camera icon + upload button
                     HStack(alignment: .center, spacing: 20 * hScale) {
 
-                        Image("CameraIcon")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(Circle())
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.25, 220), // slightly bigger
-                                height: min(UIScreen.main.bounds.width * 0.3, 160) // slightly bigger
-                            )
-                            .opacity(0.9)
-
+                        Button {
+                            
+                        }
+                        
+                        label: {
+                            Image("CameraIcon")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .clipShape(Circle())
+                                .frame(
+                                    width: min(UIScreen.main.bounds.width * 0.25, 220), // slightly bigger
+                                    height: min(UIScreen.main.bounds.width * 0.3, 160) // slightly bigger
+                                )
+                                .opacity(0.9)
+                        }
                         Button {
                             editState = .editing
                         } label: {

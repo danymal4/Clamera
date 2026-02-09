@@ -54,7 +54,7 @@ struct CatchManageView: View {
                 }
                 Spacer()
             }.padding(.bottom, 730).padding()
-            IconView()
+            IconView().padding(.top, 25)
             
             
             Rectangle()

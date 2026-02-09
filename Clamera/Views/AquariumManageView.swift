@@ -28,15 +28,15 @@ struct AquariumManageView: View {
                 .resizable().scaledToFill()
                 .edgesIgnoringSafeArea(.all)
 
-            IconView()
+            IconView().padding(.top, 12)
 
             VStack {
                 HStack {
                     Button { editState = .notEditing } label: { Text("< back") }
                     Spacer()
                 }
-                .padding()
-                .padding(.top, 40)
+                .padding(.horizontal, 15)
+                
 
                 Spacer()
             }
@@ -161,7 +161,22 @@ struct AquariumManageView: View {
                                 Text("94%").padding(.horizontal, -25).foregroundStyle(.gray).font(.system(size: UIScreen.main.bounds.width * 0.035))
                                 
                             }.padding(.top, 25)
-                            Text("Customize")
+                           
+                            HStack{
+                                Text("Customize")
+                                
+                                Button {
+                                    
+                                }
+                                
+                                label: {
+                                    Image("colorWheel").resizable().frame(
+                                        width: min(UIScreen.main.bounds.width * 0.09, 2000),
+                                        height: min(UIScreen.main.bounds.width * 0.09, 2000)
+                                    )
+                                }.padding(.horizontal, 20)
+                                
+                            }
                            
                             HStack{
                                 Text("Clear")
