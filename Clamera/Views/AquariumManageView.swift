@@ -143,10 +143,40 @@ struct AquariumManageView: View {
 
                     if isDropdown {
                         VStack(alignment: .leading, spacing: 40) {
-                            Text("Filter status").padding(.top, 25)
+                           
+                            HStack{
+                                Text("Filter status")
+                                
+                                Button {
+                                    
+                                }
+                                
+                                label: {
+                                    Image("med").resizable().frame(
+                                        width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                        height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                    )
+                                }.padding(.horizontal, 20)
+                                
+                                Text("94%").padding(.horizontal, -25).foregroundStyle(.gray).font(.system(size: UIScreen.main.bounds.width * 0.035))
+                                
+                            }.padding(.top, 25)
                             Text("Customize")
-                            Text("Clear")
-
+                           
+                            HStack{
+                                Text("Clear")
+                                
+                                Button {
+                                    
+                                }
+                                
+                                label: {
+                                    Image("clear").resizable().frame(
+                                        width: min(UIScreen.main.bounds.width * 0.09, 2000),
+                                        height: min(UIScreen.main.bounds.width * 0.09, 2000)
+                                    )
+                                }.padding(.horizontal, 20)
+                            }
                             Rectangle()
                                 .fill(Color.clear)
                                 .frame(height: 20 * vScale)
