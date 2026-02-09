@@ -14,7 +14,6 @@ struct SignInView: View {
             .position(x: 200, y: 650)
         
         HStack {
-            
             VStack{
                 HStack {
                     Text("Clamera")
@@ -76,7 +75,7 @@ struct SignInView: View {
                 .position(x: 200, y:-200)
             
             
-            Text("Continue With Google")
+            Text("Continue With Username & Password")
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-150)
@@ -88,10 +87,22 @@ struct SignInView: View {
                 .position(x: 200, y:-90)
             
             
-            Text("Continue With Apple")
+            Text("Continue With Google")
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-90)
+            
+            Rectangle()
+                .foregroundStyle(.gray)
+                .frame(width: 350, height: 50)
+                .cornerRadius(10)
+                .position(x: 200, y:-30)
+            
+            
+            Text("Continue With Apple")
+                .foregroundStyle(.white)
+                .bold()
+                .position(x: 200, y:-30)
             
             Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
                 .foregroundStyle(.gray)
@@ -99,7 +110,7 @@ struct SignInView: View {
                 .font(.custom("HelveticaNeue-Thin", size: 14))
                 .padding(.leading, 40)
                 .padding(.trailing, 40)
-                .position(x: 200, y: -18)
+                .position(x: 200, y: 30)
             
         }
 
