@@ -14,8 +14,8 @@ struct AquariumManageView: View {
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
 
     func speedText(_ value: Double) -> String {
-        if value >= 7 { return "fast" }
-        if value >= 4 { return "avg" }
+        if value >= 12 { return "fast" }
+        if value >= 6 { return "avg" }
         return "slow"
     }
 
