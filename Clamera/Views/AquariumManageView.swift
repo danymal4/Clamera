@@ -1,15 +1,17 @@
 import SwiftUI
 
+
 struct AquariumManageView: View {
     @Binding var editState: EditState
     @State var isDropdown: Bool = true
 
-    @State private var speedValues: [Double] = [5, 5, 5]
-    @State private var scaleValues: [Double] = [5, 5, 5]
+    @State private var speedValues: [Double] = [5, 5, 5] // 1..10
+    @State private var scaleValues: [Double] = [5, 5, 5] // 1..10
+    @State private var rotationAngles: [Double] = [0, 0, 0]
 
     func speedText(_ value: Double) -> String {
         if value >= 7 { return "fast" }
-        if value >= 4 { return "medium" }
+        if value >= 4 { return "avg" }
         return "slow"
     }
 
@@ -37,7 +39,6 @@ struct AquariumManageView: View {
                 }
                 .padding(.horizontal, 15)
                 
-
                 Spacer()
             }
 
@@ -102,7 +103,7 @@ struct AquariumManageView: View {
 
                                         Spacer().frame(width: 10)
 
-                                        Image(["puffer", "clownFish", "grouper"][i])
+                                        Image(["puffer", "clownfishIcon", "grouper"][i])
                                             .resizable()
                                             .frame(
                                                 width: min(UIScreen.main.bounds.width * 0.13, 180),
@@ -112,17 +113,49 @@ struct AquariumManageView: View {
                                             .background(
                                                 Circle().colorInvert().opacity(0.5)
                                             )
+                                            // ✅ scale based on slider
+                                            .scaleEffect(0.5 + (scaleValues[i] / 10))
+                                            // ✅ rotation animation
+                                            .rotationEffect(.degrees(rotationAngles[i]))
+                                            .onAppear {
+                                                let minAngle = 5.0
+                                                let maxAngle = 10.0
+                                                let direction = Bool.random() ? 1.0 : -1.0
+
+                                                // use speedValues[i] to control duration: faster = shorter duration
+                                                let duration = max(0.3, 2.0 - (speedValues[i] / 5))
+
+                                                withAnimation(
+                                                    Animation.easeInOut(duration: duration)
+                                                        .repeatForever(autoreverses: true)
+                                                ) {
+                                                    rotationAngles[i] = maxAngle * direction
+                                                }
+                                            }
 
                                         VStack(alignment: .leading, spacing: 5) {
 
-                                            HStack(spacing: 8) {
-                                                Text(speedText(speedValues[i]))
-                                                    .frame(width: 70, alignment: .leading) // fixed width
+                                            HStack(spacing: 1.5 * scaleValues[i] - 8) {
+                                                Text(speedText(speedValues[i])).padding(.horizontal,  1.5 * scaleValues[i] - 6)
+                                                    .frame(width: 70, alignment: .leading)
                                                 Slider(value: $speedValues[i], in: 1...10)
+                                                    .onChange(of: speedValues[i]) { _ in
+                                                        // force reapply animation when speed changes
+                                                        let minAngle = 5.0
+                                                        let maxAngle = 10.0
+                                                        let direction = Bool.random() ? 1.0 : -1.0
+                                                        let duration = max(0.3, 2.0 - (speedValues[i] / 5))
+                                                        withAnimation(
+                                                            Animation.easeInOut(duration: duration)
+                                                                .repeatForever(autoreverses: true)
+                                                        ) {
+                                                            rotationAngles[i] = maxAngle * direction
+                                                        }
+                                                    }
                                             }
-                                            HStack(spacing: 8) {
-                                                Text(scaleText(scaleValues[i]))
-                                                    .frame(width: 70, alignment: .leading) // fixed width
+                                            HStack(spacing: 1.5 * scaleValues[i] - 8) {
+                                                Text(scaleText(scaleValues[i])).padding(.horizontal,  1.5 * scaleValues[i] - 6)
+                                                    .frame(width: 70, alignment: .leading)
                                                 Slider(value: $scaleValues[i], in: 1...10)
                                             }
                                         }
@@ -143,55 +176,38 @@ struct AquariumManageView: View {
 
                     if isDropdown {
                         VStack(alignment: .leading, spacing: 40) {
-                           
                             HStack{
                                 Text("Filter status")
-                                
-                                Button {
-                                    
-                                }
-                                
-                                label: {
+                                Button {} label: {
                                     Image("med").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.12, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.12, 2000)
                                     )
                                 }.padding(.horizontal, 20)
-                                
+
                                 Text("94%").padding(.horizontal, -25).foregroundStyle(.gray).font(.system(size: UIScreen.main.bounds.width * 0.035))
-                                
                             }.padding(.top, 25)
-                           
+
                             HStack{
                                 Text("Customize")
-                                
-                                Button {
-                                    
-                                }
-                                
-                                label: {
+                                Button {} label: {
                                     Image("colorWheel").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.09, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.09, 2000)
                                     )
                                 }.padding(.horizontal, 20)
-                                
                             }
-                           
+
                             HStack{
                                 Text("Clear")
-                                
-                                Button {
-                                    
-                                }
-                                
-                                label: {
+                                Button {} label: {
                                     Image("clear").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.09, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.09, 2000)
                                     )
                                 }.padding(.horizontal, 20)
                             }
+
                             Rectangle()
                                 .fill(Color.clear)
                                 .frame(height: 20 * vScale)
@@ -219,4 +235,3 @@ struct AquariumManageView: View {
 #Preview {
     AquariumManageView(editState: Binding.constant(.editing))
 }
-

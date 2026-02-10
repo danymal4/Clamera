@@ -19,15 +19,16 @@ struct Fish: Identifiable, Hashable {
     let id = UUID()
     let photo: String
     let speciesName: String
-    let description: String = ""     // default
-    let dateCaught: Date = Date()    // default
+    let description: String = "cool fish I found with sam"
+    let dateCaught: Date = Date()
+    let isPinned: Bool = false
 }
 
 struct Species: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let imageName: String
-    let icon: String = "clownFish"
+    let icon: String = "clownfishIcon"
     let fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
@@ -86,6 +87,44 @@ struct AlbumView: View {
         GridItem(.flexible())
     ]
 
+    // Search bar text
+    @State private var searchText: String = ""
+
+    // Filter options
+    enum FilterOption: String, CaseIterable, Identifiable {
+        case alphabetical = "Alphabetical"
+        case caught = "Caught Fish"
+        case notCaught = "Not Caught Fish"
+
+        var id: String { self.rawValue }
+    }
+
+    @State private var selectedFilter: FilterOption = .alphabetical
+
+    // Compute filtered species based on search + filter
+    var filteredSpecies: [Species] {
+        var filtered = speciesList
+
+        // Apply search text filter
+        if !searchText.isEmpty {
+            filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        }
+
+        // Apply filter options with alphabetical sorting
+        switch selectedFilter {
+        case .alphabetical:
+            filtered.sort { $0.name < $1.name }
+        case .caught:
+            filtered = filtered.filter { !$0.fishList.isEmpty }
+            filtered.sort { $0.name < $1.name }
+        case .notCaught:
+            filtered = filtered.filter { $0.fishList.isEmpty }
+            filtered.sort { $0.name < $1.name }
+        }
+
+        return filtered
+    }
+
     var body: some View {
         ZStack {
             WaterView()
@@ -100,11 +139,12 @@ struct AlbumView: View {
                     .foregroundStyle(.blue)
                     .padding(.top)
 
-                // Search + Filter
+                // Search + Filter HStack
                 HStack(spacing: 10) {
+                    // Search bar
                     HStack {
-                        Text("Search")
-                            .foregroundColor(.gray)
+                        TextField("Search", text: $searchText)
+                            .foregroundColor(.black)
                             .padding(.leading, 10)
                         Spacer()
                     }
@@ -114,19 +154,26 @@ struct AlbumView: View {
                             .stroke(.gray, lineWidth: 2)
                     )
 
-                    VStack {
-                        Image(systemName: "line.horizontal.3.decrease")
-                        Text("Filter")
-                            .font(.custom("HelveticaNeue-Thin", size: 15))
+                    // Filter menu button (icon + text stays visible)
+                    Menu {
+                        Button("Alphabetical") { selectedFilter = .alphabetical }
+                        Button("Caught Fish") { selectedFilter = .caught }
+                        Button("Not Caught Fish") { selectedFilter = .notCaught }
+                    } label: {
+                        VStack {
+                            Image(systemName: "line.horizontal.3.decrease")
+                            Text("Filter")
+                                .font(.custom("HelveticaNeue-Thin", size: 15))
+                        }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
                 .padding(.horizontal)
 
                 // Grid
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(speciesList) { item in
+                        ForEach(filteredSpecies) { item in
                             let hasFish = !item.fishList.isEmpty
 
                             Group {
@@ -175,7 +222,6 @@ struct SpeciesGridItem: View {
                     )
                     .cornerRadius(15)
 
-               
                 Image(species.imageName)
                     .resizable()
                     .scaledToFill()

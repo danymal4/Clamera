@@ -36,7 +36,7 @@ struct FishDetailsView: View {
               
                 Button {
                 } label: {
-                    Image("clownFish") // 👈 was hardcoded
+                    Image("\(fish.speciesName.lowercased())Icon")
                         .resizable()
                         .frame(
                             width: min(UIScreen.main.bounds.width * 0.13, 180),
@@ -53,7 +53,7 @@ struct FishDetailsView: View {
                 
                 Button {
                 } label: {
-                    Image("clownFish") // 👈 was hardcoded
+                    Image("\(fish.speciesName.lowercased())Icon") // 👈 was hardcoded
                         .resizable()
                         .frame(
                             width: min(UIScreen.main.bounds.width * 0.13, 180),
@@ -130,7 +130,7 @@ struct FishDetailsView: View {
                     .bold()
                     .padding(.top, 8)
                     
-                Text("cool fish I found with sam")
+                Text(fish.description)
                     .opacity(0.6)
                 
                 Text("Add to Aquarium")

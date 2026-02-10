@@ -19,7 +19,7 @@ struct FishMoveView: View {
     }
 
     @State private var fishList: [Fish] = [
-        Fish(imageName: "clownFish", size: CGSize(width: 80, height: 50),
+        Fish(imageName: "clownfishIcon", size: CGSize(width: 80, height: 50),
              horizontalRange: -120...120, verticalRange: -30...30,
              swimDuration: 8, phaseOffset: 0),
         Fish(imageName: "puffer", size: CGSize(width: 70, height: 45),

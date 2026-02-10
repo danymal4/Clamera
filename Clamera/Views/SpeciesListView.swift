@@ -23,7 +23,7 @@ struct SpeciesListView: View {
         ZStack {
             // Background water (unchanged)
             WaterView()
-                .offset(y: -240)
+                .offset(y: -234)
                 .ignoresSafeArea()
             
             IconView()
@@ -41,7 +41,7 @@ struct SpeciesListView: View {
                         Image(systemName: "line.horizontal.3.decrease")
                         Text("Filter")
                             .font(.custom("HelveticaNeue-Thin", size: 15))
-                    }.padding(.top, 300)
+                    }.padding(.top, 320)
                 }
                 .padding(.trailing, 20)
             }
@@ -54,10 +54,10 @@ struct SpeciesListView: View {
                     RoundedRectangle(cornerRadius: 35)
                         .fill(Color.white.opacity(0.15))
                         .frame(
-                            width: UIScreen.main.bounds.width * 0.95,
+                            width: UIScreen.main.bounds.width * 0.93,
                             height: UIScreen.main.bounds.width * 1.15 // taller than grid
                         )
-                        .blur(radius: 0.3)
+                        
                     
                     // Scrollable grid
                     ScrollView {
@@ -102,7 +102,7 @@ struct SpeciesListView: View {
                     .frame(height: UIScreen.main.bounds.width * 1.05)
                 }
             }
-            .padding(.top, 100) // same offset as your ScrollView before
+            .padding(.top, 120) // same offset as your ScrollView before
             
             // Bottom overlay (unchanged)
             Rectangle()
