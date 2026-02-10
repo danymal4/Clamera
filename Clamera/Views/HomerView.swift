@@ -23,7 +23,7 @@ struct HomerView: View {
     @StateObject private var aquarium = AquariumFishList()
     
     init() {
-        // Make the system TabBar background fully transparent
+        //Makes the system TabBar background fully transparent
         let appearance = UITabBarAppearance()
         appearance.configureWithTransparentBackground()
         UITabBar.appearance().standardAppearance = appearance
