@@ -34,7 +34,10 @@ struct LogInView: View {
                     
                 } .position(x: 200, y:20)
                 
+                
+                
             }
+            .position(x: 200, y: 200)
             
             
         } .position(x:200, y:-40)
