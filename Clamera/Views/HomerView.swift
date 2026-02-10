@@ -4,21 +4,23 @@
 //
 //  Created by Ellis Kamplain (student LM) on 2/4/26.
 //
-
 import SwiftUI
 
-enum ViewState{
+enum ViewState {
     case home, aquarium, profile, caught, album
 }
-
 
 final class TabRouter: ObservableObject {
     @Published var viewState: ViewState = .home
 }
+
 struct HomerView: View {
     
-    // Replace @State with @StateObject
+    // Single TabRouter
     @StateObject private var tabRouter = TabRouter()
+    
+    // Shared Aquarium instance for the whole app
+    @StateObject private var aquarium = AquariumFishList()
     
     init() {
         // Make the system TabBar background fully transparent
@@ -62,7 +64,7 @@ struct HomerView: View {
             }
             
             ZStack {
-                NavigationStack{
+                NavigationStack {
                     AlbumView()
                 }
             }
@@ -80,11 +82,14 @@ struct HomerView: View {
                 Label("Profile", systemImage: "person")
             }
         }
-        .environmentObject(tabRouter) // <- provide it to all children
+        // Provide the TabRouter and Aquarium instance to all child views
+        .environmentObject(tabRouter)
+        .environmentObject(aquarium)
     }
 }
 
 #Preview {
     HomerView()
-        .environmentObject(TabRouter()) // <- preview needs it
+        .environmentObject(TabRouter())
+        .environmentObject(AquariumFishList())
 }

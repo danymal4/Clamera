@@ -12,6 +12,7 @@ enum EditState {
 
 struct AquariumView: View {
 
+    @StateObject var aquarium = AquariumFishList()  // shared instance
     @State var editState: EditState = .notEditing
     @State var clean: Double = 0.3
     @State var speed: Double = 0
@@ -45,23 +46,17 @@ struct AquariumView: View {
                             .padding(.bottom, 65)
                             .scaleEffect(1.45)
 
-                        
-                        
-                                 // filter “dirtiness”
-                                 Rectangle()
-                                     .cornerRadius(5)
-                                     .foregroundStyle(.green)
-                                     .opacity(clean) // animated opacity
-                                     .frame(
-                                         width: min(UIScreen.main.bounds.width * 0.84, 2000),
-                                         height: min(UIScreen.main.bounds.width * 0.46, 2000)
-                                     )
-                                     .padding(.bottom, 77)
-                             
-                        
-                        
-                        
-                        
+                        // filter “dirtiness”
+                        Rectangle()
+                            .cornerRadius(5)
+                            .foregroundStyle(.green)
+                            .opacity(clean) // animated opacity
+                            .frame(
+                                width: min(UIScreen.main.bounds.width * 0.84, 2000),
+                                height: min(UIScreen.main.bounds.width * 0.46, 2000)
+                            )
+                            .padding(.bottom, 77)
+
                         HStack {
                             Spacer()
 
@@ -98,9 +93,8 @@ struct AquariumView: View {
                     .padding(.horizontal, 50)
                     .opacity(0.85 - clean)
 
-           
-
-                FishMoveView().opacity(1-clean)
+                // ✅ Use the shared aquarium instance
+                FishMoveView(aquarium: aquarium).opacity(1-clean)
 
                 VStack {
                     Spacer()
@@ -147,7 +141,8 @@ struct AquariumView: View {
             )
         }
         else {
-            AquariumManageView(editState: $editState)
+          
+            AquariumManageView(editState: $editState).environmentObject(aquarium)
         }
     }
 }
