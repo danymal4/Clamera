@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AquariumManageView: View {
     @Binding var editState: EditState
-    @State var isDropdown: Bool = false
+    @State var isDropdown: Bool = true
 
     @State private var speedValues: [Double] = [5, 5, 5]
     @State private var scaleValues: [Double] = [5, 5, 5]

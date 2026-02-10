@@ -31,7 +31,7 @@ struct HomerView: View {
     }
     
     var body: some View {
-        TabView(selection: $tabRouter.viewState) { 
+        TabView(selection: $tabRouter.viewState) {
             
             ZStack {
                 Color.clear.ignoresSafeArea()
@@ -62,7 +62,9 @@ struct HomerView: View {
             }
             
             ZStack {
-                AlbumView()
+                NavigationStack{
+                    AlbumView()
+                }
             }
             .tag(ViewState.album)
             .tabItem {
