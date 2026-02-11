@@ -63,7 +63,13 @@ struct SpeciesListView: View {
                                                 height: UIScreen.main.bounds.width * 0.33
                                             )
                                             .cornerRadius(15)
-
+                                        
+                                        Text("Image Not Found")
+                                            .font(.custom("", size: 20))
+                                            .foregroundStyle(.red)
+                                            
+                                        
+                                        // NavigationLink remains
                                         NavigationLink(
                                             destination: FishDetailsView(fish: fish)
                                         ) {

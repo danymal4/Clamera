@@ -26,7 +26,7 @@ struct ProfileView: View {
                     .resizable().aspectRatio(contentMode: .fit) .clipShape(Circle()).overlay(Circle().stroke(Color.blue, lineWidth: 5).opacity(0.2)).frame(width: min(UIScreen.main.bounds.width * 0.9, 2000),
                                                                                                                                                             height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.top, -40)
                 
-                Text("Ellis").padding(.top, -38).font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold().padding(.top, -5).opacity(0.9)
+                Text("John Smith").padding(.top, -38).font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold().padding(.top, -5).opacity(0.9)
              
                 ZStack {
                    
@@ -47,7 +47,7 @@ struct ProfileView: View {
                     HStack(){
                        
                         VStack{
-                            Text("email:     s019204@gmail.com ")
+                            Text("email:     s069420@​gmail.com ")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -56,7 +56,7 @@ struct ProfileView: View {
                                 )
 
                           
-                            Text("password:   ******")
+                            Text("password:   ***")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -64,7 +64,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
 
-                            Text("Fish Caught:   230")
+                            Text("Fish Caught:   42")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -73,7 +73,7 @@ struct ProfileView: View {
                                 )
 
                             HStack{
-                                Text("Clam Points:   2000")
+                                Text("Clam Points:   ∞")
                                     .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                     .opacity(0.8)
                                     .bold().padding(.bottom, 4).frame(
