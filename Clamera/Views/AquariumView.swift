@@ -124,7 +124,7 @@ struct AquariumView: View {
                         Rectangle()
                             .cornerRadius(5)
                             .foregroundStyle(.blue)
-                            .opacity(0.16)
+                            .opacity(0.13)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.84, 2000),
                                 height: min(UIScreen.main.bounds.width * 0.46, 2000)

@@ -73,7 +73,7 @@ final class AquariumFishList: ObservableObject {
     }
 
     
-    // convenience methods
+    
     func updateSpeed(for fish: AquariumFish, to newDuration: Double) {
         fish.swimDuration = newDuration
     }
@@ -167,7 +167,7 @@ struct FishMoveView: View {
                         
                     }
                     
-                    // --- Fish ---
+ 
                     ForEach(aquarium.fish) { fish in
                         let speed = speedMultipliers[fish.id] ?? 1.0
                         let z = zIndices[fish.id] ?? 0
@@ -196,8 +196,7 @@ struct FishMoveView: View {
                             y: geo.frame(in: .local).midY + (yOffset + 80)
                         )
                         
-                        ZStack{
-                            
+                        ZStack {
                             
                             Image(fish.imageName)
                                 .resizable()
@@ -207,11 +206,9 @@ struct FishMoveView: View {
                                     .degrees(facingRight ? 0 : 180),
                                     axis: (x: 0, y: 1, z: 0)
                                 )
-                            
                                 .rotationEffect(.degrees(tailAngle))
                                 .offset(x: xOffset, y: yOffset)
                                 .opacity(fish.isActive ? 0.95 : 0)
-                                .zIndex(z)
                                 .animation(.easeInOut(duration: 0.3), value: facingRight)
                                 .onTapGesture {
                                     if canBoost {
@@ -223,12 +220,8 @@ struct FishMoveView: View {
                                                 speedMultipliers[fish.id] = 1.0
                                             }
                                         }
-                                        
-                                       
                                     }
                                 }
-                            
-                            
                             
                             Image(fish.imageName)
                                 .resizable()
@@ -238,11 +231,10 @@ struct FishMoveView: View {
                                     .degrees(facingRight ? 0 : 180),
                                     axis: (x: 0, y: 1, z: 0)
                                 )
-                            
-                                .rotationEffect(.degrees(tailAngle)).colorMultiply(.blue.opacity(0.2))
+                                .rotationEffect(.degrees(tailAngle))
+                                .colorMultiply(.blue.opacity(0.18))
                                 .offset(x: xOffset, y: yOffset)
                                 .opacity(fish.isActive ? 0.95 : 0)
-                                .zIndex(z)
                                 .animation(.easeInOut(duration: 0.3), value: facingRight)
                                 .onTapGesture {
                                     if canBoost {
@@ -259,7 +251,9 @@ struct FishMoveView: View {
                                     }
                                 }
                         }
+                        .zIndex(z)
                     }
+
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.top, 150)
                     .onReceive(zTimer) { _ in
@@ -281,7 +275,7 @@ struct FishMoveView: View {
         }
     }
 
-    // ✅ Scales ripple size relative to fish but keeps the animation exactly like before
+   
     private func addRipple(for fish: AquariumFish, at position: CGPoint) {
         var ripple = Ripple(position: position)
         ripples.append(ripple)
