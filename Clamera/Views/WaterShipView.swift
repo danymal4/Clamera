@@ -10,26 +10,58 @@ import SwiftUI
 struct WaterShipView: View {
     @State private var move = false
 
-    // try fixing issue with scaling  by setting wave to y position of other ones plus a fixed amount
+
        var body: some View {
       
            ZStack(alignment: .top) {
         
                
+           
+              
                
+
+               let defaultWidth: CGFloat = 402
+               let defaultHeight: CGFloat = 874
+               let currentWidth = UIScreen.main.bounds.width
+               let currentHeight = UIScreen.main.bounds.height
+               let horizontalScale = max(0, (currentWidth - defaultWidth) / defaultWidth)
+               let verticalScale = max(1.0, (currentHeight * 0.985) / defaultHeight)
+        
+
+              
+               var waveAspect: CGFloat {
+                   guard let img = UIImage(named: "waterWave") else { return 1.0 }
+                   return img.size.width / img.size.height
+               }
+
+
+               let waveWidth = currentWidth * 1.05
+               let waveHeight = waveWidth / waveAspect
+
+               let baseOffsetY = (waveHeight * 0.9) - 15
+
+              
+               let yOffsetAdjustment = horizontalScale * waveHeight * 0.15
+
+               let boatScale = 1.0 + (horizontalScale * 0.8)
+               let flatHeight: CGFloat = 600
+              
+
                
-                  
-                     
-                     Image("waterWave").resizable().scaledToFit().offset(y: 365)
-                       .offset(y: move ? -10 : 50)
-                       .opacity(0.75)
-                     
-               Image("flat") // your flat image
-                         .resizable()
-                         .frame(height: 600 )  // adjust height as needed
-                         .clipped().offset(y: 777.6 ).offset(y: move ? -10 : 50).opacity(0.75)
-                      
-                     
+               Image("waterWave")
+                   .resizable()
+                   .scaleEffect(x: 1 + (horizontalScale * 0.18), y: 1.0, anchor: .center)
+                   .scaledToFit()
+                   .offset(y: baseOffsetY - 0.3 * yOffsetAdjustment + (move ? -10 : 50))
+                   .opacity(0.75)
+               
+                              
+               Image("flat")
+                   .resizable()
+                   .frame(height: flatHeight)
+                   .clipped()
+                   .offset(y: 0.96 * verticalScale * (444.5 + baseOffsetY - (0.3 * yOffsetAdjustment)) + (move ? -10 : 50))
+                   .opacity(0.75)
                
                
                
@@ -56,7 +88,7 @@ struct WaterShipView: View {
                            Color.white
                           WaterWave()     .offset(y: (move ? -40 : 10) )
                               
-                               .fill(Color.black)  // cut out wave area
+                               .fill(Color.black)
                                .blendMode(.destinationOut).scaleEffect(y: 1.0015, anchor: .top)
                        }
                       
@@ -85,9 +117,12 @@ struct WaterShipView: View {
                        Spacer()
                        
                        
-                       Image("sailboat").scaleEffect(0.4)  .offset(y: move ? -40 : 10)
-                       // Controls x val movements of light blue
-                           .offset(x: move ? 0 : -80).opacity(0.9)
+                      
+                       Image("sailboat")
+                           .scaleEffect(0.4 * boatScale) // original 0.4 multiplied by scaling factor
+                           .offset(y: move ? -40 : 10)
+                           .offset(x: move ? 0 : -80)
+                           .opacity(0.9)
                        
                        Spacer()
                        Spacer()
@@ -122,7 +157,7 @@ struct WaterShipView: View {
                
            
            
-           // Change based on how high waves go so that there is no blank at bottom of screen
+       
        
            
            

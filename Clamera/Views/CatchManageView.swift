@@ -40,7 +40,7 @@ struct CatchManageView: View {
             
             
             
-            // Blur layer
+
             BlurView(style: .systemUltraThinMaterial)
                 .ignoresSafeArea()
             

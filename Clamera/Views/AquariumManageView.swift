@@ -1,13 +1,11 @@
 import SwiftUI
 
-// MARK: - AquariumManageView
 struct AquariumManageView: View {
-    @EnvironmentObject var aquarium: AquariumFishList    // shared list
+    @EnvironmentObject var aquarium: AquariumFishList
     @Binding var editState: EditState
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
 
-    // Local arrays to drive animation and display
     @State private var localSpeed: [Double] = []
     @State private var localScale: [Double] = []
     @State private var rotationAngles: [Double] = []
@@ -28,7 +26,7 @@ struct AquariumManageView: View {
 
     var body: some View {
         ZStack {
-            // Background
+         
             Image("fishBackground")
                 .resizable()
                 .scaledToFill()
@@ -45,7 +43,7 @@ struct AquariumManageView: View {
                 Spacer()
             }
 
-            // Background layers
+            
             Rectangle()
                 .opacity(0.45)
                 .colorInvert()
@@ -67,7 +65,7 @@ struct AquariumManageView: View {
                 .padding(.bottom, -15)
 
             VStack(alignment: .leading, spacing: 15) {
-                // Header
+             
                 HStack {
                     Text("Fish")
                         .animation(.easeInOut(duration: 0.25), value: isDropdown)
@@ -83,7 +81,7 @@ struct AquariumManageView: View {
                 .padding(.horizontal, 60)
 
                 ZStack {
-                    // Fish list
+                    
                     if !isDropdown {
                         VStack(spacing: 8) {
                             ForEach(aquarium.fish.indices.filter { aquarium.fish[$0].isActive }, id: \.self)  { i in
@@ -114,11 +112,11 @@ struct AquariumManageView: View {
                                             )
                                             .opacity(0.9)
                                             .background(Circle().colorInvert().opacity(0.5))
-                                            // padding increases with local scale
+                                            
                                             .padding(.horizontal, 15 + (( localScale[safe: i] ?? 50) / 8))
-                                            // scale animation based on local slider
+                                          
                                             .scaleEffect(0.5 + (localScale[safe: i] ?? 5) / 15)
-                                            // rotation animation
+                                    
                                             .rotationEffect(.degrees(rotationAngles[safe: i] ?? 0))
                                             .onAppear {
                                                 if localSpeed.isEmpty, !aquarium.fish.isEmpty {
@@ -135,9 +133,9 @@ struct AquariumManageView: View {
                                                 }
                                             }
 
-                                        // Sliders
+                                      
                                         VStack(alignment: .leading, spacing: 5) {
-                                            // Speed slider
+                                      //speed
                                             HStack(spacing: -2) {
                                                 Text(speedText(localSpeed[safe: i] ?? 5))
                                                     .frame(width: 70, alignment: .leading)
@@ -172,7 +170,7 @@ struct AquariumManageView: View {
                                                 
                                             }
 
-                                            // Scale slider
+                                            //scale
                                             HStack(spacing: -2) {
                                                 Text(scaleText(localScale[safe: i] ?? 50))
                                                     .frame(width: 70, alignment: .leading)
@@ -204,7 +202,7 @@ struct AquariumManageView: View {
 
                     }
 
-                    // Dropdown content
+                 //dropdown
                     if isDropdown {
                         
                      
@@ -256,7 +254,7 @@ struct AquariumManageView: View {
                 }
             }
 
-            // Bottom overlay
+       
             VStack {
                 Spacer()
                 Rectangle()
@@ -270,7 +268,7 @@ struct AquariumManageView: View {
     
   
 
-    // MARK: - Helper
+
     func animateRotation(for index: Int) {
         guard index < rotationAngles.count else { return }
         let direction = Bool.random() ? 1.0 : -1.0
@@ -283,7 +281,7 @@ struct AquariumManageView: View {
 
 
 
-// MARK: - Safe Array Subscript
+
 extension Array {
     subscript(safe index: Int) -> Element? {
         get { indices.contains(index) ? self[index] : nil }
@@ -291,7 +289,7 @@ extension Array {
     }
 }
 
-// MARK: - Preview
+
 #Preview {
     AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList())
 

@@ -7,7 +7,7 @@ import SwiftUI
 
 struct IconView: View {
     
-    // ✅ Only change: use EnvironmentObject instead of @Binding
+  
     @EnvironmentObject var tabRouter: TabRouter
 
     var body: some View {
@@ -35,5 +35,5 @@ struct IconView: View {
 
 #Preview {
     IconView()
-        .environmentObject(TabRouter()) // ✅ Only change for preview
+        .environmentObject(TabRouter()) 
 }

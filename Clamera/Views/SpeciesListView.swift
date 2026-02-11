@@ -4,10 +4,6 @@
 //
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
-//  SpeciesListView.swift
-//  Clamera
-//
-//  Created by Dany Malaeb (student LM) on 1/28/26.
 import SwiftUI
 
 struct SpeciesListView: View {

@@ -11,7 +11,7 @@ struct CatchView: View {
 
     @State var editState: EditState = .notEditing
 
-    // Base iPhone size for scaling
+
     let baseWidth: CGFloat = 403
     let baseHeight: CGFloat = 844
 
@@ -24,18 +24,18 @@ struct CatchView: View {
 
             ZStack {
 
-                // Background layers
+     
                 WaterView()
                     .offset(y: -375 * vScale)
 
-                // IconView slightly higher
+             
                 IconView()
                     
 
-                // Main content VStack
+                
                 VStack(spacing: 20 * vScale) {
 
-                    // Top rectangle with fish image
+            
                     ZStack {
                         Rectangle()
                             .frame(
@@ -62,7 +62,7 @@ struct CatchView: View {
                         }
                     }
 
-                    // Camera icon + upload button
+         
                     HStack(alignment: .center, spacing: 20 * hScale) {
 
                         Button {
@@ -98,10 +98,10 @@ struct CatchView: View {
                     .offset(x: 10 * vScale)
 
                 }
-                // Bring entire content up a bit
+          
                 .padding(.top, 80 * vScale)
 
-                // Bottom white bar
+     
                 VStack {
                     Spacer()
                     Rectangle()
@@ -110,7 +110,7 @@ struct CatchView: View {
                 }
                 .edgesIgnoringSafeArea(.bottom)
 
-            } // ZStack
+            } 
 
         } else {
             CatchManageView(editState: $editState)

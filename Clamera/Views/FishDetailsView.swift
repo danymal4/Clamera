@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FishDetailsView: View {
     
-    @State var fish: Fish              // 👈 required for NavigationLink
+    @State var fish: Fish
     @State var pinned: Bool = true
     @EnvironmentObject var aquarium: AquariumFishList
 
@@ -78,7 +78,7 @@ struct FishDetailsView: View {
                     
                     
                 } label: {
-                    Image("\(fish.speciesName.lowercased())Icon") // 👈 was hardcoded
+                    Image("\(fish.speciesName.lowercased())Icon") 
                         .resizable()
                         .frame(
                             width: min(UIScreen.main.bounds.width * 0.13, 180),

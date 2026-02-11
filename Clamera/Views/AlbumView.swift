@@ -5,15 +5,7 @@
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
 
-
-//  AlbumView.swift
-//  Clamera
-//
-//  Created by Dany Malaeb (student LM) on 1/28/26.
-//
 import SwiftUI
-
-// MARK: - Models
 
 struct Fish: Identifiable, Hashable {
     let id = UUID()
@@ -53,7 +45,6 @@ struct Species: Identifiable, Hashable {
 }
 
 
-// MARK: - Views
 import SwiftUI
 
 struct AlbumView: View {
@@ -213,7 +204,6 @@ struct AlbumView: View {
     }
 }
 
-// Grid item view remains unchanged
 struct SpeciesGridItem: View {
     let species: Species
     let clickable: Bool
@@ -257,7 +247,7 @@ struct SpeciesGridItem: View {
     }
 }
 
-// Preview
+
 #Preview {
     NavigationStack {
         AlbumView().environmentObject(AquariumFishList())

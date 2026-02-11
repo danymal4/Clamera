@@ -101,7 +101,7 @@ struct ProfileView: View {
                       Rectangle()
                           .fill(Color.white.opacity(0.6))
                           .frame(height: 83)
-                           // or safeAreaInset if you want
+                 
                   }
               
               .edgesIgnoringSafeArea(.bottom)

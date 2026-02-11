@@ -16,14 +16,15 @@ final class TabRouter: ObservableObject {
 
 struct HomerView: View {
     
-    // Single TabRouter
+   
     @StateObject private var tabRouter = TabRouter()
     
-    // Shared Aquarium instance for the whole app
+
     @StateObject private var aquarium = AquariumFishList()
     
+    // tab bar transparent thing
     init() {
-        // Make the system TabBar background fully transparent
+        
         let appearance = UITabBarAppearance()
         appearance.configureWithTransparentBackground()
         UITabBar.appearance().standardAppearance = appearance
@@ -33,6 +34,9 @@ struct HomerView: View {
     }
     
     var body: some View {
+        
+        
+        
         TabView(selection: $tabRouter.viewState) {
             
             ZStack {
@@ -82,7 +86,7 @@ struct HomerView: View {
                 Label("Profile", systemImage: "person")
             }
         }
-        // Provide the TabRouter and Aquarium instance to all child views
+        
         .environmentObject(tabRouter)
         .environmentObject(aquarium)
     }

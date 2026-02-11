@@ -1,14 +1,14 @@
 import SwiftUI
 
-// MARK: - Fish & Fish List
+
 
 final class AquariumFish: Identifiable, ObservableObject {
     let id = UUID()
-    @Published var imageName: String       // changing icon
+    @Published var imageName: String
     @Published var size: CGSize
     let horizontalRange: ClosedRange<CGFloat>
     let verticalRange: ClosedRange<CGFloat>
-    @Published var swimDuration: Double    // changing speed
+    @Published var swimDuration: Double
     let phaseOffset: Double
     @Published var isActive : Bool
     
@@ -100,7 +100,7 @@ final class AquariumFishList: ObservableObject {
         // Count currently active fish
         let activeCount = fish.filter { $0.isActive }.count
 
-        // Only add if we have room
+
         guard activeCount < maxActive else { return }
 
         // Find the first inactive fish
@@ -131,7 +131,6 @@ final class AquariumFishList: ObservableObject {
 
 import SwiftUI
 
-// MARK: - FishMoveView
 struct FishMoveView: View {
 
     struct Ripple: Identifiable {
@@ -152,83 +151,120 @@ struct FishMoveView: View {
         GeometryReader { geo in
             TimelineView(AnimationTimelineSchedule()) { timeline in
                 let now = timeline.date.timeIntervalSinceReferenceDate
-
+                
                 ZStack {
-
+                    
+                   
                     // --- Ripples ---
                     ForEach(ripples) { ripple in
-                      
-                            Circle()
-                                .stroke(Color.white, lineWidth: 1.7)
-                                .frame(width: ripple.size, height: ripple.size)
-                                .position(ripple.position)
-                                .opacity(ripple.opacity)
-                                .animation(.easeOut(duration: 0.7), value: ripple.size)
+                        
+                        Circle()
+                            .stroke(Color.white, lineWidth: 1.7)
+                            .frame(width: ripple.size, height: ripple.size)
+                            .position(ripple.position)
+                            .opacity(ripple.opacity)
+                            .animation(.easeOut(duration: 0.7), value: ripple.size)
                         
                     }
-
+                    
                     // --- Fish ---
                     ForEach(aquarium.fish) { fish in
                         let speed = speedMultipliers[fish.id] ?? 1.0
                         let z = zIndices[fish.id] ?? 0
-
+                        
                         let adjustedTime = (now + fish.phaseOffset) * speed
                         let rawProgress = adjustedTime / fish.swimDuration * 2 * .pi
                         let progress = sin(rawProgress)
                         let facingRight = progress >= 0
-
+                        
                         let xOffset = fish.horizontalRange.lowerBound +
                         (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
-
+                        
                         let yOffset = fish.verticalRange.lowerBound +
                         (fish.verticalRange.upperBound - fish.verticalRange.lowerBound) *
                         ((sin(adjustedTime * 1.5) + 1) / 2)
-
+                        
                         let tailAngle = 12 * sin(adjustedTime * 2)
-
+                        
                         let deltaX = (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) / 1000
                         let projectedX = xOffset + (facingRight ? deltaX : -deltaX)
                         let canBoost = (facingRight && projectedX > xOffset) ||
-                                       (!facingRight && projectedX < xOffset)
-
+                        (!facingRight && projectedX < xOffset)
+                        
                         let fishCenter = CGPoint(
                             x: geo.frame(in: .local).midX + xOffset,
-                            y: geo.frame(in: .local).midY + (yOffset - 70)
+                            y: geo.frame(in: .local).midY + (yOffset + 80)
                         )
-
-                        Image(fish.imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: fish.size.width, height: fish.size.height)
-                            .rotation3DEffect(
-                                .degrees(facingRight ? 0 : 180),
-                                axis: (x: 0, y: 1, z: 0)
-                            )
-                            .rotationEffect(.degrees(tailAngle))
-                            .offset(x: xOffset, y: yOffset)
-                            .opacity(fish.isActive ? 0.95 : 0)
-                            .zIndex(z)
-                            .animation(.easeInOut(duration: 0.3), value: facingRight)
-                            .onTapGesture {
-                                if canBoost {
-                                    withAnimation(.linear(duration: 0.2)) {
-                                        speedMultipliers[fish.id] = 1.6
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                        withAnimation(.linear(duration: 0.5)) {
-                                            speedMultipliers[fish.id] = 1.0
+                        
+                        ZStack{
+                            
+                            
+                            Image(fish.imageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: fish.size.width, height: fish.size.height)
+                                .rotation3DEffect(
+                                    .degrees(facingRight ? 0 : 180),
+                                    axis: (x: 0, y: 1, z: 0)
+                                )
+                            
+                                .rotationEffect(.degrees(tailAngle))
+                                .offset(x: xOffset, y: yOffset)
+                                .opacity(fish.isActive ? 0.95 : 0)
+                                .zIndex(z)
+                                .animation(.easeInOut(duration: 0.3), value: facingRight)
+                                .onTapGesture {
+                                    if canBoost {
+                                        withAnimation(.linear(duration: 0.2)) {
+                                            speedMultipliers[fish.id] = 1.6
                                         }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                            withAnimation(.linear(duration: 0.5)) {
+                                                speedMultipliers[fish.id] = 1.0
+                                            }
+                                        }
+                                        
+                                       
                                     }
-                                    // Pass fish for ripple scaling
-                                    addRipple(for: fish, at: fishCenter)
                                 }
-                            }
+                            
+                            
+                            
+                            Image(fish.imageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: fish.size.width, height: fish.size.height)
+                                .rotation3DEffect(
+                                    .degrees(facingRight ? 0 : 180),
+                                    axis: (x: 0, y: 1, z: 0)
+                                )
+                            
+                                .rotationEffect(.degrees(tailAngle)).colorMultiply(.blue.opacity(0.2))
+                                .offset(x: xOffset, y: yOffset)
+                                .opacity(fish.isActive ? 0.95 : 0)
+                                .zIndex(z)
+                                .animation(.easeInOut(duration: 0.3), value: facingRight)
+                                .onTapGesture {
+                                    if canBoost {
+                                        withAnimation(.linear(duration: 0.2)) {
+                                            speedMultipliers[fish.id] = 1.6
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                            withAnimation(.linear(duration: 0.5)) {
+                                                speedMultipliers[fish.id] = 1.0
+                                            }
+                                        }
+                                        
+                                        addRipple(for: fish, at: fishCenter)
+                                    }
+                                }
+                        }
                     }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.top, 150)
-                .onReceive(zTimer) { _ in
-                    updateZIndices()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.top, 150)
+                    .onReceive(zTimer) { _ in
+                        updateZIndices()
+                    }
                 }
             }
         }
@@ -251,7 +287,7 @@ struct FishMoveView: View {
         ripples.append(ripple)
         let index = ripples.count - 1
 
-        // Animate to scaled size
+       
         withAnimation(.easeOut(duration: 1.1)) {
             
             if fish.isActive {
