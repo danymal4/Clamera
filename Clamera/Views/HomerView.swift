@@ -77,6 +77,9 @@ struct HomerView: View {
                 Label("Album", systemImage: "book")
             }
             
+            
+       
+            
             ZStack {
                 Color.clear.ignoresSafeArea()
                 ProfileView()
