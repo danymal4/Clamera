@@ -12,7 +12,8 @@ enum EditState {
 
 struct AquariumView: View {
 
-    @StateObject var aquarium = AquariumFishList()  // shared instance
+    // ✅ Use environment object instead of creating a new instance
+    @EnvironmentObject var aquarium: AquariumFishList
     @State var editState: EditState = .notEditing
     @State var clean: Double = 0.3
     @State var speed: Double = 0
@@ -141,12 +142,13 @@ struct AquariumView: View {
             )
         }
         else {
-          
-            AquariumManageView(editState: $editState).environmentObject(aquarium)
+            // ✅ Pass the same environment object to manage view
+            AquariumManageView(editState: $editState)
         }
     }
 }
 
 #Preview {
-    AquariumView().environmentObject(TabRouter())
+    // ✅ Provide a shared instance here for preview/testing
+    AquariumView().environmentObject(AquariumFishList())
 }

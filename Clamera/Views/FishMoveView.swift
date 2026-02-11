@@ -10,6 +10,8 @@ final class AquariumFish: Identifiable, ObservableObject {
     let verticalRange: ClosedRange<CGFloat>
     @Published var swimDuration: Double    // changing speed
     let phaseOffset: Double
+    @Published var isActive : Bool
+    
 
     init(
         imageName: String,
@@ -17,7 +19,8 @@ final class AquariumFish: Identifiable, ObservableObject {
         horizontalRange: ClosedRange<CGFloat>,
         verticalRange: ClosedRange<CGFloat>,
         swimDuration: Double,
-        phaseOffset: Double
+        phaseOffset: Double,
+        isActive: Bool
     ) {
         self.imageName = imageName
         self.size = size
@@ -25,11 +28,13 @@ final class AquariumFish: Identifiable, ObservableObject {
         self.verticalRange = verticalRange
         self.swimDuration = swimDuration
         self.phaseOffset = phaseOffset
+        self.isActive = isActive
     }
 }
 
 final class AquariumFishList: ObservableObject {
     @Published var fish: [AquariumFish]
+    @Published var refreshID = false
     
     init() {
         self.fish = [
@@ -39,27 +44,35 @@ final class AquariumFishList: ObservableObject {
                 horizontalRange: -120...120,
                 verticalRange: -30...30,
                 swimDuration: 8,
-                phaseOffset: 0
+                phaseOffset: 0,
+                isActive: true
             ),
             AquariumFish(
-                imageName: "puffer",
+                imageName: "pufferIcon",
                 size: CGSize(width: 70, height: 45),
                 horizontalRange: -130...100,
                 verticalRange: -40...40,
                 swimDuration: 10,
-                phaseOffset: 1
+                phaseOffset: 1,
+                isActive: true
             ),
             AquariumFish(
-                imageName: "grouper",
+                imageName: "grouperIcon",
                 size: CGSize(width: 90, height: 55),
                 horizontalRange: -100...128,
                 verticalRange: -20...20,
                 swimDuration: 12,
-                phaseOffset: 2
+                phaseOffset: 2,
+                isActive: true
             )
         ]
     }
+    
+    func refresh() {
+        refreshID.toggle() // just flips true/false to trigger a redraw
+    }
 
+    
     // convenience methods
     func updateSpeed(for fish: AquariumFish, to newDuration: Double) {
         fish.swimDuration = newDuration
@@ -68,6 +81,50 @@ final class AquariumFishList: ObservableObject {
     func updateSize(for fish: AquariumFish, to newSize: CGSize) {
         fish.size = newSize
     }
+    
+    func toggleActive(for fish: AquariumFish) {
+        fish.isActive.toggle()
+    }
+
+    func fishCount() -> Int {
+        fish.count
+    }
+    
+    func removeFish(with imageName: String) {
+        if let index = fish.firstIndex(where: { $0.imageName == imageName && $0.isActive }) {
+            fish[index].isActive = false
+        }
+    }
+    
+    func addFish(with imageName: String, maxActive: Int = 3) {
+        // Count currently active fish
+        let activeCount = fish.filter { $0.isActive }.count
+
+        // Only add if we have room
+        guard activeCount < maxActive else { return }
+
+        // Find the first inactive fish
+        if let index = fish.firstIndex(where: { !$0.isActive }) {
+            let oldFish = fish[index]
+            oldFish.imageName = imageName   // Set new image
+            oldFish.isActive = true         // Make it appear
+            // Optionally reset size, speed, etc. if needed
+        }
+    }
+
+    
+    
+
+    
+    func toggleAll() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            for fish in fish {
+                fish.isActive = false
+            }
+        }
+    }
+
+    
 }
 
 
@@ -100,12 +157,14 @@ struct FishMoveView: View {
 
                     // --- Ripples ---
                     ForEach(ripples) { ripple in
-                        Circle()
-                            .stroke(Color.white, lineWidth: 1.7)
-                            .frame(width: ripple.size, height: ripple.size)
-                            .position(ripple.position)
-                            .opacity(ripple.opacity)
-                            .animation(.easeOut(duration: 0.7), value: ripple.size)
+                      
+                            Circle()
+                                .stroke(Color.white, lineWidth: 1.7)
+                                .frame(width: ripple.size, height: ripple.size)
+                                .position(ripple.position)
+                                .opacity(ripple.opacity)
+                                .animation(.easeOut(duration: 0.7), value: ripple.size)
+                        
                     }
 
                     // --- Fish ---
@@ -147,7 +206,7 @@ struct FishMoveView: View {
                             )
                             .rotationEffect(.degrees(tailAngle))
                             .offset(x: xOffset, y: yOffset)
-                            .opacity(0.95)
+                            .opacity(fish.isActive ? 0.95 : 0)
                             .zIndex(z)
                             .animation(.easeInOut(duration: 0.3), value: facingRight)
                             .onTapGesture {
@@ -194,8 +253,12 @@ struct FishMoveView: View {
 
         // Animate to scaled size
         withAnimation(.easeOut(duration: 1.1)) {
-            ripples[index].size = 120 * ((fish.size.width + fish.size.height) / 2 / 50) // factor relative to default size
-            ripples[index].opacity = 0.0
+            
+            if fish.isActive {
+                ripples[index].size = 120 * ((fish.size.width + fish.size.height) / 2 / 50) // factor relative to default size
+                ripples[index].opacity = 0.0
+            }
+            
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {

@@ -4,7 +4,8 @@ import SwiftUI
 struct AquariumManageView: View {
     @EnvironmentObject var aquarium: AquariumFishList    // shared list
     @Binding var editState: EditState
-    @State var isDropdown: Bool = false
+    @State var isDropdown: Bool = true
+    @State private var viewRefreshID = false
 
     // Local arrays to drive animation and display
     @State private var localSpeed: [Double] = []
@@ -85,8 +86,12 @@ struct AquariumManageView: View {
                     // Fish list
                     if !isDropdown {
                         VStack(spacing: 8) {
-                            ForEach(aquarium.fish.indices, id: \.self) { i in
+                            ForEach(aquarium.fish.indices.filter { aquarium.fish[$0].isActive }, id: \.self)  { i in
+                               
+                            
                                 let fish = aquarium.fish[i]
+                                
+                                
 
                                 ZStack {
                                     Rectangle()
@@ -147,6 +152,24 @@ struct AquariumManageView: View {
                                                     ),
                                                     in: 1...15
                                                 )
+                                           
+                                        
+                                                    Button{
+                                                        aquarium.toggleActive(for: fish)
+                                                        
+                                                        aquarium.refresh()
+                                                        
+                                                        isDropdown = false
+                                                    }
+                                                    label: {
+                                                        Image("X").resizable().frame(
+                                                            width: min(UIScreen.main.bounds.width * 0.05, 2000),
+                                                            height: min(UIScreen.main.bounds.width * 0.05, 2000))
+                                                        
+                                                    }.padding(.horizontal, 5)
+                                                    
+                                                
+                                                
                                             }
 
                                             // Scale slider
@@ -176,11 +199,16 @@ struct AquariumManageView: View {
                             }
                         }
                         .transition(.opacity)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, CGFloat(aquarium.fish.filter { !$0.isActive }.count) * 100 + 10)
+
+
                     }
 
                     // Dropdown content
                     if isDropdown {
+                        
+                     
+                        
                         VStack(alignment: .leading, spacing: 40) {
                             HStack {
                                 Text("Filter status")
@@ -208,7 +236,9 @@ struct AquariumManageView: View {
 
                             HStack {
                                 Text("Clear")
-                                Button {} label: {
+                                Button {
+                                    aquarium.toggleAll()
+                                } label: {
                                     Image("clear").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.09, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.09, 2000)
@@ -236,6 +266,9 @@ struct AquariumManageView: View {
             .edgesIgnoringSafeArea(.bottom)
         }
     }
+    
+    
+  
 
     // MARK: - Helper
     func animateRotation(for index: Int) {
@@ -248,6 +281,8 @@ struct AquariumManageView: View {
     }
 }
 
+
+
 // MARK: - Safe Array Subscript
 extension Array {
     subscript(safe index: Int) -> Element? {
@@ -258,7 +293,7 @@ extension Array {
 
 // MARK: - Preview
 #Preview {
-    AquariumManageView(editState: Binding.constant(.editing))
-        .environmentObject(AquariumFishList())
+    AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList())
+
 }
 

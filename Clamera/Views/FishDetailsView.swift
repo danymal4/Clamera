@@ -9,8 +9,11 @@ import SwiftUI
 
 struct FishDetailsView: View {
     
-    let fish: Fish              // 👈 required for NavigationLink
+    @State var fish: Fish              // 👈 required for NavigationLink
     @State var pinned: Bool = true
+    @EnvironmentObject var aquarium: AquariumFishList
+
+
     
     var body: some View {
         
@@ -35,6 +38,19 @@ struct FishDetailsView: View {
                 Spacer()
               
                 Button {
+                    
+                    
+                    if !fish.isAquarium {
+                        aquarium.addFish(with: "\(fish.speciesName.lowercased())Icon")
+                        
+                        fish.isAquarium.toggle()
+                        
+                        aquarium.refresh()
+                    }
+                                       
+
+                    
+                    
                 } label: {
                     Image("\(fish.speciesName.lowercased())Icon")
                         .resizable()
@@ -52,6 +68,15 @@ struct FishDetailsView: View {
                 Spacer()
                 
                 Button {
+                    
+                    
+                    aquarium.removeFish(with: "\(fish.speciesName.lowercased())Icon")
+                                  
+                                  fish.isAquarium = false
+
+                    aquarium.refresh()
+                    
+                    
                 } label: {
                     Image("\(fish.speciesName.lowercased())Icon") // 👈 was hardcoded
                         .resizable()
@@ -67,7 +92,7 @@ struct FishDetailsView: View {
             }
             
             HStack {
-                Text("Species: \(fish.speciesName)") // 👈 dynamic
+                Text("Species: \(fish.speciesName)")
                     .font(.system(size: UIScreen.main.bounds.width * 0.03))
                     .opacity(0.8)
                     .padding(.top, 550)
@@ -99,7 +124,7 @@ struct FishDetailsView: View {
                 .foregroundStyle(.red)
                 .padding(.bottom, 210)
             
-            Image(fish.photo) // 👈 main image now dynamic
+            Image(fish.photo)
                 .resizable()
                 .scaledToFill()
                 .frame(width: 335, height: 265)

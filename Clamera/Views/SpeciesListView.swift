@@ -11,25 +11,24 @@
 import SwiftUI
 
 struct SpeciesListView: View {
-    
+
+    @EnvironmentObject var aquarium: AquariumFishList // <- shared instance
     let species: Species
-    
+
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-    
+
     var body: some View {
         ZStack {
-            // Background water (unchanged)
             WaterView()
                 .offset(y: -234)
                 .ignoresSafeArea()
-            
+
             IconView()
                 .padding(.top, 80)
-            
-            // Title & filter (unchanged)
+
             ZStack {
                 Text(species.name)
                     .font(.custom("IslandMoments-Regular", size: 90))
@@ -46,20 +45,16 @@ struct SpeciesListView: View {
                 .padding(.trailing, 20)
             }
             .padding(.bottom, 600)
-            
-            // Grid with soft background zone
+
             VStack {
                 ZStack {
-                    // Soft background extending beyond the grid
                     RoundedRectangle(cornerRadius: 35)
                         .fill(Color.white.opacity(0.15))
                         .frame(
                             width: UIScreen.main.bounds.width * 0.93,
-                            height: UIScreen.main.bounds.width * 1.15 // taller than grid
+                            height: UIScreen.main.bounds.width * 1.15
                         )
-                        
-                    
-                    // Scrollable grid
+
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 20) {
                             ForEach(species.fishList) { fish in
@@ -72,8 +67,7 @@ struct SpeciesListView: View {
                                                 height: UIScreen.main.bounds.width * 0.33
                                             )
                                             .cornerRadius(15)
-                                        
-                                        // NavigationLink remains
+
                                         NavigationLink(
                                             destination: FishDetailsView(fish: fish)
                                         ) {
@@ -88,7 +82,6 @@ struct SpeciesListView: View {
                                                 .clipped()
                                         }
                                     }
-                                    
                                     Text("5/30")
                                         .font(Font(Constants.tabFont))
                                         .bold()
@@ -102,9 +95,8 @@ struct SpeciesListView: View {
                     .frame(height: UIScreen.main.bounds.width * 1.05)
                 }
             }
-            .padding(.top, 120) // same offset as your ScrollView before
-            
-            // Bottom overlay (unchanged)
+            .padding(.top, 120)
+
             Rectangle()
                 .fill(Color.white.opacity(0.6))
                 .frame(height: 83)
@@ -126,5 +118,6 @@ struct SpeciesListView: View {
                 ]
             )
         )
+       
     }
 }

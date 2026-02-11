@@ -21,14 +21,15 @@ struct Fish: Identifiable, Hashable {
     let speciesName: String
     let description: String = "cool fish I found with sam"
     let dateCaught: Date = Date()
-    let isPinned: Bool = false
+    var isPinned: Bool = false
+    var isAquarium: Bool = false
 }
 
 struct Species: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let imageName: String
-    let icon: String = "clownfishIcon"
+    let icon: String
     let fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
@@ -36,16 +37,34 @@ struct Species: Identifiable, Hashable {
     func getFishPhotos() -> [String] {
         fishList.map { $0.photo }
     }
+
+    
+    init(
+        name: String,
+        imageName: String,
+        icon: String = "clownfishIcon", // default value
+        fishList: [Fish]
+    ) {
+        self.name = name
+        self.imageName = imageName
+        self.icon = icon
+        self.fishList = fishList
+    }
 }
 
+
 // MARK: - Views
+import SwiftUI
 
 struct AlbumView: View {
+
+    @EnvironmentObject var aquarium: AquariumFishList
 
     let speciesList = [
         Species(
             name: "Clownfish",
             imageName: "clownFishExample",
+   
             fishList: [
                 Fish(photo: "clownfish1", speciesName: "Clownfish"),
                 Fish(photo: "clownfish2", speciesName: "Clownfish"),
@@ -56,14 +75,16 @@ struct AlbumView: View {
         Species(
             name: "Puffer",
             imageName: "pufferExample",
+            icon: "pufferIcon",
             fishList: [
                 Fish(photo: "puffer1", speciesName: "Puffer"),
                 Fish(photo: "puffer2", speciesName: "Puffer")
-            ]
+            ],
         ),
         Species(
             name: "Grouper",
             imageName: "grouperExample",
+            icon: "grouperIcon",
             fishList: [
                 Fish(photo: "grouper1", speciesName: "Grouper"),
                 Fish(photo: "grouper2", speciesName: "Grouper")
@@ -81,36 +102,29 @@ struct AlbumView: View {
         )
     ]
 
-    // Two-column grid
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
 
-    // Search bar text
     @State private var searchText: String = ""
 
-    // Filter options
     enum FilterOption: String, CaseIterable, Identifiable {
         case alphabetical = "Alphabetical"
         case caught = "Caught Fish"
         case notCaught = "Not Caught Fish"
-
         var id: String { self.rawValue }
     }
 
     @State private var selectedFilter: FilterOption = .alphabetical
 
-    // Compute filtered species based on search + filter
     var filteredSpecies: [Species] {
         var filtered = speciesList
 
-        // Apply search text filter
         if !searchText.isEmpty {
             filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
         }
 
-        // Apply filter options with alphabetical sorting
         switch selectedFilter {
         case .alphabetical:
             filtered.sort { $0.name < $1.name }
@@ -139,9 +153,7 @@ struct AlbumView: View {
                     .foregroundStyle(.blue)
                     .padding(.top)
 
-                // Search + Filter HStack
                 HStack(spacing: 10) {
-                    // Search bar
                     HStack {
                         TextField("Search", text: $searchText)
                             .foregroundColor(.black)
@@ -154,7 +166,6 @@ struct AlbumView: View {
                             .stroke(.gray, lineWidth: 2)
                     )
 
-                    // Filter menu button (icon + text stays visible)
                     Menu {
                         Button("Alphabetical") { selectedFilter = .alphabetical }
                         Button("Caught Fish") { selectedFilter = .caught }
@@ -170,20 +181,18 @@ struct AlbumView: View {
                 }
                 .padding(.horizontal)
 
-                // Grid
+                
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(filteredSpecies) { item in
                             let hasFish = !item.fishList.isEmpty
 
-                            Group {
-                                if hasFish {
-                                    NavigationLink(destination: SpeciesListView(species: item)) {
-                                        SpeciesGridItem(species: item, clickable: true)
-                                    }
-                                } else {
-                                    SpeciesGridItem(species: item, clickable: false)
+                            if hasFish {
+                                NavigationLink(destination: SpeciesListView(species: item)) {
+                                    SpeciesGridItem(species: item, clickable: true)
                                 }
+                            } else {
+                                SpeciesGridItem(species: item, clickable: false)
                             }
                         }
                     }
@@ -191,8 +200,6 @@ struct AlbumView: View {
                     .padding(.bottom, 80)
                 }
             }
-
-            Spacer()
 
             VStack {
                 Spacer()
@@ -206,7 +213,7 @@ struct AlbumView: View {
     }
 }
 
-// Grid item view
+// Grid item view remains unchanged
 struct SpeciesGridItem: View {
     let species: Species
     let clickable: Bool
@@ -250,8 +257,10 @@ struct SpeciesGridItem: View {
     }
 }
 
+// Preview
 #Preview {
     NavigationStack {
-        AlbumView()
+        AlbumView().environmentObject(AquariumFishList())
+       
     }
 }
