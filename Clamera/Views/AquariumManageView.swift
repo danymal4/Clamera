@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AquariumManageView: View {
     @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var aquariumState: AquariumState
     @Binding var editState: EditState
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
@@ -211,12 +212,36 @@ struct AquariumManageView: View {
                             HStack {
                                 Text("Filter status")
                                 Button {} label: {
-                                    Image("med").resizable().frame(
-                                        width: min(UIScreen.main.bounds.width * 0.12, 2000),
-                                        height: min(UIScreen.main.bounds.width * 0.12, 2000)
-                                    )
+                                  
+                                    if (100 - (300 * aquariumState.clean)) > 60 {
+                                         
+                                        
+                                        Image("good").resizable().frame(
+                                            width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                            height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                        )
+                                        
+                                    }
+                                    
+                                   else if (100 - (300 * aquariumState.clean)) > 20 {
+                                         
+                                        
+                                        Image("med").resizable().frame(
+                                            width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                            height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                        )
+                                        
+                                    }
+                                    
+                                    else {
+                                        Image("bad").resizable().frame(
+                                            width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                            height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                        )
+                                        
+                                    }
                                 }.padding(.horizontal, 20)
-                                Text("94%")
+                                Text("\(100 - (300 * aquariumState.clean))")
                                     .padding(.horizontal, -25)
                                     .foregroundStyle(.gray)
                                     .font(.system(size: UIScreen.main.bounds.width * 0.035))
@@ -291,7 +316,7 @@ extension Array {
 
 
 #Preview {
-    AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList())
+    AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList()).environmentObject(AquariumState())
 
 }
 

@@ -13,19 +13,68 @@ enum EditState {
 
 class AquariumState: ObservableObject {
     @Published var clean: Double = 0.3
-}
 
+    private let maxClean: Double = 0.3
+    private let refillDuration: TimeInterval = 60
+    private var timer: Timer?
+
+    func cleanNow() {
+        // Set clean to 0 immediately
+        clean = 0
+        
+        // Invalidate any previous timer
+        timer?.invalidate()
+        
+        // Start a timer that regenerates smoothly from 0 → maxClean
+        let startValue = clean
+        let targetValue = maxClean
+        let remainingDuration = refillDuration * (targetValue - startValue) / maxClean
+
+        let startTime = Date()
+
+        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] timer in
+            guard let self = self else { timer.invalidate(); return }
+
+            let elapsed = Date().timeIntervalSince(startTime)
+            let progress = min(elapsed / remainingDuration, 1.0)
+            
+            DispatchQueue.main.async {
+                self.clean = startValue + (targetValue - startValue) * progress
+            }
+
+            if progress >= 1.0 {
+                timer.invalidate()
+            }
+        }
+    }
+
+    deinit {
+        timer?.invalidate()
+    }
+}
 struct BubbleView: View {
     @EnvironmentObject var aquariumState: AquariumState
     @State private var yOffset: CGFloat = 0
     @State private var opacity: Double = 0
     @State private var animationActive = true
 
-    let size: CGFloat
-    let xPosition: CGFloat
-    let duration: Double
     let topY: CGFloat
     let bottomY: CGFloat
+
+    // Persistent random values for each bubble
+    @State private var size: CGFloat
+    @State private var xPosition: CGFloat
+    @State private var duration: Double
+
+    init(topY: CGFloat, bottomY: CGFloat) {
+        self.topY = topY
+        self.bottomY = bottomY
+
+        // Assign random values once per bubble
+        _size = State(initialValue: CGFloat.random(in: 8...20))
+        _xPosition = State(initialValue: CGFloat.random(in: 50...(UIScreen.main.bounds.width - 30)))
+        _duration = State(initialValue: Double.random(in: 3...7))
+    }
 
     var body: some View {
         Circle()
@@ -44,15 +93,14 @@ struct BubbleView: View {
     }
 
     func startAnimation() {
-   
-        yOffset = bottomY + CGFloat.random(in: 0...20)
+        let startYOffset = bottomY + CGFloat.random(in: 0...20)
+        yOffset = startYOffset
         opacity = 0
 
         withAnimation(.easeIn(duration: duration * 0.2)) { opacity = 1 }
         withAnimation(Animation.linear(duration: duration)) { yOffset = topY }
         withAnimation(.easeOut(duration: duration * 0.2).delay(duration * 0.8)) { opacity = 0 }
 
-       
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             if animationActive { startAnimation() }
         }
@@ -60,23 +108,17 @@ struct BubbleView: View {
 }
 
 struct AquariumView: View {
-
+    @EnvironmentObject var aquariumState: AquariumState
     @EnvironmentObject var aquarium: AquariumFishList
-    @StateObject var aquariumState = AquariumState()
+
     @State var editState: EditState = .notEditing
     @State private var bubbleRefreshID = UUID()
 
-    var aquariumTop: CGFloat {
-        UIScreen.main.bounds.height * 0.435
-    }
-    var aquariumBottom: CGFloat {
-        UIScreen.main.bounds.height * 0.58
-    }
+    var aquariumTop: CGFloat { UIScreen.main.bounds.height * 0.435 }
+    var aquariumBottom: CGFloat { UIScreen.main.bounds.height * 0.58 }
 
     var body: some View {
-
         if editState == .notEditing {
-
             ZStack {
 
                 IconView().padding(.horizontal, 12)
@@ -91,7 +133,6 @@ struct AquariumView: View {
                         .foregroundStyle(.blue)
 
                     ZStack {
-
                         Image("Aquarium")
                             .resizable()
                             .frame(
@@ -120,7 +161,7 @@ struct AquariumView: View {
                                 height: min(UIScreen.main.bounds.width * 0.46, 2000)
                             )
                             .padding(.bottom, 77)
-                        
+
                         Rectangle()
                             .cornerRadius(5)
                             .foregroundStyle(.blue)
@@ -135,9 +176,8 @@ struct AquariumView: View {
                             Spacer()
 
                             Button {
-                                withAnimation(.easeOut(duration: 2.2)) {
-                                    aquariumState.clean = 0
-                                }
+                                // Smooth brush regeneration
+                                aquariumState.cleanNow()
                             } label: {
                                 Image("brush")
                                     .resizable()
@@ -151,18 +191,14 @@ struct AquariumView: View {
                             .padding(.bottom, 215)
                             .padding(.horizontal, 50)
                             .disabled(aquariumState.clean <= 0)
-
                         }
-
                     }
                 }
 
                 // Bubbles
-                ForEach(0..<8, id: \.self) { index in
+                ForEach(0..<8, id: \.self) { _ in
                     BubbleView(
-                        size: CGFloat.random(in: 8...20),
-                        xPosition: CGFloat.random(in: 50...(UIScreen.main.bounds.width - 30)),
-                        duration: Double.random(in: 3...7),
+                        
                         topY: aquariumTop,
                         bottomY: aquariumBottom
                     )
@@ -170,8 +206,8 @@ struct AquariumView: View {
                     .environmentObject(aquariumState)
                 }
 
-              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean)
+                FishMoveView(aquarium: aquarium)
+                    .opacity(1 - aquariumState.clean)
 
                 VStack {
                     Spacer()
@@ -207,7 +243,6 @@ struct AquariumView: View {
                         )
                         .padding(.bottom, -330)
                 }
-
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
@@ -217,16 +252,16 @@ struct AquariumView: View {
                     .allowsHitTesting(false)
             )
             .onAppear {
-                bubbleRefreshID = UUID() 
+                bubbleRefreshID = UUID() // Reset bubbles on tab switch
             }
-        }
-        else {
+        } else {
             AquariumManageView(editState: $editState)
         }
     }
 }
 
+
 #Preview {
     AquariumView()
-        .environmentObject(AquariumFishList())
+        .environmentObject(AquariumFishList())  .environmentObject(AquariumState())
 }

@@ -19,7 +19,7 @@ struct HomerView: View {
    
     @StateObject private var tabRouter = TabRouter()
     
-
+    @StateObject var aquariumState = AquariumState()
     @StateObject private var aquarium = AquariumFishList()
     
     // tab bar transparent thing
@@ -91,7 +91,7 @@ struct HomerView: View {
         }
         
         .environmentObject(tabRouter)
-        .environmentObject(aquarium)
+        .environmentObject(aquarium) .environmentObject(aquariumState)
     }
 }
 
@@ -99,4 +99,5 @@ struct HomerView: View {
     HomerView()
         .environmentObject(TabRouter())
         .environmentObject(AquariumFishList())
+        .environmentObject(AquariumState())
 }
