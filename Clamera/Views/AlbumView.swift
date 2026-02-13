@@ -131,53 +131,55 @@ struct AlbumView: View {
     }
 
     var body: some View {
-        ZStack {
-            WaterView()
-                .offset(y: -180)
-                .ignoresSafeArea()
-
-            IconView()
-
-            VStack(spacing: 20) {
-                Text("Album")
-                    .font(.custom("IslandMoments-Regular", size: 90))
-                    .foregroundStyle(.blue)
-                    .padding(.top)
-
-                HStack(spacing: 10) {
-                    HStack {
-                        TextField("Search", text: $searchText)
-                            .foregroundColor(.black)
-                            .padding(.leading, 10)
-                        Spacer()
-                    }
-                    .frame(height: 40)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(.gray, lineWidth: 2)
-                    )
-
-                    Menu {
-                        Button("Alphabetical") { selectedFilter = .alphabetical }
-                        Button("Caught Fish") { selectedFilter = .caught }
-                        Button("Not Caught Fish") { selectedFilter = .notCaught }
-                    } label: {
-                        VStack {
-                            Image(systemName: "line.horizontal.3.decrease")
-                            Text("Filter")
-                                .font(.custom("HelveticaNeue-Thin", size: 15))
+        ZStack{
+       
+            ScrollView{
+                
+                ZStack(alignment: .top) {
+                    
+                    WaterView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing).offset(y: -230)
+                    IconView()
+                    
+                    VStack(spacing: 20) {
+                        Text("Album")
+                            .font(.custom("IslandMoments-Regular", size: 90))
+                            .foregroundStyle(.blue)
+                            .padding(.top)
+                        
+                        HStack(spacing: 10) {
+                            HStack {
+                                TextField("Search", text: $searchText)
+                                    .foregroundColor(.black)
+                                    .padding(.leading, 10)
+                                Spacer()
+                            }
+                            .frame(height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(.gray, lineWidth: 2)
+                            )
+                            
+                            Menu {
+                                Button("Alphabetical") { selectedFilter = .alphabetical }
+                                Button("Caught Fish") { selectedFilter = .caught }
+                                Button("Not Caught Fish") { selectedFilter = .notCaught }
+                            } label: {
+                                VStack {
+                                    Image(systemName: "line.horizontal.3.decrease").foregroundStyle(.black)
+                                    Text("Filter")
+                                        .font(.custom("HelveticaNeue-Thin", size: 15)).foregroundStyle(.black)
+                                }
+                                .padding(.horizontal)
+                            }
                         }
                         .padding(.horizontal)
-                    }
-                }
-                .padding(.horizontal)
-
-                
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 20) {
+                        
+                        
+                        
                         ForEach(filteredSpecies) { item in
                             let hasFish = !item.fishList.isEmpty
-
+                            
                             if hasFish {
                                 NavigationLink(destination: SpeciesListView(species: item)) {
                                     SpeciesGridItem(species: item, clickable: true)
@@ -185,22 +187,29 @@ struct AlbumView: View {
                             } else {
                                 SpeciesGridItem(species: item, clickable: false)
                             }
+                            
                         }
+                        .padding(.horizontal)
+                        
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 80)
                 }
+                
+                
             }
-
-            VStack {
+            
+            VStack{
                 Spacer()
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
                     .frame(height: 83)
-                    .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -500)
+                    .edgesIgnoringSafeArea(.bottom).padding(.bottom, -300)
+                
             }
+               
+            
         }
+      
+    
     }
 }
 
@@ -214,8 +223,8 @@ struct SpeciesGridItem: View {
                 Rectangle()
                     .fill(Color.white.opacity(clickable ? 0.3 : 0.1))
                     .frame(
-                        width: UIScreen.main.bounds.width * 0.38,
-                        height: UIScreen.main.bounds.width * 0.33
+                        width: UIScreen.main.bounds.width * 0.88,
+                        height: UIScreen.main.bounds.width * 0.83
                     )
                     .cornerRadius(15)
 
@@ -223,8 +232,8 @@ struct SpeciesGridItem: View {
                     .resizable()
                     .scaledToFill()
                     .frame(
-                        width: UIScreen.main.bounds.width * 0.35,
-                        height: UIScreen.main.bounds.width * 0.3
+                        width: UIScreen.main.bounds.width * 0.85,
+                        height: UIScreen.main.bounds.width * 0.8
                     )
                     .cornerRadius(10)
                     .clipped()
@@ -232,13 +241,13 @@ struct SpeciesGridItem: View {
             }
             HStack {
                 Text(species.name)
-                    .font(Font(Constants.tabFont))
+                    .font(.system(size: UIScreen.main.bounds.width * 0.07))
                     .bold()
-                    .foregroundColor(clickable ? .black : .gray)
+                    .foregroundColor(clickable ? .black : .gray).opacity(0.7)
 
                 if clickable {
                     Text("(\(String(species.numberOfFish)))")
-                        .foregroundStyle(.black)
+                        .foregroundStyle(.black) .font(.system(size: UIScreen.main.bounds.width * 0.05))
                         .opacity(0.4)
                 }
             }

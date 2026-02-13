@@ -116,8 +116,8 @@ struct FishDetailsView: View {
                 .cornerRadius(30)
                 .foregroundStyle(.white)
                 .opacity(0.3)
-                .frame(width: 365, height: 290)
-                .padding(.bottom, 210)
+                .frame(width: 365, height: 330)
+                .padding(.bottom, 250)
             
             Text("Image Not Found")
                 .font(.custom("", size: 40))
@@ -127,9 +127,9 @@ struct FishDetailsView: View {
             Image(fish.photo)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 335, height: 265)
+                .frame(width: 335, height: 305)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                .padding(.bottom, 210)
+                .padding(.bottom, 250)
             
             HStack {
                 Spacer()

@@ -44,8 +44,6 @@ struct WaterView: View {
         
                
            
-           
-           // Change based on how high waves go so that there is no blank at bottom of screen
         
            .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height)
            .ignoresSafeArea(edges: .top) 

@@ -6,98 +6,83 @@
 //
 import SwiftUI
 
+
 struct SpeciesListView: View {
 
-    @EnvironmentObject var aquarium: AquariumFishList // <- shared instance
+    @EnvironmentObject var aquarium: AquariumFishList
     let species: Species
-
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
 
     var body: some View {
         ZStack {
-            WaterView()
-                .offset(y: -234)
-                .ignoresSafeArea()
 
-            IconView()
-                .padding(.top, 80)
+            ScrollView {
 
-            ZStack {
-                Text(species.name)
-                    .font(.custom("IslandMoments-Regular", size: 90))
-                    .foregroundStyle(.blue)
-                
-                HStack {
-                    Spacer()
-                    VStack {
-                        Image(systemName: "line.horizontal.3.decrease")
-                        Text("Filter")
-                            .font(.custom("HelveticaNeue-Thin", size: 15))
-                    }.padding(.top, 320)
-                }
-                .padding(.trailing, 20)
-            }
-            .padding(.bottom, 600)
+                ZStack(alignment: .top) {
 
-            VStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 35)
-                        .fill(Color.white.opacity(0.15))
-                        .frame(
-                            width: UIScreen.main.bounds.width * 0.93,
-                            height: UIScreen.main.bounds.width * 1.15
-                        )
+                    // Background water (same format as AlbumView)
+                    WaterView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .offset(y: -230)
 
-                    ScrollView {
-                        LazyVGrid(columns: columns, spacing: 20) {
-                            ForEach(species.fishList) { fish in
-                                VStack {
-                                    ZStack {
-                                        Rectangle()
-                                            .fill(Color.white.opacity(0.3))
+                    // Top icon
+                    IconView()
+
+                    VStack(spacing: 20) {
+
+                        // Title
+                        Text(species.name)
+                            .font(.custom("IslandMoments-Regular", size: 90))
+                            .foregroundStyle(.blue)
+                            .padding(.top)
+
+                        // Fish list
+                        ForEach(species.fishList) { fish in
+                            VStack {
+
+                                ZStack {
+                                    Rectangle()
+                                        .fill(Color.white.opacity(0.3))
+                                        .frame(
+                                            width: UIScreen.main.bounds.width * 0.88,
+                                            height: UIScreen.main.bounds.width * 0.83
+                                        )
+                                        .cornerRadius(15)
+
+                                    NavigationLink(
+                                        destination: FishDetailsView(fish: fish)
+                                    ) {
+                                        Image(fish.photo)
+                                            .resizable()
+                                            .scaledToFill()
                                             .frame(
-                                                width: UIScreen.main.bounds.width * 0.38,
-                                                height: UIScreen.main.bounds.width * 0.33
+                                                width: UIScreen.main.bounds.width * 0.85,
+                                                height: UIScreen.main.bounds.width * 0.8
                                             )
-                                            .cornerRadius(15)
-
-                                        NavigationLink(
-                                            destination: FishDetailsView(fish: fish)
-                                        ) {
-                                            Image(fish.photo)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(
-                                                    width: UIScreen.main.bounds.width * 0.35,
-                                                    height: UIScreen.main.bounds.width * 0.3
-                                                )
-                                                .cornerRadius(10)
-                                                .clipped()
-                                        }
+                                            .cornerRadius(10)
+                                            .clipped()
                                     }
-                                    Text("5/30")
-                                        .font(Font(Constants.tabFont))
-                                        .bold()
                                 }
-                                .padding()
+
+                                Text("5/30")
+                                    
+                                    .bold()  .font(.system(size: UIScreen.main.bounds.width * 0.05)).opacity(0.7)
                             }
+                            .padding(.vertical, 5)
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 20)
                     }
-                    .frame(height: UIScreen.main.bounds.width * 1.05)
                 }
             }
-            .padding(.top, 120)
 
-            Rectangle()
-                .fill(Color.white.opacity(0.6))
-                .frame(height: 83)
-                .edgesIgnoringSafeArea(.bottom)
-                .padding(.top, 772)
+            // Bottom white overlay (same as AlbumView)
+            VStack {
+                Spacer()
+                Rectangle()
+                    .fill(Color.white.opacity(0.6))
+                    .frame(height: 83)
+                    .edgesIgnoringSafeArea(.bottom)
+                    .padding(.bottom, -300)
+            }
         }
     }
 }
