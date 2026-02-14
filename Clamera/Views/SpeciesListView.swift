@@ -5,7 +5,69 @@
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
 import SwiftUI
-
+struct FishCardView: View {
+    let imageName: String
+    let animate: Bool // true for unpinned, false for pinned
+    
+    @State private var scale: CGFloat = 1.0
+    @State private var overlayOpacity: Double = 0.0
+    
+    var body: some View {
+        ZStack {
+            // Base rectangle: always low opacity white
+            RoundedRectangle(cornerRadius: 15)
+                .frame(
+                    width: UIScreen.main.bounds.width * 0.88,
+                    height: UIScreen.main.bounds.width * 0.83
+                )
+                .foregroundStyle(Color.white.opacity(0.3))
+                .scaleEffect(scale) // matches image bulge
+            
+            
+            if animate {
+                RoundedRectangle(cornerRadius: 15)
+                    .frame(
+                        width: UIScreen.main.bounds.width * 0.88,
+                        height: UIScreen.main.bounds.width * 0.83
+                    )
+                    .foregroundStyle(Color.mint)
+                    .opacity(overlayOpacity)
+                    .scaleEffect(scale)
+            }
+            
+            // Fish image
+            Image(fishPhoto: imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(
+                    width: UIScreen.main.bounds.width * 0.85,
+                    height: UIScreen.main.bounds.width * 0.8
+                )
+                .cornerRadius(10)
+                .clipped()
+                .scaleEffect(scale)
+        }
+        .onAppear {
+            guard animate else { return } // only animate for unpinned fish
+            
+            // Bulge animation
+            withAnimation(
+                .easeInOut(duration: 2.2)
+                .repeatForever(autoreverses: true)
+            ) {
+                scale = 1.035
+            }
+            
+            // Blue overlay pulse animation
+            withAnimation(
+                .easeInOut(duration: 2.2)
+                .repeatForever(autoreverses: true)
+            ) {
+                overlayOpacity = 0.5 // subtle pulse
+            }
+        }
+    }
+}
 
 
 extension Image {
@@ -53,7 +115,7 @@ struct SpeciesListView: View {
                     // Background water
                     WaterView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .offset(y: -230)
+                        .offset(y: -310)
 
                     // Top icon
                     IconView()
@@ -71,37 +133,26 @@ struct SpeciesListView: View {
                             ForEach(speciesStore.speciesList[speciesIndex].fishList.indices, id: \.self) { fishIndex in
                                 let fishBinding = $speciesStore.speciesList[speciesIndex].fishList[fishIndex]
                                 VStack {
-                                    ZStack {
-                                        Rectangle()
-                                            .fill(Color.white.opacity(0.3))
-                                            .frame(
-                                                width: UIScreen.main.bounds.width * 0.88,
-                                                height: UIScreen.main.bounds.width * 0.83
-                                            )
-                                            .cornerRadius(15)
-
-                                        NavigationLink(
-                                            destination: FishDetailsView(fishID: fishBinding.id)
-                                                .environmentObject(speciesStore)
-                                                .environmentObject(aquarium)
-                                        ) {
-                                            Image(fishPhoto: fishBinding.photo.wrappedValue)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(
-                                                    width: UIScreen.main.bounds.width * 0.85,
-                                                    height: UIScreen.main.bounds.width * 0.8
-                                                )
-                                                .cornerRadius(10)
-                                                .clipped()
-                                        }
+                                    NavigationLink(
+                                        destination: FishDetailsView(fishID: fishBinding.id)
+                                            .environmentObject(speciesStore)
+                                            .environmentObject(aquarium)
+                                    ) {
+                                        FishCardView(
+                                            imageName: fishBinding.photo.wrappedValue,
+                                            animate: !fishBinding.isPinned.wrappedValue
+                                        )
                                     }
 
-                                    Text("5/30") // Replace with actual caught count if needed
+
+                                    Text("5/30")
                                         .bold()
                                         .font(.system(size: UIScreen.main.bounds.width * 0.05))
                                         .opacity(0.7)
                                 }
+                                .padding(.vertical, 5)
+                                .padding(.horizontal)
+
                                 .padding(.vertical, 5)
                                 .padding(.horizontal)
                             }

@@ -123,12 +123,15 @@ struct AlbumView: View {
     var body: some View {
         ZStack{
        
+            
+            
             ScrollView{
                 
                 ZStack(alignment: .top) {
-                    
-                    WaterView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing).offset(y: -230)
+                    Color.clear
+                        .frame(height: UIScreen.main.bounds.height)
+                    WaterView().offset(y: -240)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing).ignoresSafeArea()
                     IconView()
                     
                     VStack(spacing: 20) {

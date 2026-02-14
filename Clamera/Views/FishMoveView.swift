@@ -129,7 +129,6 @@ final class AquariumFishList: ObservableObject {
 
 
 
-import SwiftUI
 
 struct FishMoveView: View {
 
@@ -142,62 +141,55 @@ struct FishMoveView: View {
 
     @ObservedObject var aquarium: AquariumFishList   // shared fish list
     @State private var speedMultipliers: [UUID: Double] = [:]
-    @State private var zIndices: [UUID: Double] = [:]
     @State private var ripples: [Ripple] = []
-
-    let zTimer = Timer.publish(every: 4, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geo in
             TimelineView(AnimationTimelineSchedule()) { timeline in
                 let now = timeline.date.timeIntervalSinceReferenceDate
-                
+
                 ZStack {
-                    
-                   
+
                     // --- Ripples ---
                     ForEach(ripples) { ripple in
-                        
                         Circle()
                             .stroke(Color.white, lineWidth: 1.7)
                             .frame(width: ripple.size, height: ripple.size)
                             .position(ripple.position)
                             .opacity(ripple.opacity)
                             .animation(.easeOut(duration: 0.7), value: ripple.size)
-                        
                     }
-                    
- 
+
+                    // --- Fish ---
                     ForEach(aquarium.fish) { fish in
                         let speed = speedMultipliers[fish.id] ?? 1.0
-                        let z = zIndices[fish.id] ?? 0
-                        
                         let adjustedTime = (now + fish.phaseOffset) * speed
                         let rawProgress = adjustedTime / fish.swimDuration * 2 * .pi
                         let progress = sin(rawProgress)
                         let facingRight = progress >= 0
-                        
+
                         let xOffset = fish.horizontalRange.lowerBound +
-                        (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
-                        
+                            (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
+
                         let yOffset = fish.verticalRange.lowerBound +
-                        (fish.verticalRange.upperBound - fish.verticalRange.lowerBound) *
-                        ((sin(adjustedTime * 1.5) + 1) / 2)
-                        
+                            (fish.verticalRange.upperBound - fish.verticalRange.lowerBound) *
+                            ((sin(adjustedTime * 1.5) + 1) / 2)
+
                         let tailAngle = 12 * sin(adjustedTime * 2)
-                        
+
                         let deltaX = (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) / 1000
                         let projectedX = xOffset + (facingRight ? deltaX : -deltaX)
                         let canBoost = (facingRight && projectedX > xOffset) ||
-                        (!facingRight && projectedX < xOffset)
-                        
+                            (!facingRight && projectedX < xOffset)
+
                         let fishCenter = CGPoint(
                             x: geo.frame(in: .local).midX + xOffset,
-                            y: geo.frame(in: .local).midY + (yOffset + 80)
+                            y: geo.frame(in: .local).midY - 70
                         )
-                        
+
                         ZStack {
-                            
+
+                            // Normal fish image
                             Image(fish.imageName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
@@ -222,7 +214,8 @@ struct FishMoveView: View {
                                         }
                                     }
                                 }
-                            
+
+                            // Optional blue overlay for visual effect
                             Image(fish.imageName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
@@ -246,49 +239,32 @@ struct FishMoveView: View {
                                                 speedMultipliers[fish.id] = 1.0
                                             }
                                         }
-                                        
+
                                         addRipple(for: fish, at: fishCenter)
                                     }
                                 }
                         }
-                        .zIndex(z)
+                        // Dynamic zIndex based on yOffset: lower y = further back, higher y = in front
+                        .zIndex(Double(yOffset))
                     }
 
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.top, 150)
-                    .onReceive(zTimer) { _ in
-                        updateZIndices()
-                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.top, 150)
             }
         }
     }
 
-    private func updateZIndices() {
-        var newZ = zIndices
-        if let randomFish = aquarium.fish.randomElement() {
-            newZ[randomFish.id] = Double.random(in: 1...3)
-            for f in aquarium.fish where f.id != randomFish.id {
-                newZ[f.id] = Double.random(in: 0...1)
-            }
-            zIndices = newZ
-        }
-    }
-
-   
     private func addRipple(for fish: AquariumFish, at position: CGPoint) {
         var ripple = Ripple(position: position)
         ripples.append(ripple)
         let index = ripples.count - 1
 
-       
         withAnimation(.easeOut(duration: 1.1)) {
-            
             if fish.isActive {
-                ripples[index].size = 120 * ((fish.size.width + fish.size.height) / 2 / 50) // factor relative to default size
+                ripples[index].size = 120 * ((fish.size.width + fish.size.height) / 2 / 50)
                 ripples[index].opacity = 0.0
             }
-            
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
@@ -300,3 +276,5 @@ struct FishMoveView: View {
 #Preview {
     FishMoveView(aquarium: AquariumFishList())
 }
+
+
