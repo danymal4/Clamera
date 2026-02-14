@@ -9,11 +9,11 @@ import SwiftUI
 
 struct Fish: Identifiable, Hashable {
     let id = UUID()
-    let photo: String
+    var photo: String
     let speciesName: String
-    let description: String = "cool fish I found with sam"
+    var description: String = "cool fish I found with sam"
     let dateCaught: Date = Date()
-    var isPinned: Bool = false
+    var isPinned: Bool = true
     var isAquarium: Bool = false
 }
 
@@ -22,7 +22,7 @@ struct Species: Identifiable, Hashable {
     let name: String
     let imageName: String
     let icon: String
-    let fishList: [Fish]
+    var fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
 
@@ -44,18 +44,11 @@ struct Species: Identifiable, Hashable {
     }
 }
 
-
-import SwiftUI
-
-struct AlbumView: View {
-
-    @EnvironmentObject var aquarium: AquariumFishList
-
-    let speciesList = [
+final class SpeciesStore: ObservableObject {
+    @Published var speciesList: [Species] = [
         Species(
             name: "Clownfish",
             imageName: "clownFishExample",
-   
             fishList: [
                 Fish(photo: "clownfish1", speciesName: "Clownfish"),
                 Fish(photo: "clownfish2", speciesName: "Clownfish"),
@@ -70,7 +63,7 @@ struct AlbumView: View {
             fishList: [
                 Fish(photo: "puffer1", speciesName: "Puffer"),
                 Fish(photo: "puffer2", speciesName: "Puffer")
-            ],
+            ]
         ),
         Species(
             name: "Grouper",
@@ -81,22 +74,19 @@ struct AlbumView: View {
                 Fish(photo: "grouper2", speciesName: "Grouper")
             ]
         ),
-        Species(
-            name: "Salmon",
-            imageName: "salmonExample",
-            fishList: []
-        ),
-        Species(
-            name: "Cod",
-            imageName: "codExample",
-            fishList: []
-        )
+        Species(name: "Salmon", imageName: "salmonExample", fishList: []),
+        Species(name: "Cod", imageName: "codExample", fishList: [])
     ]
+}
 
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+
+struct AlbumView: View {
+
+    @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var speciesStore: SpeciesStore
+
+
+    
 
     @State private var searchText: String = ""
 
@@ -110,7 +100,7 @@ struct AlbumView: View {
     @State private var selectedFilter: FilterOption = .alphabetical
 
     var filteredSpecies: [Species] {
-        var filtered = speciesList
+        var filtered = speciesStore.speciesList
 
         if !searchText.isEmpty {
             filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
@@ -181,9 +171,12 @@ struct AlbumView: View {
                             let hasFish = !item.fishList.isEmpty
                             
                             if hasFish {
-                                NavigationLink(destination: SpeciesListView(species: item)) {
-                                    SpeciesGridItem(species: item, clickable: true)
+                                if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                    NavigationLink(destination: SpeciesListView(speciesIndex: index)) {
+                                        SpeciesGridItem(species: item, clickable: true)
+                                    }
                                 }
+
                             } else {
                                 SpeciesGridItem(species: item, clickable: false)
                             }
@@ -259,7 +252,7 @@ struct SpeciesGridItem: View {
 
 #Preview {
     NavigationStack {
-        AlbumView().environmentObject(AquariumFishList())
+        AlbumView().environmentObject(AquariumFishList()).environmentObject(SpeciesStore())
        
     }
 }

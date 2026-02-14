@@ -7,10 +7,41 @@
 import SwiftUI
 
 
+
+extension Image {
+    /// Loads an image either from the app bundle (assets) or the documents folder
+    init(fishPhoto name: String) {
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(name)
+        
+        if let uiImage = UIImage(contentsOfFile: url.path) {
+            self.init(uiImage: uiImage)
+        } else {
+            self.init(name) // fallback to asset catalog image
+        }
+    }
+}
+
+
 struct SpeciesListView: View {
 
     @EnvironmentObject var aquarium: AquariumFishList
-    let species: Species
+    @EnvironmentObject var speciesStore: SpeciesStore
+   
+    let speciesIndex: Int
+
+    var species: Species {
+        speciesStore.speciesList[speciesIndex]
+    }
+
+
+    // Binding to the species in the store to propagate changes
+    var speciesBinding: Binding<Species>? {
+        guard let index = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) else {
+            return nil
+        }
+        return $speciesStore.speciesList[index]
+    }
 
     var body: some View {
         ZStack {
@@ -19,7 +50,7 @@ struct SpeciesListView: View {
 
                 ZStack(alignment: .top) {
 
-                    // Background water (same format as AlbumView)
+                    // Background water
                     WaterView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .offset(y: -230)
@@ -36,45 +67,50 @@ struct SpeciesListView: View {
                             .padding(.top)
 
                         // Fish list
-                        ForEach(species.fishList) { fish in
-                            VStack {
-
-                                ZStack {
-                                    Rectangle()
-                                        .fill(Color.white.opacity(0.3))
-                                        .frame(
-                                            width: UIScreen.main.bounds.width * 0.88,
-                                            height: UIScreen.main.bounds.width * 0.83
-                                        )
-                                        .cornerRadius(15)
-
-                                    NavigationLink(
-                                        destination: FishDetailsView(fish: fish)
-                                    ) {
-                                        Image(fish.photo)
-                                            .resizable()
-                                            .scaledToFill()
+                        if let speciesIndex = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
+                            ForEach(speciesStore.speciesList[speciesIndex].fishList.indices, id: \.self) { fishIndex in
+                                let fishBinding = $speciesStore.speciesList[speciesIndex].fishList[fishIndex]
+                                VStack {
+                                    ZStack {
+                                        Rectangle()
+                                            .fill(Color.white.opacity(0.3))
                                             .frame(
-                                                width: UIScreen.main.bounds.width * 0.85,
-                                                height: UIScreen.main.bounds.width * 0.8
+                                                width: UIScreen.main.bounds.width * 0.88,
+                                                height: UIScreen.main.bounds.width * 0.83
                                             )
-                                            .cornerRadius(10)
-                                            .clipped()
-                                    }
-                                }
+                                            .cornerRadius(15)
 
-                                Text("5/30")
-                                    
-                                    .bold()  .font(.system(size: UIScreen.main.bounds.width * 0.05)).opacity(0.7)
+                                        NavigationLink(
+                                            destination: FishDetailsView(fishID: fishBinding.id)
+                                                .environmentObject(speciesStore)
+                                                .environmentObject(aquarium)
+                                        ) {
+                                            Image(fishPhoto: fishBinding.photo.wrappedValue)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(
+                                                    width: UIScreen.main.bounds.width * 0.85,
+                                                    height: UIScreen.main.bounds.width * 0.8
+                                                )
+                                                .cornerRadius(10)
+                                                .clipped()
+                                        }
+                                    }
+
+                                    Text("5/30") // Replace with actual caught count if needed
+                                        .bold()
+                                        .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                                        .opacity(0.7)
+                                }
+                                .padding(.vertical, 5)
+                                .padding(.horizontal)
                             }
-                            .padding(.vertical, 5)
-                            .padding(.horizontal)
                         }
                     }
                 }
             }
 
-            // Bottom white overlay (same as AlbumView)
+            // Bottom overlay
             VStack {
                 Spacer()
                 Rectangle()
@@ -88,17 +124,11 @@ struct SpeciesListView: View {
 }
 
 #Preview {
+    let store = SpeciesStore()
     NavigationStack {
-        SpeciesListView(
-            species: Species(
-                name: "Clownfish",
-                imageName: "clownFishExample",
-                fishList: [
-                    Fish(photo: "clownfish1", speciesName: "Clownfish"),
-                    Fish(photo: "clownfish2", speciesName: "Clownfish")
-                ]
-            )
-        )
-       
+        SpeciesListView(speciesIndex: 0)   
+            .environmentObject(store)
+            .environmentObject(AquariumFishList())
     }
 }
+

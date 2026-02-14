@@ -3,6 +3,7 @@
 //  Clamera
 //
 //  Created by Ellis Kamplain (student LM) on 2/4/26.
+
 import SwiftUI
 
 enum ViewState {
@@ -18,6 +19,8 @@ struct HomerView: View {
     @StateObject private var tabRouter = TabRouter()
     @StateObject var aquariumState = AquariumState()
     @StateObject private var aquarium = AquariumFishList()
+    @StateObject var speciesStore = SpeciesStore()
+
     
     // Global timer
     @State private var cleanTimer: Timer?
@@ -51,6 +54,13 @@ struct HomerView: View {
                     .onAppear {
                         // Commit pending clean immediately on appear
                         aquariumState.commitPendingClean()
+                        
+                        // Extra commit in next run loop to align first frame
+                        DispatchQueue.main.async {
+                            aquariumState.commitPendingClean()
+                        }
+                        
+                        // Reset lastUpdate for timer
                         lastUpdate = Date()
                     }
             }
@@ -73,20 +83,29 @@ struct HomerView: View {
         .environmentObject(tabRouter)
         .environmentObject(aquarium)
         .environmentObject(aquariumState)
+        .environmentObject(speciesStore)
         .onAppear { startCleanTimer() }
         .onDisappear {
             cleanTimer?.invalidate()
             cleanTimer = nil
         }
+        // Reset lastUpdate whenever switching to aquarium to prevent first-frame delta jumps
+        .onChange(of: tabRouter.viewState) { newState in
+            if newState == .aquarium {
+                lastUpdate = Date()
+                aquariumState.commitPendingClean()
+            }
+        }
     }
     
-    /// Optimized global timer
-    /// Starts a single global timer for clean/pending updates with a 1-minute auto-reset
+ 
+
+
     private func startCleanTimer() {
         cleanTimer?.invalidate()
         
-        let totalDuration: TimeInterval = 60.0
-        let tickInterval: TimeInterval = 0.05
+        let totalDuration: TimeInterval = 60.0 * 5    // 5 minutes
+        let tickInterval: TimeInterval = 0.5          // slower tick for smoother rendering
         var lastUpdate = Date()
         
         cleanTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { _ in
@@ -95,19 +114,24 @@ struct HomerView: View {
             lastUpdate = now
             
             if tabRouter.viewState == .aquarium {
+                // Increment scaled with delta — ensures smooth progress even with slower ticks
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.clean = min(aquariumState.clean + increment, aquariumState.maxClean)
             } else {
+                // Pending clean updated off-screen proportionally
                 let increment = aquariumState.maxClean * 0.05 / 60 * delta / tickInterval
                 aquariumState.updatePendingClean(to: min(aquariumState.pendingClean + increment, aquariumState.maxClean))
             }
         }
     }
 
+
+
 }
+
 #Preview {
     HomerView()
         .environmentObject(TabRouter())
         .environmentObject(AquariumFishList())
-        .environmentObject(AquariumState())
+        .environmentObject(AquariumState()).environmentObject(SpeciesStore())
 }
