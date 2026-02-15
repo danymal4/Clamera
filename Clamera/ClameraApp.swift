@@ -16,12 +16,13 @@ struct ClameraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
+            
+              
                 HomerView()   // ← just reference it
                     .environmentObject(aquarium)
                     .environmentObject(speciesStore)
                     .environmentObject(aquariumState)
-            }
+            
         }
     }
 }

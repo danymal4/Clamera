@@ -16,10 +16,10 @@ final class TabRouter: ObservableObject {
 
 struct HomerView: View {
 
+    @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var speciesStore: SpeciesStore
+    @EnvironmentObject var aquariumState: AquariumState
     @StateObject private var tabRouter = TabRouter()
-    @StateObject var aquariumState = AquariumState()
-    @StateObject private var aquarium = AquariumFishList()
-    @StateObject var speciesStore = SpeciesStore()
 
     // Global timer
     @State private var cleanTimer: Timer?
@@ -41,11 +41,13 @@ struct HomerView: View {
         TabView(selection: $tabRouter.viewState) {
 
             // Home tab
-            ZStack { HomeView() }
-                .tag(ViewState.home)
-                .tabItem { Label("Home", systemImage: "house") }
+            NavigationStack {
+                HomeView()
+            }
+            .tag(ViewState.home)
+            .tabItem { Label("Home", systemImage: "house") }
 
-            // Album tab wrapped in NavigationStack
+            // Album tab
             NavigationStack {
                 AlbumView()
             }
@@ -53,7 +55,7 @@ struct HomerView: View {
             .tabItem { Label("Album", systemImage: "book") }
 
             // Aquarium tab
-            ZStack {
+            NavigationStack {
                 AquariumView()
                     .onAppear {
                         aquariumState.commitPendingClean()
@@ -72,14 +74,18 @@ struct HomerView: View {
             }
 
             // Catch tab
-            ZStack { CatchView() }
-                .tag(ViewState.caught)
-                .tabItem { Label("Catch", systemImage: "fish") }
+            NavigationStack {
+                CatchView()
+            }
+            .tag(ViewState.caught)
+            .tabItem { Label("Catch", systemImage: "fish") }
 
             // Profile tab
-            ZStack { ProfileView() }
-                .tag(ViewState.profile)
-                .tabItem { Label("Profile", systemImage: "person") }
+            NavigationStack {
+                ProfileView()
+            }
+            .tag(ViewState.profile)
+            .tabItem { Label("Profile", systemImage: "person") }
         }
         // Environment objects now flow to every child view
         .environmentObject(tabRouter)
@@ -123,4 +129,7 @@ struct HomerView: View {
 
 #Preview {
     HomerView()
+        .environmentObject(AquariumFishList())
+        .environmentObject(SpeciesStore())
+        .environmentObject(AquariumState())
 }

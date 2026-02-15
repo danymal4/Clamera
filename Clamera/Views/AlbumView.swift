@@ -175,7 +175,12 @@ struct AlbumView: View {
                             if hasFish {
                                 if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
                                     // NavigationLink now works because HomerView's NavigationStack wraps Album tab
-                                    NavigationLink(destination: SpeciesListView(speciesIndex: index)) {
+                                    NavigationLink(
+                                        destination: SpeciesListView(
+                                            aquarium: aquarium, speciesStore: speciesStore, speciesIndex: index
+                                        )
+                                    )
+ {
                                         SpeciesGridItem(species: item, clickable: true)
                                     }
                                 }

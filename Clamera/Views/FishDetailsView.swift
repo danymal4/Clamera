@@ -8,42 +8,25 @@ import SwiftUI
 
 struct FishDetailsView: View {
     
-    @EnvironmentObject var speciesStore: SpeciesStore
-    @EnvironmentObject var aquarium: AquariumFishList
+    // Pass SpeciesStore explicitly from parent
+    @ObservedObject var speciesStore: SpeciesStore
+    @ObservedObject var aquarium: AquariumFishList
     
     let fishID: UUID
-    
-    // Binding to real fish inside SpeciesStore
-    var fishBinding: Binding<Fish>? {
-        for speciesIndex in speciesStore.speciesList.indices {
-            if let fishIndex = speciesStore.speciesList[speciesIndex]
-                .fishList
-                .firstIndex(where: { $0.id == fishID }) {
-                
-                return $speciesStore.speciesList[speciesIndex]
-                    .fishList[fishIndex]
-            }
-        }
-        return nil
-    }
-    
-    // Convenience computed value
-    var fish: Fish? {
-        fishBinding?.wrappedValue
-    }
-    
+
     var body: some View {
-        
-        if let fish = fish {
-            
+        // Find the binding safely inside the body
+        if let binding = findFishBinding() {
+            let fish = binding.wrappedValue
+
             ZStack {
-                
+
                 WaterView()
                     .offset(y: -350)
-                
+
                 IconView()
                     .padding(.top, 60)
-                
+
                 ZStack {
                     Rectangle()
                         .cornerRadius(20)
@@ -52,15 +35,15 @@ struct FishDetailsView: View {
                         .frame(width: 365, height: 200)
                         .padding(.top, 320)
                 }
-                
+
                 // Add to Aquarium
                 HStack {
                     Spacer()
-                    
+
                     Button {
                         if !fish.isAquarium {
                             aquarium.addFish(with: "\(fish.speciesName.lowercased())Icon")
-                            fishBinding?.isAquarium.wrappedValue.toggle()
+                            binding.isAquarium.wrappedValue.toggle()
                             aquarium.refresh()
                         }
                     } label: {
@@ -75,14 +58,14 @@ struct FishDetailsView: View {
                     .padding(.top, 325)
                     .padding(.trailing, 45)
                 }
-                
+
                 // Remove from Aquarium
                 HStack {
                     Spacer()
-                    
+
                     Button {
                         aquarium.removeFish(with: "\(fish.speciesName.lowercased())Icon")
-                        fishBinding?.isAquarium.wrappedValue = false
+                        binding.isAquarium.wrappedValue = false
                         aquarium.refresh()
                     } label: {
                         Image("\(fish.speciesName.lowercased())Icon")
@@ -97,14 +80,13 @@ struct FishDetailsView: View {
                     .padding(.top, 435)
                     .padding(.trailing, 45)
                 }
-                
+
                 // Species + Date
                 HStack {
                     Text("Species: \(fish.speciesName)")
                         .font(.system(size: UIScreen.main.bounds.width * 0.03))
                         .opacity(0.8)
                         .padding(.top, 550)
-                    
                     Spacer()
                 }
                 .padding()
@@ -117,31 +99,31 @@ struct FishDetailsView: View {
                         .padding(.top, 550)
                 }
                 .padding()
-                
+
                 Rectangle()
                     .cornerRadius(30)
                     .foregroundStyle(.white)
                     .opacity(0.3)
                     .frame(width: 365, height: 330)
                     .padding(.bottom, 250)
-                
+
                 Text("Image Not Found")
                     .font(.custom("", size: 40))
                     .foregroundStyle(.red)
                     .padding(.bottom, 210)
-                
+
                 Image(fishPhoto: fish.photo)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 335, height: 305)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .padding(.bottom, 250)
-                
+
                 // Pin Button
                 HStack {
                     Spacer()
                     Button {
-                        fishBinding?.isPinned.wrappedValue.toggle()
+                        binding.isPinned.wrappedValue.toggle()
                     } label: {
                         Image(fish.isPinned ? "anchorUnpinned" : "anchor")
                             .resizable()
@@ -155,16 +137,16 @@ struct FishDetailsView: View {
                     .padding(.trailing, 30)
                     .padding(.top, 190)
                 }
-                
+
                 VStack {
                     Text("Description")
                         .font(.title2)
                         .bold()
                         .padding(.top, 8)
-                    
+
                     Text(fish.description)
                         .opacity(0.6)
-                    
+
                     Text("Add to Aquarium")
                         .font(.system(size: UIScreen.main.bounds.width * 0.04))
                         .opacity(0.8)
@@ -175,7 +157,7 @@ struct FishDetailsView: View {
                             alignment: .leading
                         )
                         .padding()
-                    
+
                     Text("Remove From Aquarium")
                         .font(.system(size: UIScreen.main.bounds.width * 0.04))
                         .opacity(0.8)
@@ -187,28 +169,43 @@ struct FishDetailsView: View {
                         )
                 }
                 .padding(.top, 300)
-                
+
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
                     .frame(height: 83)
                     .padding(.top, 790)
             }
             .padding(.top, -20)
-            
+
         } else {
             Text("Fish not found")
+                .foregroundColor(.red)
+                .bold()
         }
+    }
+
+    /// Helper function to safely get binding to Fish in SpeciesStore
+    private func findFishBinding() -> Binding<Fish>? {
+        for speciesIndex in speciesStore.speciesList.indices {
+            if let fishIndex = speciesStore.speciesList[speciesIndex]
+                .fishList
+                .firstIndex(where: { $0.id == fishID }) {
+                
+                return $speciesStore.speciesList[speciesIndex]
+                    .fishList[fishIndex]
+            }
+        }
+        return nil
     }
 }
 
 #Preview {
-
     let store = SpeciesStore()
     let firstFishID = store.speciesList.first?.fishList.first?.id ?? UUID()
+    let aquarium = AquariumFishList()
     
-    return FishDetailsView(fishID: firstFishID)
-        .environmentObject(store)
-        .environmentObject(AquariumFishList())
+    NavigationStack {
+        FishDetailsView(speciesStore: store, aquarium: aquarium, fishID: firstFishID)
+          // aquarium remains environment object
+    }
 }
-
-

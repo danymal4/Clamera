@@ -70,17 +70,17 @@ extension Image {
 }
 
 
+
+
 struct SpeciesListView: View {
 
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var speciesStore: SpeciesStore
-   
+    @ObservedObject var aquarium: AquariumFishList
+    @ObservedObject var speciesStore: SpeciesStore
     let speciesIndex: Int
-    
+
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
         case newest = "Newest"
-        
         var id: String { self.rawValue }
     }
 
@@ -89,43 +89,32 @@ struct SpeciesListView: View {
     var species: Species {
         speciesStore.speciesList[speciesIndex]
     }
-    
-    // Filtered fish list (THIS is what actually drives UI now)
+
+    // Filtered fish list driving UI
     var filteredFish: [Fish] {
-        var fish = speciesStore.speciesList[speciesIndex].fishList
-        
-        switch selectedFilter {
-        case .oldest:
-            break
-            
-        case .newest:
+        var fish = species.fishList
+        if selectedFilter == .newest {
             fish.reverse()
         }
-        
         return fish
     }
 
     var body: some View {
-        
         ZStack {
-
             ScrollView {
-
                 ZStack(alignment: .top) {
-
                     WaterView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .offset(y: -310)
 
                     IconView()
-                    
+
                     Menu {
                         Button("Oldest") { selectedFilter = .oldest }
                         Button("Newest") { selectedFilter = .newest }
                     } label: {
-                       Spacer()
-                        
-                        HStack{
+                        Spacer()
+                        HStack {
                             VStack {
                                 Image(systemName: "line.horizontal.3.decrease")
                                     .foregroundStyle(.black)
@@ -133,48 +122,21 @@ struct SpeciesListView: View {
                                     .font(.custom("HelveticaNeue-Thin", size: 15))
                                     .foregroundStyle(.black)
                             }
-                            .padding(.horizontal).padding(.top, 75)
+                            .padding(.horizontal)
+                            .padding(.top, 75)
                         }
-                        }
+                    }
 
                     VStack(spacing: 20) {
-
                         Text(species.name)
                             .font(.custom("IslandMoments-Regular", size: 90))
                             .foregroundStyle(.blue)
                             .padding(.top)
 
+                        // Simplified ForEach using helper
                         ForEach(filteredFish) { fish in
-                            
-                            // Get binding to real fish
-                            if let realSpeciesIndex = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
-                               let fishIndex = speciesStore.speciesList[realSpeciesIndex]
-                                    .fishList.firstIndex(where: { $0.id == fish.id }) {
-                                
-                                let fishBinding = $speciesStore
-                                    .speciesList[realSpeciesIndex]
-                                    .fishList[fishIndex]
-                                
-                                VStack {
-                                    
-                                    NavigationLink(
-                                        destination: FishDetailsView(fishID: fish.id)
-                                            .environmentObject(speciesStore)
-                                            .environmentObject(aquarium)
-                                    ) {
-                                        FishCardView(
-                                            imageName: fish.photo,
-                                            animate: !fish.isPinned
-                                        )
-                                    }
-
-                                    Text("5/30")
-                                        .bold()
-                                        .font(.system(size: UIScreen.main.bounds.width * 0.05))
-                                        .opacity(0.7)
-                                }
-                                .padding(.vertical, 5)
-                                .padding(.horizontal)
+                            if let fishBinding = binding(for: fish) {
+                                fishRowView(fish: fish, fishBinding: fishBinding)
                             }
                         }
                     }
@@ -191,14 +153,45 @@ struct SpeciesListView: View {
             }
         }
     }
+
+    // MARK: - Helper functions
+
+    /// Compute binding for a fish
+    private func binding(for fish: Fish) -> Binding<Fish>? {
+        guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
+              let fishIdx = speciesStore.speciesList[speciesIdx]
+                .fishList.firstIndex(where: { $0.id == fish.id }) else {
+            return nil
+        }
+        return $speciesStore.speciesList[speciesIdx].fishList[fishIdx]
+    }
+
+    /// A separate small view for each fish row
+    @ViewBuilder
+    private func fishRowView(fish: Fish, fishBinding: Binding<Fish>) -> some View {
+        VStack {
+            NavigationLink(
+                destination: FishDetailsView(speciesStore: speciesStore, aquarium: aquarium, fishID: fish.id)
+            ) {
+                FishCardView(imageName: fish.photo, animate: !fish.isPinned)
+            }
+
+            Text("5/30")
+                .bold()
+                .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                .opacity(0.7)
+        }
+        .padding(.vertical, 5)
+        .padding(.horizontal)
+    }
 }
 
 #Preview {
     let store = SpeciesStore()
+    let aquarium = AquariumFishList()
+    
     NavigationStack {
-        SpeciesListView(speciesIndex: 0)   
-            .environmentObject(store)
-            .environmentObject(AquariumFishList())
+        SpeciesListView(aquarium: aquarium, speciesStore: store, speciesIndex: 0)
+           
     }
 }
-
