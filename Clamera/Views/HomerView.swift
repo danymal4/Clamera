@@ -15,19 +15,18 @@ final class TabRouter: ObservableObject {
 }
 
 struct HomerView: View {
-    
+
     @StateObject private var tabRouter = TabRouter()
     @StateObject var aquariumState = AquariumState()
     @StateObject private var aquarium = AquariumFishList()
     @StateObject var speciesStore = SpeciesStore()
 
-    
     // Global timer
     @State private var cleanTimer: Timer?
     
     // Track last timestamp for precise elapsed time
     @State private var lastUpdate: Date = Date()
-    
+
     // Tab bar transparent appearance
     init() {
         let appearance = UITabBarAppearance()
@@ -37,30 +36,30 @@ struct HomerView: View {
             UITabBar.appearance().scrollEdgeAppearance = appearance
         }
     }
-    
+
     var body: some View {
         TabView(selection: $tabRouter.viewState) {
-            
-            ZStack { Color.clear.ignoresSafeArea(); HomeView() }
+
+            // Home tab
+            ZStack { HomeView() }
                 .tag(ViewState.home)
                 .tabItem { Label("Home", systemImage: "house") }
-            
-            ZStack { CatchView() }
-                .tag(ViewState.caught)
-                .tabItem { Label("Catch", systemImage: "fish") }
-            
+
+            // Album tab wrapped in NavigationStack
+            NavigationStack {
+                AlbumView()
+            }
+            .tag(ViewState.album)
+            .tabItem { Label("Album", systemImage: "book") }
+
+            // Aquarium tab
             ZStack {
                 AquariumView()
                     .onAppear {
-                        // Commit pending clean immediately on appear
                         aquariumState.commitPendingClean()
-                        
-                        // Extra commit in next run loop to align first frame
                         DispatchQueue.main.async {
                             aquariumState.commitPendingClean()
                         }
-                        
-                        // Reset lastUpdate for timer
                         lastUpdate = Date()
                     }
             }
@@ -71,15 +70,18 @@ struct HomerView: View {
                     .foregroundColor(tabRouter.viewState == .aquarium ? .blue : .gray)
                 Text("Aquarium")
             }
-            
-            ZStack { NavigationStack { AlbumView() } }
-                .tag(ViewState.album)
-                .tabItem { Label("Album", systemImage: "book") }
-            
-            ZStack { Color.clear.ignoresSafeArea(); ProfileView() }
+
+            // Catch tab
+            ZStack { CatchView() }
+                .tag(ViewState.caught)
+                .tabItem { Label("Catch", systemImage: "fish") }
+
+            // Profile tab
+            ZStack { ProfileView() }
                 .tag(ViewState.profile)
                 .tabItem { Label("Profile", systemImage: "person") }
         }
+        // Environment objects now flow to every child view
         .environmentObject(tabRouter)
         .environmentObject(aquarium)
         .environmentObject(aquariumState)
@@ -89,7 +91,6 @@ struct HomerView: View {
             cleanTimer?.invalidate()
             cleanTimer = nil
         }
-        // Reset lastUpdate whenever switching to aquarium to prevent first-frame delta jumps
         .onChange(of: tabRouter.viewState) { newState in
             if newState == .aquarium {
                 lastUpdate = Date()
@@ -97,41 +98,29 @@ struct HomerView: View {
             }
         }
     }
-    
- 
-
 
     private func startCleanTimer() {
         cleanTimer?.invalidate()
-        
-        let totalDuration: TimeInterval = 60.0 * 5    // 5 minutes
-        let tickInterval: TimeInterval = 0.5          // slower tick for smoother rendering
+        let totalDuration: TimeInterval = 60.0 * 5
+        let tickInterval: TimeInterval = 0.5
         var lastUpdate = Date()
-        
+
         cleanTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { _ in
             let now = Date()
             let delta = now.timeIntervalSince(lastUpdate)
             lastUpdate = now
-            
+
             if tabRouter.viewState == .aquarium {
-                // Increment scaled with delta — ensures smooth progress even with slower ticks
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.clean = min(aquariumState.clean + increment, aquariumState.maxClean)
             } else {
-                // Pending clean updated off-screen proportionally
                 let increment = aquariumState.maxClean * 0.05 / 60 * delta / tickInterval
                 aquariumState.updatePendingClean(to: min(aquariumState.pendingClean + increment, aquariumState.maxClean))
             }
         }
     }
-
-
-
 }
 
 #Preview {
     HomerView()
-        .environmentObject(TabRouter())
-        .environmentObject(AquariumFishList())
-        .environmentObject(AquariumState()).environmentObject(SpeciesStore())
 }

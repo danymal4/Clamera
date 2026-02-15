@@ -144,6 +144,7 @@ struct FishMoveView: View {
     @State private var ripples: [Ripple] = []
 
     var body: some View {
+
         GeometryReader { geo in
             TimelineView(AnimationTimelineSchedule()) { timeline in
                 let now = timeline.date.timeIntervalSinceReferenceDate
@@ -184,7 +185,7 @@ struct FishMoveView: View {
 
                         let fishCenter = CGPoint(
                             x: geo.frame(in: .local).midX + xOffset,
-                            y: geo.frame(in: .local).midY - 70
+                            y: geo.frame(in: .local).midY  + yOffset - 70
                         )
 
                         ZStack {

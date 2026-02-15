@@ -9,20 +9,17 @@ struct FishCardView: View {
     let imageName: String
     let animate: Bool // true for unpinned, false for pinned
     
-    @State private var scale: CGFloat = 1.0
-    @State private var overlayOpacity: Double = 0.0
-    
     var body: some View {
         ZStack {
-            // Base rectangle: always low opacity white
+            
+            // Base rectangle
             RoundedRectangle(cornerRadius: 15)
                 .frame(
                     width: UIScreen.main.bounds.width * 0.88,
                     height: UIScreen.main.bounds.width * 0.83
                 )
                 .foregroundStyle(Color.white.opacity(0.3))
-                .scaleEffect(scale) // matches image bulge
-            
+                .scaleEffect(animate ? 1.035 : 1.0)
             
             if animate {
                 RoundedRectangle(cornerRadius: 15)
@@ -31,8 +28,8 @@ struct FishCardView: View {
                         height: UIScreen.main.bounds.width * 0.83
                     )
                     .foregroundStyle(Color.mint)
-                    .opacity(overlayOpacity)
-                    .scaleEffect(scale)
+                    .opacity(animate ? 0.5 : 0.0)
+                    .scaleEffect(animate ? 1.035 : 1.0)
             }
             
             // Fish image
@@ -45,29 +42,17 @@ struct FishCardView: View {
                 )
                 .cornerRadius(10)
                 .clipped()
-                .scaleEffect(scale)
+                .scaleEffect(animate ? 1.035 : 1.0)
         }
-        .onAppear {
-            guard animate else { return } // only animate for unpinned fish
-            
-            // Bulge animation
-            withAnimation(
-                .easeInOut(duration: 2.2)
-                .repeatForever(autoreverses: true)
-            ) {
-                scale = 1.035
-            }
-            
-            // Blue overlay pulse animation
-            withAnimation(
-                .easeInOut(duration: 2.2)
-                .repeatForever(autoreverses: true)
-            ) {
-                overlayOpacity = 0.5 // subtle pulse
-            }
-        }
+        .animation(
+            animate
+            ? .easeInOut(duration: 2.2).repeatForever(autoreverses: true)
+            : .default,
+            value: animate
+        )
     }
 }
+
 
 
 extension Image {
@@ -91,59 +76,97 @@ struct SpeciesListView: View {
     @EnvironmentObject var speciesStore: SpeciesStore
    
     let speciesIndex: Int
+    
+    enum FilterOption: String, CaseIterable, Identifiable {
+        case oldest = "Oldest"
+        case newest = "Newest"
+        
+        var id: String { self.rawValue }
+    }
+
+    @State private var selectedFilter: FilterOption = .oldest
 
     var species: Species {
         speciesStore.speciesList[speciesIndex]
     }
-
-
-    // Binding to the species in the store to propagate changes
-    var speciesBinding: Binding<Species>? {
-        guard let index = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) else {
-            return nil
+    
+    // Filtered fish list (THIS is what actually drives UI now)
+    var filteredFish: [Fish] {
+        var fish = speciesStore.speciesList[speciesIndex].fishList
+        
+        switch selectedFilter {
+        case .oldest:
+            break
+            
+        case .newest:
+            fish.reverse()
         }
-        return $speciesStore.speciesList[index]
+        
+        return fish
     }
 
     var body: some View {
+        
         ZStack {
 
             ScrollView {
 
                 ZStack(alignment: .top) {
 
-                    // Background water
                     WaterView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .offset(y: -310)
 
-                    // Top icon
                     IconView()
+                    
+                    Menu {
+                        Button("Oldest") { selectedFilter = .oldest }
+                        Button("Newest") { selectedFilter = .newest }
+                    } label: {
+                       Spacer()
+                        
+                        HStack{
+                            VStack {
+                                Image(systemName: "line.horizontal.3.decrease")
+                                    .foregroundStyle(.black)
+                                Text("Filter")
+                                    .font(.custom("HelveticaNeue-Thin", size: 15))
+                                    .foregroundStyle(.black)
+                            }
+                            .padding(.horizontal).padding(.top, 75)
+                        }
+                        }
 
                     VStack(spacing: 20) {
 
-                        // Title
                         Text(species.name)
                             .font(.custom("IslandMoments-Regular", size: 90))
                             .foregroundStyle(.blue)
                             .padding(.top)
 
-                        // Fish list
-                        if let speciesIndex = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
-                            ForEach(speciesStore.speciesList[speciesIndex].fishList.indices, id: \.self) { fishIndex in
-                                let fishBinding = $speciesStore.speciesList[speciesIndex].fishList[fishIndex]
+                        ForEach(filteredFish) { fish in
+                            
+                            // Get binding to real fish
+                            if let realSpeciesIndex = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
+                               let fishIndex = speciesStore.speciesList[realSpeciesIndex]
+                                    .fishList.firstIndex(where: { $0.id == fish.id }) {
+                                
+                                let fishBinding = $speciesStore
+                                    .speciesList[realSpeciesIndex]
+                                    .fishList[fishIndex]
+                                
                                 VStack {
+                                    
                                     NavigationLink(
-                                        destination: FishDetailsView(fishID: fishBinding.id)
+                                        destination: FishDetailsView(fishID: fish.id)
                                             .environmentObject(speciesStore)
                                             .environmentObject(aquarium)
                                     ) {
                                         FishCardView(
-                                            imageName: fishBinding.photo.wrappedValue,
-                                            animate: !fishBinding.isPinned.wrappedValue
+                                            imageName: fish.photo,
+                                            animate: !fish.isPinned
                                         )
                                     }
-
 
                                     Text("5/30")
                                         .bold()
@@ -152,16 +175,12 @@ struct SpeciesListView: View {
                                 }
                                 .padding(.vertical, 5)
                                 .padding(.horizontal)
-
-                                .padding(.vertical, 5)
-                                .padding(.horizontal)
                             }
                         }
                     }
                 }
             }
 
-            // Bottom overlay
             VStack {
                 Spacer()
                 Rectangle()

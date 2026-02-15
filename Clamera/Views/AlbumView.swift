@@ -80,13 +80,11 @@ final class SpeciesStore: ObservableObject {
 }
 
 
+
 struct AlbumView: View {
 
     @EnvironmentObject var aquarium: AquariumFishList
     @EnvironmentObject var speciesStore: SpeciesStore
-
-
-    
 
     @State private var searchText: String = ""
 
@@ -121,25 +119,25 @@ struct AlbumView: View {
     }
 
     var body: some View {
-        ZStack{
-       
-            
-            
-            ScrollView{
-                
+        ZStack {
+            ScrollView {
                 ZStack(alignment: .top) {
-                    Color.clear
-                        .frame(height: UIScreen.main.bounds.height)
-                    WaterView().offset(y: -240)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing).ignoresSafeArea()
+                    Color.clear.frame(height: UIScreen.main.bounds.height)
+
+                    WaterView()
+                        .offset(y: -240)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .ignoresSafeArea()
+
                     IconView()
-                    
+
                     VStack(spacing: 20) {
                         Text("Album")
                             .font(.custom("IslandMoments-Regular", size: 90))
                             .foregroundStyle(.blue)
                             .padding(.top)
-                        
+
+                        // Search + filter bar
                         HStack(spacing: 10) {
                             HStack {
                                 TextField("Search", text: $searchText)
@@ -152,63 +150,58 @@ struct AlbumView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(.gray, lineWidth: 2)
                             )
-                            
+
                             Menu {
                                 Button("Alphabetical") { selectedFilter = .alphabetical }
                                 Button("Caught Fish") { selectedFilter = .caught }
                                 Button("Not Caught Fish") { selectedFilter = .notCaught }
                             } label: {
                                 VStack {
-                                    Image(systemName: "line.horizontal.3.decrease").foregroundStyle(.black)
+                                    Image(systemName: "line.horizontal.3.decrease")
+                                        .foregroundStyle(.black)
                                     Text("Filter")
-                                        .font(.custom("HelveticaNeue-Thin", size: 15)).foregroundStyle(.black)
+                                        .font(.custom("HelveticaNeue-Thin", size: 15))
+                                        .foregroundStyle(.black)
                                 }
                                 .padding(.horizontal)
                             }
                         }
                         .padding(.horizontal)
-                        
-                        
-                        
+
+                        // Species grid
                         ForEach(filteredSpecies) { item in
                             let hasFish = !item.fishList.isEmpty
-                            
+
                             if hasFish {
                                 if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                    // NavigationLink now works because HomerView's NavigationStack wraps Album tab
                                     NavigationLink(destination: SpeciesListView(speciesIndex: index)) {
                                         SpeciesGridItem(species: item, clickable: true)
                                     }
                                 }
-
                             } else {
                                 SpeciesGridItem(species: item, clickable: false)
                             }
-                            
                         }
                         .padding(.horizontal)
-                        
                     }
                 }
-                
-                
             }
-            
-            VStack{
+
+            // Bottom overlay
+            VStack {
                 Spacer()
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
                     .frame(height: 83)
-                    .edgesIgnoringSafeArea(.bottom).padding(.bottom, -300)
-                
+                    .edgesIgnoringSafeArea(.bottom)
+                    .padding(.bottom, -300)
             }
-               
-            
         }
-      
-    
     }
 }
 
+// Reusable species grid item
 struct SpeciesGridItem: View {
     let species: Species
     let clickable: Bool
@@ -235,15 +228,18 @@ struct SpeciesGridItem: View {
                     .clipped()
                     .opacity(clickable ? 1.0 : 0.4)
             }
+
             HStack {
                 Text(species.name)
                     .font(.system(size: UIScreen.main.bounds.width * 0.07))
                     .bold()
-                    .foregroundColor(clickable ? .black : .gray).opacity(0.7)
+                    .foregroundColor(clickable ? .black : .gray)
+                    .opacity(0.7)
 
                 if clickable {
-                    Text("(\(String(species.numberOfFish)))")
-                        .foregroundStyle(.black) .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                    Text("(\(species.numberOfFish))")
+                        .foregroundStyle(.black)
+                        .font(.system(size: UIScreen.main.bounds.width * 0.05))
                         .opacity(0.4)
                 }
             }
@@ -252,10 +248,8 @@ struct SpeciesGridItem: View {
     }
 }
 
-
 #Preview {
-    NavigationStack {
-        AlbumView().environmentObject(AquariumFishList()).environmentObject(SpeciesStore())
-       
-    }
+    AlbumView()
+        .environmentObject(AquariumFishList())
+        .environmentObject(SpeciesStore())
 }
