@@ -30,8 +30,18 @@ struct CatchManageView: View {
     // Receive the UIImage from CatchView
     var selectedUIImage: UIImage?
     
+    // State for showing filtered dropdown
+    @State private var showSpeciesSuggestions: Bool = false
+    
+    var speciesSuggestions: [Species] {
+        if species.isEmpty { return [] }
+        return speciesStore.speciesList
+            .filter { $0.name.lowercased().contains(species.lowercased()) }
+            .sorted { $0.name < $1.name }
+    }
+    
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             // Background water and blur
             WaterView().offset(y: -300)
             WaterView().offset(y: -700)
@@ -54,20 +64,57 @@ struct CatchManageView: View {
             
             IconView().padding(.top, 25)
             
+            
             // Decorative rectangles
             Rectangle()
                 .cornerRadius(40)
                 .foregroundStyle(.white)
                 .opacity(0.3)
                 .frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                       height: min(UIScreen.main.bounds.width * 0.8, 5000))
+                       height: min(UIScreen.main.bounds.width * 0.8, 5000)).padding(.top, 250)
             
             Rectangle()
                 .cornerRadius(30)
                 .foregroundStyle(.white)
                 .opacity(0.4)
                 .frame(width: min(UIScreen.main.bounds.width * 0.75, 2000),
-                       height: min(UIScreen.main.bounds.width * 0.75, 5000))
+                       height: min(UIScreen.main.bounds.width * 0.75, 5000)).padding(.top, 260)
+            
+         
+                if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(speciesSuggestions.prefix(8)) { suggestion in
+                            Button(action: {
+                                species = suggestion.name
+                                showSpeciesSuggestions = false
+                                
+                            }) {
+                                HStack {
+                                    Text(suggestion.name)
+                                        .foregroundColor(.black)
+                                        .padding(.vertical, 10)
+                                    Spacer()
+                                }
+                                .padding(.horizontal)
+                                .background(Color.white)
+                                .cornerRadius(30)
+                            }
+                            
+                            Divider()
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(Color.white)
+                            .shadow(radius: 5)
+                    )
+                    .padding(.horizontal, 50)
+                    .padding(.top, 460)
+                    .zIndex(1)
+                }
+                
+            
+            
             
             // Input fields and confirm button
             VStack {
@@ -88,12 +135,22 @@ struct CatchManageView: View {
                     .bold()
                     .opacity(0.9)
                 
-                TextField("Enter text", text: $species)
-                    .textFieldStyle(.plain)
-                    .padding(.horizontal, 55)
-                    .padding(.bottom, 35)
-                    .foregroundStyle(.blue)
-                    .textInputAutocapitalization(.never)
+                ZStack(alignment: .top) {
+                    VStack(spacing: 0) {
+                        TextField("Enter text", text: $species)
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 55)
+                            .padding(.bottom, 35)
+                            .foregroundStyle(.blue)
+                            .textInputAutocapitalization(.never)
+                            .onChange(of: species) { newValue in
+                                showSpeciesSuggestions = !newValue.isEmpty
+                            }
+                        
+                        // Dropdown suggestions
+                        
+                    }
+                }
                 
                 HStack {
                     Spacer()
@@ -104,7 +161,7 @@ struct CatchManageView: View {
                             print("Species not found")
                             return
                         }
-
+                        
                         var photoFilename = ""
                         
                         // If the user provided a UIImage, save it
@@ -118,7 +175,7 @@ struct CatchManageView: View {
                                 photoFilename = "" // fallback
                             }
                         }
-
+                        
                         // Append new Fish with the saved photo string
                         speciesStore.speciesList[index].fishList.append(
                             Fish(
@@ -127,21 +184,15 @@ struct CatchManageView: View {
                                 description: info
                             )
                         )
-
+                        
                         editState = .notEditing
                     }
-
-            
-
-
-
-
                     .padding(.horizontal, 67)
                     .buttonStyle(.borderedProminent)
                     .opacity(0.9)
                 }
             }
-            .padding(.top, 30)
+            .padding(.top, 290)
             
             VStack {
                 Spacer()
@@ -151,22 +202,25 @@ struct CatchManageView: View {
             }
             .edgesIgnoringSafeArea(.bottom)
         }
+        
+        ZStack(alignment: .top) {
+            
+        }
+        
     }
     
     func saveImageToDocuments(image: UIImage, key: String) throws {
         guard let data = image.jpegData(compressionQuality: 0.8) else { return }
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(key) // <-- remove ".jpg" here
+            .appendingPathComponent(key)
         try data.write(to: url)
     }
-
-    
 }
-    #Preview {
-        // Pass a sample UIImage to preview
-        CatchManageView(
-            editState: Binding.constant(.editing),
-            selectedUIImage: UIImage(systemName: "photo") // example placeholder image
-        )
-   
-    }
+
+#Preview {
+    CatchManageView(
+        editState: Binding.constant(.editing),
+        selectedUIImage: UIImage(systemName: "photo")
+    )
+    .environmentObject(SpeciesStore())
+}

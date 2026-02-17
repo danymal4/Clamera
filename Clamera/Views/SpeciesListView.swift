@@ -5,6 +5,7 @@
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
 import SwiftUI
+
 struct FishCardView: View {
     let imageName: String
     let animate: Bool // true for unpinned, false for pinned
@@ -53,8 +54,6 @@ struct FishCardView: View {
     }
 }
 
-
-
 extension Image {
     /// Loads an image either from the app bundle (assets) or the documents folder
     init(fishPhoto name: String) {
@@ -69,9 +68,6 @@ extension Image {
     }
 }
 
-
-
-
 struct SpeciesListView: View {
 
     @ObservedObject var aquarium: AquariumFishList
@@ -85,6 +81,7 @@ struct SpeciesListView: View {
     }
 
     @State private var selectedFilter: FilterOption = .oldest
+    @State private var filterCheckArray = [true, false] // [Oldest, Newest]
 
     var species: Species {
         speciesStore.speciesList[speciesIndex]
@@ -111,15 +108,23 @@ struct SpeciesListView: View {
                         .offset(y: -310)
 
                     IconView().offset(y: -40)
-                    HStack{
+                    
+                    // Filter Menu at top-right
+                    HStack {
                         Spacer()
                         
                         Menu {
-                        Button("Oldest") { selectedFilter = .oldest }
-                        Button("Newest") { selectedFilter = .newest }
-                    } label: {
-               
-                       
+                            Button(filterCheckArray[0] ? "Oldest  *" : "Oldest") {
+                                selectedFilter = .oldest
+                                for i in filterCheckArray.indices { filterCheckArray[i] = false }
+                                filterCheckArray[0] = true
+                            }
+                            Button(filterCheckArray[1] ? "Newest  *" : "Newest") {
+                                selectedFilter = .newest
+                                for i in filterCheckArray.indices { filterCheckArray[i] = false }
+                                filterCheckArray[1] = true
+                            }
+                        } label: {
                             VStack {
                                 Image(systemName: "line.horizontal.3.decrease")
                                     .foregroundStyle(.black)
@@ -127,10 +132,10 @@ struct SpeciesListView: View {
                                     .font(.custom("HelveticaNeue-Thin", size: 15))
                                     .foregroundStyle(.black)
                             }
-                           
                         }
-                    } .padding(.horizontal)
-                        .padding(.top, 75)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 75)
 
                     VStack(spacing: 20) {
                         Text(species.name)
@@ -138,7 +143,7 @@ struct SpeciesListView: View {
                             .foregroundStyle(.blue)
                             .padding(.top)
 
-                        // Simplified ForEach using helper
+                        // Fish list
                         ForEach(filteredFish) { fish in
                             if let fishBinding = binding(for: fish) {
                                 fishRowView(fish: fish, fishBinding: fishBinding)
@@ -197,6 +202,5 @@ struct SpeciesListView: View {
     
     NavigationStack {
         SpeciesListView(aquarium: aquarium, speciesStore: store, speciesIndex: 0)
-           
     }
 }

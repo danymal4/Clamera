@@ -40,7 +40,7 @@ struct CatchView: View {
                                 width: UIScreen.main.bounds.width * 0.88,
                                 height: UIScreen.main.bounds.width * 0.83
                             )
-                            .cornerRadius(15)
+                            .cornerRadius(15) .colorMultiply(selectedImage == nil ? Color(.systemGray4) : .white)
                         
                         Rectangle()
                             .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
@@ -92,7 +92,7 @@ struct CatchView: View {
                                     .frame(width: min(UIScreen.main.bounds.width * 0.32, 220),
                                            height: min(UIScreen.main.bounds.width * 0.37, 160))
                                     .opacity(0.9)
-                                Text("Add Photo") .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                                Text("Add Photo") .font(.system(size: UIScreen.main.bounds.width * 0.035))
                                     .foregroundStyle(.black.opacity(0.7)).bold()
                             }
                         }
@@ -122,10 +122,10 @@ struct CatchView: View {
                                     )
                                     .colorMultiply(selectedImage == nil ? Color(.systemGray4) : .white)
                                 
-                                    .opacity(selectedImage == nil ? 0.6 : 1.0)
+                                    .opacity(selectedImage == nil ? 0.6 : 0.9)
                              
-                                Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.05))
-                                    .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold()
+                                Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                                    .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold() .opacity(selectedImage == nil ? 0.6 : 1.0)
                             }
                         }
                         .offset(y: 15 * vScale)

@@ -87,6 +87,12 @@ struct AlbumView: View {
     @EnvironmentObject var speciesStore: SpeciesStore
 
     @State private var searchText: String = ""
+    
+    @State var showSuggestions: Bool = false
+    
+    
+    @State var filterCheckArray = [true, false, false]
+
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case alphabetical = "Alphabetical"
@@ -96,6 +102,13 @@ struct AlbumView: View {
     }
 
     @State private var selectedFilter: FilterOption = .alphabetical
+    
+    
+    var searchSuggestions: [Species] {
+        if searchText.isEmpty { return [] }
+        return Array(filteredSpecies.prefix(8))
+    }
+
 
     var filteredSpecies: [Species] {
         var filtered = speciesStore.speciesList
@@ -120,8 +133,16 @@ struct AlbumView: View {
 
     var body: some View {
         ZStack {
+            
             ScrollView {
+              
+                
+                
+                
                 ZStack(alignment: .top) {
+                    
+                    
+                    
                     Color.clear.frame(height: UIScreen.main.bounds.height)
 
                     WaterView()
@@ -130,6 +151,50 @@ struct AlbumView: View {
                         .ignoresSafeArea()
 
                     IconView()
+                    HStack {
+                        Spacer()
+                        Text("\(filteredSpecies.count) species").padding(.top, 150).font(.caption).opacity(0.3).padding(.horizontal, 110)
+                    }
+                    
+                     if !searchSuggestions.isEmpty && showSuggestions {
+                         VStack(spacing: 0) {
+                             ForEach(searchSuggestions) { species in
+                                 if let index = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
+                                     
+                                     NavigationLink(
+                                         destination: SpeciesListView(
+                                             aquarium: aquarium,
+                                             speciesStore: speciesStore,
+                                             speciesIndex: index
+                                         )
+                                     ) {
+                                         HStack {
+                                             Text(species.name)
+                                                 .foregroundColor(.black)
+                                                 .padding(.vertical, 10)
+                                             Spacer()
+                                         }
+                                         .padding(.horizontal)
+                                         .background(Color.white).cornerRadius(20)
+                                     }.simultaneousGesture(TapGesture().onEnded {
+                                         showSuggestions = false
+                                     })
+
+
+                                     Divider()
+                                 }
+                             }
+                         }
+                         .background(
+                             RoundedRectangle(cornerRadius: 10)
+                                 .fill(Color.white)
+                                 .shadow(radius: 5)
+                         )
+                         .padding(.horizontal).padding(.top, 176)
+                         .transition(.opacity)
+                         .zIndex(1)
+                     }
+                    
 
                     VStack(spacing: 20) {
                         Text("Album")
@@ -139,10 +204,16 @@ struct AlbumView: View {
 
                         // Search + filter bar
                         HStack(spacing: 10) {
+                     
+
+                            
                             HStack {
                                 TextField("Search", text: $searchText)
                                     .foregroundColor(.black)
-                                    .padding(.leading, 10)
+                                    .padding(.leading, 10).onChange(of: searchText) { newValue in
+                                        showSuggestions = !newValue.isEmpty
+                                    }
+
                                 Spacer()
                             }
                             .frame(height: 40)
@@ -152,9 +223,30 @@ struct AlbumView: View {
                             )
 
                             Menu {
-                                Button("Alphabetical") { selectedFilter = .alphabetical }
-                                Button("Caught Fish") { selectedFilter = .caught }
-                                Button("Not Caught Fish") { selectedFilter = .notCaught }
+                                Button(filterCheckArray[0] ? "Alphabetical  *" : "Alphabetical" ) { selectedFilter = .alphabetical
+                                    for index in filterCheckArray.indices {
+                                        filterCheckArray[index] = false
+                                    }
+                                    
+                                    filterCheckArray[0] = true
+                                }
+                                
+                                
+                                Button(filterCheckArray[1] ? "Caught Fish  *" : "Caught Fish") { selectedFilter = .caught
+                                    for index in filterCheckArray.indices {
+                                        filterCheckArray[index] = false
+                                    }
+                                    
+                                    filterCheckArray[1] = true
+                                }
+                                Button(filterCheckArray[2] ? "Not Caught Fish  *" : "Not Caught Fish") { selectedFilter = .notCaught
+                                    
+                                    for index in filterCheckArray.indices {
+                                        filterCheckArray[index] = false
+                                    }
+                                    
+                                    filterCheckArray[2] = true
+                                }
                             } label: {
                                 VStack {
                                     Image(systemName: "line.horizontal.3.decrease")
