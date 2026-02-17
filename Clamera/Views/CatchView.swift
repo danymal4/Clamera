@@ -22,15 +22,15 @@ struct CatchView: View {
     var body: some View {
         if editState == .notEditing {
             ZStack {
-                WaterView().offset(y: -265 * vScale)
-                IconView()
+                WaterView().offset(y: -205 * vScale)
+                IconView().padding(.top, 15)
                 
                 VStack(spacing: 20 * vScale) {
                 
                     Text("Catch")
-                        .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.2))
+                        .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.25))
                         .opacity(0.9)
-                        .foregroundStyle(.blue).padding(.bottom, -10)
+                        .foregroundStyle(.blue).padding(.bottom, 15)
                     
                     ZStack {
                        
@@ -133,7 +133,7 @@ struct CatchView: View {
                     .offset(y: -20 * vScale)
                     .offset(x: 10 * vScale)
                 }
-                .padding(.top, 135 * vScale)
+                .padding(.top, 30 * vScale)
                 
                 VStack {
                     Spacer()
