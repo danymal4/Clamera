@@ -91,7 +91,7 @@ struct CatchView: View {
                                     .clipShape(Circle())
                                     .frame(width: min(UIScreen.main.bounds.width * 0.32, 220),
                                            height: min(UIScreen.main.bounds.width * 0.37, 160))
-                                    .opacity(0.9)
+                                    .opacity(0.85)
                                 Text("Add Photo") .font(.system(size: UIScreen.main.bounds.width * 0.035))
                                     .foregroundStyle(.black.opacity(0.7)).bold()
                             }
@@ -125,7 +125,7 @@ struct CatchView: View {
                                     .opacity(selectedImage == nil ? 0.6 : 0.9)
                              
                                 Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.035))
-                                    .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold() .opacity(selectedImage == nil ? 0.6 : 1.0)
+                                    .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold() .opacity(selectedImage == nil ? 0.5 : 0.9)
                             }
                         }
                         .offset(y: 15 * vScale)

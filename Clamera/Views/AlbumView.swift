@@ -91,7 +91,7 @@ struct AlbumView: View {
     @State var showSuggestions: Bool = false
     
     
-    @State var filterCheckArray = [true, false, false]
+   
 
 
     enum FilterOption: String, CaseIterable, Identifiable {
@@ -221,31 +221,17 @@ struct AlbumView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(.gray, lineWidth: 2)
                             )
-
                             Menu {
-                                Button(filterCheckArray[0] ? "Alphabetical  *" : "Alphabetical" ) { selectedFilter = .alphabetical
-                                    for index in filterCheckArray.indices {
-                                        filterCheckArray[index] = false
-                                    }
-                                    
-                                    filterCheckArray[0] = true
+                                Button(selectedFilter == .alphabetical ? "Alphabetical  ✓" : "Alphabetical") {
+                                    selectedFilter = .alphabetical
                                 }
                                 
-                                
-                                Button(filterCheckArray[1] ? "Caught Fish  *" : "Caught Fish") { selectedFilter = .caught
-                                    for index in filterCheckArray.indices {
-                                        filterCheckArray[index] = false
-                                    }
-                                    
-                                    filterCheckArray[1] = true
+                                Button(selectedFilter == .caught ? "Caught Fish  ✓" : "Caught Fish") {
+                                    selectedFilter = .caught
                                 }
-                                Button(filterCheckArray[2] ? "Not Caught Fish  *" : "Not Caught Fish") { selectedFilter = .notCaught
-                                    
-                                    for index in filterCheckArray.indices {
-                                        filterCheckArray[index] = false
-                                    }
-                                    
-                                    filterCheckArray[2] = true
+                                
+                                Button(selectedFilter == .notCaught ? "Not Caught Fish  ✓" : "Not Caught Fish") {
+                                    selectedFilter = .notCaught
                                 }
                             } label: {
                                 VStack {
@@ -257,6 +243,7 @@ struct AlbumView: View {
                                 }
                                 .padding(.horizontal)
                             }
+
                         }
                         .padding(.horizontal)
 

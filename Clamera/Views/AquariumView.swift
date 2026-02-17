@@ -15,6 +15,8 @@ enum EditState {
 final class AquariumState: ObservableObject {
     // Current visible clean level in the AquariumView
     @Published var clean: Double = 0.3
+    @Published var bubbleVisibility: Double = 1.0
+    @Published var bubbleAmount: Double = 1.0
     
     // Maximum clean value
     let maxClean: Double = 0.3
@@ -82,11 +84,11 @@ struct BubbleView: View {
             .fill(Color.white.opacity(0.3))
             .overlay(
                     Circle()
-                        .fill(Color.green.opacity(aquariumState.clean * 0.6))
+                        .fill(Color.green.opacity(aquariumState.clean * 0.6 * aquariumState.bubbleVisibility))
                 )
             .frame(width: size, height: size)
             .position(x: xPosition, y: yOffset)
-            .opacity(opacity)
+            .opacity(opacity * aquariumState.bubbleVisibility)
            
         
         
@@ -202,7 +204,7 @@ struct AquariumView: View {
                 }
                 
                 // Bubbles
-                ForEach(0..<8, id: \.self) { _ in
+                ForEach(0..<Int(8 * aquariumState.bubbleAmount), id: \.self) { _ in
                     BubbleView(topY: aquariumTop, bottomY: aquariumBottom)
                         .id(bubbleRefreshID)
                         .environmentObject(aquariumState)
