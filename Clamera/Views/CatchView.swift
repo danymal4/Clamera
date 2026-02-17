@@ -22,24 +22,40 @@ struct CatchView: View {
     var body: some View {
         if editState == .notEditing {
             ZStack {
-                WaterView().offset(y: -375 * vScale)
+                WaterView().offset(y: -265 * vScale)
                 IconView()
                 
                 VStack(spacing: 20 * vScale) {
+                
+                    Text("Catch")
+                        .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.2))
+                        .opacity(0.9)
+                        .foregroundStyle(.blue).padding(.bottom, -10)
+                    
                     ZStack {
+                       
                         Rectangle()
-                            .frame(width: min(UIScreen.main.bounds.width * 0.8, 750),
-                                   height: min(UIScreen.main.bounds.width * 1.2, 750))
+                            .fill(Color.white.opacity(0.3))
+                            .frame(
+                                width: UIScreen.main.bounds.width * 0.88,
+                                height: UIScreen.main.bounds.width * 0.83
+                            )
+                            .cornerRadius(15)
+                        
+                        Rectangle()
+                            .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
+                                   height: min(UIScreen.main.bounds.width * 0.8, 750))
                             .foregroundStyle(Color.gray.opacity(0.4))
                             .compositingGroup()
-                            .cornerRadius(20)
+                            .cornerRadius(10)
+                        
                         
                         if let image = selectedImage {
                             Image(uiImage: image)
                                 .resizable()
-                                .frame(width: min(UIScreen.main.bounds.width * 0.8, 750),
-                                       height: min(UIScreen.main.bounds.width * 1.2, 750))
-                                .cornerRadius(20)
+                                .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
+                                       height: min(UIScreen.main.bounds.width * 0.8, 750))
+                                .cornerRadius(10)
                         } else {
                             HStack(spacing: 20 * hScale) {
                                 Text("Fish image")
@@ -53,7 +69,12 @@ struct CatchView: View {
                                            height: min(UIScreen.main.bounds.width * 0.3, 160))
                             }
                         }
+                  
+                        
+                        
+                        
                     }
+                    
                     
          
                     
@@ -63,13 +84,17 @@ struct CatchView: View {
                             matching: .images,
                             photoLibrary: .shared()
                         ) {
-                            Image("CameraIcon")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .clipShape(Circle())
-                                .frame(width: min(UIScreen.main.bounds.width * 0.25, 220),
-                                       height: min(UIScreen.main.bounds.width * 0.3, 160))
-                                .opacity(0.9)
+                            VStack(spacing: 4) {
+                                Image("CameraIcon")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .clipShape(Circle())
+                                    .frame(width: min(UIScreen.main.bounds.width * 0.32, 220),
+                                           height: min(UIScreen.main.bounds.width * 0.37, 160))
+                                    .opacity(0.9)
+                                Text("Add Photo") .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                                    .foregroundStyle(.black.opacity(0.7)).bold()
+                            }
                         }
                         .onChange(of: selectedItem) { newItem in
                             guard let newItem else { return }
@@ -79,25 +104,36 @@ struct CatchView: View {
                                     selectedImage = uiImage
                                 }
                             }
-                        }
+                        }.offset(y: -10 * vScale)
                         
                         Button {
                             if let image = selectedImage {
                                 editState = .editing
                             }
                         } label: {
-                            Image("uploadIcon")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: min(UIScreen.main.bounds.width * 0.36, 220),
-                                       height: min(UIScreen.main.bounds.width * 0.36, 220))
+                          
+                            VStack(spacing: 4) {
+                                Image("uploadIcon")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(
+                                        width: min(UIScreen.main.bounds.width * 0.46, 220),
+                                        height: min(UIScreen.main.bounds.width * 0.46, 220)
+                                    )
+                                    .colorMultiply(selectedImage == nil ? Color(.systemGray4) : .white)
+                                
+                                    .opacity(selectedImage == nil ? 0.6 : 1.0)
+                             
+                                Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.05))
+                                    .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold()
+                            }
                         }
-                        .offset(y: 20 * vScale)
+                        .offset(y: 15 * vScale)
                     }
                     .offset(y: -20 * vScale)
                     .offset(x: 10 * vScale)
                 }
-                .padding(.top, 80 * vScale)
+                .padding(.top, 135 * vScale)
                 
                 VStack {
                     Spacer()

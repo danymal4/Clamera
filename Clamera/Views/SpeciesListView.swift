@@ -103,18 +103,23 @@ struct SpeciesListView: View {
         ZStack {
             ScrollView {
                 ZStack(alignment: .top) {
+                   
+                    Color.clear.frame(height: UIScreen.main.bounds.height)
+                    
                     WaterView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .offset(y: -310)
 
-                    IconView()
-
-                    Menu {
+                    IconView().offset(y: -40)
+                    HStack{
+                        Spacer()
+                        
+                        Menu {
                         Button("Oldest") { selectedFilter = .oldest }
                         Button("Newest") { selectedFilter = .newest }
                     } label: {
-                        Spacer()
-                        HStack {
+               
+                       
                             VStack {
                                 Image(systemName: "line.horizontal.3.decrease")
                                     .foregroundStyle(.black)
@@ -122,10 +127,10 @@ struct SpeciesListView: View {
                                     .font(.custom("HelveticaNeue-Thin", size: 15))
                                     .foregroundStyle(.black)
                             }
-                            .padding(.horizontal)
-                            .padding(.top, 75)
+                           
                         }
-                    }
+                    } .padding(.horizontal)
+                        .padding(.top, 75)
 
                     VStack(spacing: 20) {
                         Text(species.name)

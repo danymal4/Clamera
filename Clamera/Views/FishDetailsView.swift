@@ -32,7 +32,10 @@ struct FishDetailsView: View {
                         .cornerRadius(20)
                         .foregroundStyle(.white)
                         .opacity(0.4)
-                        .frame(width: 365, height: 200)
+                        .frame(
+                            width: min(UIScreen.main.bounds.width * 0.9, 1800),
+                            height: min(UIScreen.main.bounds.width * 0.48, 2000)
+                        )
                         .padding(.top, 320)
                 }
 
@@ -104,7 +107,10 @@ struct FishDetailsView: View {
                     .cornerRadius(30)
                     .foregroundStyle(.white)
                     .opacity(0.3)
-                    .frame(width: 365, height: 330)
+                    .frame(
+                        width: min(UIScreen.main.bounds.width * 0.9, 1800),
+                        height: min(UIScreen.main.bounds.width * 0.83, 2000)
+                    )
                     .padding(.bottom, 250)
 
                 Text("Image Not Found")
@@ -115,7 +121,10 @@ struct FishDetailsView: View {
                 Image(fishPhoto: fish.photo)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 335, height: 305)
+                    .frame(
+                        width: min(UIScreen.main.bounds.width * 0.83, 1800),
+                        height: min(UIScreen.main.bounds.width * 0.76, 2000)
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .padding(.bottom, 250)
 

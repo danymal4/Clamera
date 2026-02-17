@@ -47,6 +47,15 @@ struct HomerView: View {
             .tag(ViewState.home)
             .tabItem { Label("Home", systemImage: "house") }
 
+          
+            // Catch tab
+            NavigationStack {
+                CatchView()
+            }
+            .tag(ViewState.caught)
+            .tabItem { Label("Catch", systemImage: "fish") }
+            
+            
             // Album tab
             NavigationStack {
                 AlbumView()
@@ -73,12 +82,7 @@ struct HomerView: View {
                 Text("Aquarium")
             }
 
-            // Catch tab
-            NavigationStack {
-                CatchView()
-            }
-            .tag(ViewState.caught)
-            .tabItem { Label("Catch", systemImage: "fish") }
+          
 
             // Profile tab
             NavigationStack {
