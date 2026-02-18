@@ -9,11 +9,11 @@ import SwiftUI
 
 struct Fish: Identifiable, Hashable {
     let id = UUID()
-    let photo: String
+    var photo: String
     let speciesName: String
-    let description: String = "cool fish I found with sam"
+    var description: String = "cool fish I found with sam"
     let dateCaught: Date = Date()
-    var isPinned: Bool = false
+    var isPinned: Bool = true
     var isAquarium: Bool = false
 }
 
@@ -22,7 +22,7 @@ struct Species: Identifiable, Hashable {
     let name: String
     let imageName: String
     let icon: String
-    let fishList: [Fish]
+    var fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
 
@@ -44,18 +44,11 @@ struct Species: Identifiable, Hashable {
     }
 }
 
-
-import SwiftUI
-
-struct AlbumView: View {
-
-    @EnvironmentObject var aquarium: AquariumFishList
-
-    let speciesList = [
+final class SpeciesStore: ObservableObject {
+    @Published var speciesList: [Species] = [
         Species(
             name: "Clownfish",
             imageName: "clownFishExample",
-   
             fishList: [
                 Fish(photo: "clownfish1", speciesName: "Clownfish"),
                 Fish(photo: "clownfish2", speciesName: "Clownfish"),
@@ -70,7 +63,7 @@ struct AlbumView: View {
             fishList: [
                 Fish(photo: "puffer1", speciesName: "Puffer"),
                 Fish(photo: "puffer2", speciesName: "Puffer")
-            ],
+            ]
         ),
         Species(
             name: "Grouper",
@@ -81,24 +74,25 @@ struct AlbumView: View {
                 Fish(photo: "grouper2", speciesName: "Grouper")
             ]
         ),
-        Species(
-            name: "Salmon",
-            imageName: "salmonExample",
-            fishList: []
-        ),
-        Species(
-            name: "Cod",
-            imageName: "codExample",
-            fishList: []
-        )
+        Species(name: "Salmon", imageName: "salmonExample", fishList: []),
+        Species(name: "Cod", imageName: "codExample", fishList: [])
     ]
+}
 
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+
+
+struct AlbumView: View {
+
+    @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var speciesStore: SpeciesStore
 
     @State private var searchText: String = ""
+    
+    @State var showSuggestions: Bool = false
+    
+    
+   
+
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case alphabetical = "Alphabetical"
@@ -108,9 +102,16 @@ struct AlbumView: View {
     }
 
     @State private var selectedFilter: FilterOption = .alphabetical
+    
+    
+    var searchSuggestions: [Species] {
+        if searchText.isEmpty { return [] }
+        return Array(filteredSpecies.prefix(8))
+    }
+
 
     var filteredSpecies: [Species] {
-        var filtered = speciesList
+        var filtered = speciesStore.speciesList
 
         if !searchText.isEmpty {
             filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
@@ -132,78 +133,159 @@ struct AlbumView: View {
 
     var body: some View {
         ZStack {
-            WaterView()
-                .offset(y: -180)
-                .ignoresSafeArea()
+            
+            ScrollView {
+              
+                
+                
+                
+                ZStack(alignment: .top) {
+                    
+                    
+                    
+                    Color.clear.frame(height: UIScreen.main.bounds.height)
 
-            IconView()
+                    WaterView()
+                        .offset(y: -240)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .ignoresSafeArea()
 
-            VStack(spacing: 20) {
-                Text("Album")
-                    .font(.custom("IslandMoments-Regular", size: 90))
-                    .foregroundStyle(.blue)
-                    .padding(.top)
-
-                HStack(spacing: 10) {
+                    IconView()
                     HStack {
-                        TextField("Search", text: $searchText)
-                            .foregroundColor(.black)
-                            .padding(.leading, 10)
                         Spacer()
+                        Text("\(filteredSpecies.count) species").padding(.top, 150).font(.caption).opacity(0.3).padding(.horizontal, 110)
                     }
-                    .frame(height: 40)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(.gray, lineWidth: 2)
-                    )
+                    
+                     if !searchSuggestions.isEmpty && showSuggestions {
+                         VStack(spacing: 0) {
+                             ForEach(searchSuggestions) { species in
+                                 if let index = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
+                                     
+                                     NavigationLink(
+                                         destination: SpeciesListView(
+                                             aquarium: aquarium,
+                                             speciesStore: speciesStore,
+                                             speciesIndex: index
+                                         )
+                                     ) {
+                                         HStack {
+                                             Text(species.name)
+                                                 .foregroundColor(.black)
+                                                 .padding(.vertical, 10)
+                                             Spacer()
+                                         }
+                                         .padding(.horizontal)
+                                         .background(Color.white).cornerRadius(20)
+                                     }.simultaneousGesture(TapGesture().onEnded {
+                                         showSuggestions = false
+                                     })
 
-                    Menu {
-                        Button("Alphabetical") { selectedFilter = .alphabetical }
-                        Button("Caught Fish") { selectedFilter = .caught }
-                        Button("Not Caught Fish") { selectedFilter = .notCaught }
-                    } label: {
-                        VStack {
-                            Image(systemName: "line.horizontal.3.decrease")
-                            Text("Filter")
-                                .font(.custom("HelveticaNeue-Thin", size: 15))
+
+                                     Divider()
+                                 }
+                             }
+                         }
+                         .background(
+                             RoundedRectangle(cornerRadius: 10)
+                                 .fill(Color.white)
+                                 .shadow(radius: 5)
+                         )
+                         .padding(.horizontal).padding(.top, 176)
+                         .transition(.opacity)
+                         .zIndex(1)
+                     }
+                    
+
+                    VStack(spacing: 20) {
+                        Text("Album")
+                            .font(.custom("IslandMoments-Regular", size: 90))
+                            .foregroundStyle(.blue)
+                            .padding(.top)
+
+                        // Search + filter bar
+                        HStack(spacing: 10) {
+                     
+
+                            
+                            HStack {
+                                TextField("Search", text: $searchText)
+                                    .foregroundColor(.black)
+                                    .padding(.leading, 10).onChange(of: searchText) { newValue in
+                                        showSuggestions = !newValue.isEmpty
+                                    }
+
+                                Spacer()
+                            }
+                            .frame(height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(.gray, lineWidth: 2)
+                            )
+                            Menu {
+                                Button(selectedFilter == .alphabetical ? "Alphabetical  ✓" : "Alphabetical") {
+                                    selectedFilter = .alphabetical
+                                }
+                                
+                                Button(selectedFilter == .caught ? "Caught Fish  ✓" : "Caught Fish") {
+                                    selectedFilter = .caught
+                                }
+                                
+                                Button(selectedFilter == .notCaught ? "Not Caught Fish  ✓" : "Not Caught Fish") {
+                                    selectedFilter = .notCaught
+                                }
+                            } label: {
+                                VStack {
+                                    Image(systemName: "line.horizontal.3.decrease")
+                                        .foregroundStyle(.black)
+                                    Text("Filter")
+                                        .font(.custom("HelveticaNeue-Thin", size: 15))
+                                        .foregroundStyle(.black)
+                                }
+                                .padding(.horizontal)
+                            }
+
                         }
                         .padding(.horizontal)
-                    }
-                }
-                .padding(.horizontal)
 
-                
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 20) {
+                        // Species grid
                         ForEach(filteredSpecies) { item in
                             let hasFish = !item.fishList.isEmpty
 
                             if hasFish {
-                                NavigationLink(destination: SpeciesListView(species: item)) {
-                                    SpeciesGridItem(species: item, clickable: true)
+                                if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                    // NavigationLink now works because HomerView's NavigationStack wraps Album tab
+                                    NavigationLink(
+                                        destination: SpeciesListView(
+                                            aquarium: aquarium, speciesStore: speciesStore, speciesIndex: index
+                                        )
+                                    )
+ {
+                                        SpeciesGridItem(species: item, clickable: true)
+                                    }
                                 }
                             } else {
                                 SpeciesGridItem(species: item, clickable: false)
                             }
                         }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 80)
                 }
             }
 
+            // Bottom overlay
             VStack {
                 Spacer()
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
                     .frame(height: 83)
                     .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -500)
+                    .padding(.bottom, -300)
             }
         }
     }
 }
 
+// Reusable species grid item
 struct SpeciesGridItem: View {
     let species: Species
     let clickable: Bool
@@ -214,8 +296,8 @@ struct SpeciesGridItem: View {
                 Rectangle()
                     .fill(Color.white.opacity(clickable ? 0.3 : 0.1))
                     .frame(
-                        width: UIScreen.main.bounds.width * 0.38,
-                        height: UIScreen.main.bounds.width * 0.33
+                        width: UIScreen.main.bounds.width * 0.88,
+                        height: UIScreen.main.bounds.width * 0.83
                     )
                     .cornerRadius(15)
 
@@ -223,22 +305,25 @@ struct SpeciesGridItem: View {
                     .resizable()
                     .scaledToFill()
                     .frame(
-                        width: UIScreen.main.bounds.width * 0.35,
-                        height: UIScreen.main.bounds.width * 0.3
+                        width: UIScreen.main.bounds.width * 0.85,
+                        height: UIScreen.main.bounds.width * 0.8
                     )
                     .cornerRadius(10)
                     .clipped()
                     .opacity(clickable ? 1.0 : 0.4)
             }
+
             HStack {
                 Text(species.name)
-                    .font(Font(Constants.tabFont))
+                    .font(.system(size: UIScreen.main.bounds.width * 0.07))
                     .bold()
                     .foregroundColor(clickable ? .black : .gray)
+                    .opacity(0.7)
 
                 if clickable {
-                    Text("(\(String(species.numberOfFish)))")
+                    Text("(\(species.numberOfFish))")
                         .foregroundStyle(.black)
+                        .font(.system(size: UIScreen.main.bounds.width * 0.05))
                         .opacity(0.4)
                 }
             }
@@ -247,10 +332,8 @@ struct SpeciesGridItem: View {
     }
 }
 
-
 #Preview {
-    NavigationStack {
-        AlbumView().environmentObject(AquariumFishList())
-       
-    }
+    AlbumView()
+        .environmentObject(AquariumFishList())
+        .environmentObject(SpeciesStore())
 }

@@ -1,10 +1,15 @@
 import SwiftUI
 
+
+
 struct AquariumManageView: View {
     @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var aquariumState: AquariumState
     @Binding var editState: EditState
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
+    
+
 
     @State private var localSpeed: [Double] = []
     @State private var localScale: [Double] = []
@@ -99,7 +104,27 @@ struct AquariumManageView: View {
                                         .frame(
                                             width: min(UIScreen.main.bounds.width * 0.8, 2000),
                                             height: min(UIScreen.main.bounds.width * 0.25, 2000)
+                                       
+                                        
                                         )
+                                    
+                                    HStack{
+                                        Spacer()
+                                        Button{
+                                            aquarium.toggleActive(for: fish)
+                                            
+                                            aquarium.refresh()
+                                            
+                                            isDropdown = false
+                                        }
+                                        label: {
+                                            Image("X").resizable().frame(
+                                                width: min(UIScreen.main.bounds.width * 0.05, 2000),
+                                                height: min(UIScreen.main.bounds.width * 0.05, 2000))
+                                            
+                                        }.padding(.horizontal, 50).padding(.top, -45)
+                                        
+                                    }
 
                                     HStack {
                                         Spacer().frame(width: 10)
@@ -152,19 +177,7 @@ struct AquariumManageView: View {
                                                 )
                                            
                                         
-                                                    Button{
-                                                        aquarium.toggleActive(for: fish)
-                                                        
-                                                        aquarium.refresh()
-                                                        
-                                                        isDropdown = false
-                                                    }
-                                                    label: {
-                                                        Image("X").resizable().frame(
-                                                            width: min(UIScreen.main.bounds.width * 0.05, 2000),
-                                                            height: min(UIScreen.main.bounds.width * 0.05, 2000))
-                                                        
-                                                    }.padding(.horizontal, 5)
+                                              
                                                     
                                                 
                                                 
@@ -211,12 +224,36 @@ struct AquariumManageView: View {
                             HStack {
                                 Text("Filter status")
                                 Button {} label: {
-                                    Image("med").resizable().frame(
-                                        width: min(UIScreen.main.bounds.width * 0.12, 2000),
-                                        height: min(UIScreen.main.bounds.width * 0.12, 2000)
-                                    )
+                                  
+                                    if (100 - (300 * aquariumState.clean)) > 60 {
+                                         
+                                        
+                                        Image("good").resizable().frame(
+                                            width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                            height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                        )
+                                        
+                                    }
+                                    
+                                   else if (100 - (300 * aquariumState.clean)) > 20 {
+                                         
+                                        
+                                        Image("med").resizable().frame(
+                                            width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                            height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                        )
+                                        
+                                    }
+                                    
+                                    else {
+                                        Image("bad").resizable().frame(
+                                            width: min(UIScreen.main.bounds.width * 0.12, 2000),
+                                            height: min(UIScreen.main.bounds.width * 0.12, 2000)
+                                        )
+                                        
+                                    }
                                 }.padding(.horizontal, 20)
-                                Text("94%")
+                                Text("\(100 - (300 * aquariumState.clean))")
                                     .padding(.horizontal, -25)
                                     .foregroundStyle(.gray)
                                     .font(.system(size: UIScreen.main.bounds.width * 0.035))
@@ -224,7 +261,65 @@ struct AquariumManageView: View {
 
                             HStack {
                                 Text("Customize")
-                                Button {} label: {
+                               
+                                Menu {
+                                    
+                                    
+                                    VStack(alignment: .leading, spacing: 5) {
+                                      
+                                        Slider(
+                                            value: $aquariumState.bubbleVisibility,
+                                            in: 0...2,
+                                            step: 0.1
+                                        )
+                                        .accentColor(.blue)
+                                        .frame(width: UIScreen.main.bounds.width * 0.6)
+                                        
+                                        Text("Bubble Visibility: \(String(format: "%.2f", aquariumState.bubbleVisibility))")
+                                            .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                                            .foregroundStyle(.gray)
+                                        
+                                     
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        
+                                        Slider(
+                                            value: $aquariumState.bubbleAmount,
+                                            in: 0...3,
+                                            step: 0.1
+                                        )
+                                        .accentColor(.blue)
+                                        .frame(width: UIScreen.main.bounds.width * 0.6)
+                                        
+                                        Text("Bubble Amount: \(String(format: "%.2f", aquariumState.bubbleAmount))")
+                                            .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                                            .foregroundStyle(.gray)
+                                        
+                                     
+                                    }
+                                    
+                                    
+                                    Button(
+                                        aquariumState.bubbleVisibility == 0
+                                        ? "Remove Bubbles  ✓"
+                                        : "Remove Bubbles"
+                                    ) {
+                                        aquariumState.bubbleVisibility = 0
+                                    }
+                                    
+                                    Button(
+                                        aquariumState.bubbleVisibility > 0
+                                        ? "Add Bubbles  ✓"
+                                        : "Add Bubbles"
+                                    ) {
+                                        aquariumState.bubbleVisibility = 1
+                                    }
+
+
+                                  
+                                
+                                } label: {
                                     Image("colorWheel").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.09, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.09, 2000)
@@ -291,7 +386,7 @@ extension Array {
 
 
 #Preview {
-    AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList())
+    AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList()).environmentObject(AquariumState())
 
 }
 

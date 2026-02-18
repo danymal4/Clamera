@@ -33,7 +33,7 @@ struct HomeView: View {
                         .offset(y: -geo.size.height * 0.078) // slightly deeper offset
                     
                     IconView()
-                        .padding(.horizontal, geo.size.width * 0.025)
+                        .padding(.horizontal, 15)
                     
                     VStack {
                         Spacer()
