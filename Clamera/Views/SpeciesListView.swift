@@ -75,7 +75,7 @@ struct FishCardView: View {
 }
 
 extension Image {
-    /// Loads an image either from the app bundle (assets) or the documents folder
+    /// Loads an image either from the app bundle (assets) or the documents folder (chat)
     init(fishPhoto name: String) {
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent(name)
@@ -109,7 +109,8 @@ struct SpeciesListView: View {
         speciesStore.speciesList[speciesIndex]
     }
 
-    // Filtered fish list driving UI
+    // filter mechanic
+  
     var filteredFish: [Fish] {
         var fish = species.fishList
         
@@ -118,7 +119,7 @@ struct SpeciesListView: View {
             fish.reverse()
         }
         
-        // Then apply pinned filter if active
+       // filtered with pin applied
         if showPinnedOnly {
             fish = fish.filter { !$0.isPinned }
         }
@@ -142,7 +143,7 @@ struct SpeciesListView: View {
                     
                     
                     
-                    // Filter Menu at top-right
+          
                     HStack {
                         Spacer()
                         
@@ -177,7 +178,7 @@ struct SpeciesListView: View {
                             .foregroundStyle(.blue)
                             .padding(.top)
 
-                        // Fish list
+                 
                         ForEach(filteredFish) { fish in
                             if let fishBinding = binding(for: fish) {
                                 fishRowView(fish: fish, fishBinding: fishBinding)
@@ -198,9 +199,9 @@ struct SpeciesListView: View {
         }
     }
 
-    // MARK: - Helper functions
+  
 
-    /// Compute binding for a fish
+// binding to fix struct issue
     private func binding(for fish: Fish) -> Binding<Fish>? {
         guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
               let fishIdx = speciesStore.speciesList[speciesIdx]
@@ -210,7 +211,6 @@ struct SpeciesListView: View {
         return $speciesStore.speciesList[speciesIdx].fishList[fishIdx]
     }
 
-    /// A separate small view for each fish row
     @ViewBuilder
 
     private func fishRowView(fish: Fish, fishBinding: Binding<Fish>) -> some View {

@@ -272,7 +272,7 @@ struct AlbumView: View {
                 }
             }
 
-            // Bottom overlay
+      
             VStack {
                 Spacer()
                 Rectangle()
@@ -285,7 +285,7 @@ struct AlbumView: View {
     }
 }
 
-// Reusable species grid item
+
 struct SpeciesGridItem: View {
     let species: Species
     let clickable: Bool

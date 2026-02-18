@@ -66,14 +66,14 @@ struct WaterShipView: View {
                
                
                WaterWave()
-                   .fill(Color.cyan.opacity(0.2))
+                   .fill(Color.cyan.opacity(0.2)).offset(x: -2)
                // Controls y val movements of mid blue
                    .offset(y: move ? -25 : 30)
                // Controls x val movements of mid blue
                    .offset(x: move ? 0 : 10)
                
                WaterWave()
-                   .fill(Color.blue.opacity(0.14))
+                   .fill(Color.blue.opacity(0.14)).offset(x: -2)
                // Controls y val movements of light blue
                    .offset(y: (move ? -40 : 10) )
                // Controls x val movements of light blue
@@ -86,7 +86,7 @@ struct WaterShipView: View {
                    .mask(
                        ZStack {
                            Color.white
-                          WaterWave()     .offset(y: (move ? -40 : 10) )
+                          WaterWave()     .offset(y: (move ? -40 : 10) ).offset(x: -2)
                               
                                .fill(Color.black)
                                .blendMode(.destinationOut).scaleEffect(y: 1.0015, anchor: .top)

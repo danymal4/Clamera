@@ -13,6 +13,8 @@ enum EditState {
 
 
 final class AquariumState: ObservableObject {
+   
+    // clean determines green overlay opacity
     @Published var clean: Double = 0.3
     @Published var bubbleVisibility: Double = 1.0
     @Published var bubbleAmount: Double = 1.0
@@ -20,19 +22,20 @@ final class AquariumState: ObservableObject {
     let maxClean: Double = 0.3
     private(set) var pendingClean: Double = 0.3
     
-    // Animation target for brushing
+  
     private var targetClean: Double? = nil
 
-    // Called when user taps brush
+    // func for animated brush cleaning
     func cleanNow() {
-        targetClean = 0 // target for smooth animation
+        targetClean = 0
     }
 
-    // Called by the global timer in Homer
+    // updates in homerview
     func updateClean(by increment: Double) {
         if let target = targetClean {
-            // Smoothly animate towards target
-            let delta = (target - clean) * 0.2 // adjust speed factor as needed
+            
+            let delta = (target - clean) * 0.2 //
+            
             clean += delta
 
             if abs(clean - target) < 0.01 {
@@ -40,11 +43,12 @@ final class AquariumState: ObservableObject {
                 targetClean = nil
             }
         } else {
-            // Normal refill logic
+            // filter getting dirtier over time incremnet represents periodic changes (elasped time added)
             clean = min(clean + increment, maxClean)
         }
     }
 
+    // pending prevents navigation errors
     func commitPendingClean() {
         withAnimation(.easeInOut(duration: 0.3)) {
             clean = pendingClean
@@ -67,17 +71,17 @@ struct BubbleView: View {
     let topY: CGFloat
     let bottomY: CGFloat
 
-    // Persistent random values for each bubble
+   
     @State private var size: CGFloat
     @State private var xPosition: CGFloat
     @State private var duration: Double
-    @State private var delayOffset: Double // NEW: small random delay
+    @State private var delayOffset: Double
 
     init(topY: CGFloat, bottomY: CGFloat) {
         self.topY = topY
         self.bottomY = bottomY
 
-        // Assign random values once per bubble
+        
         _size = State(initialValue: CGFloat.random(in: 8...20))
         _xPosition = State(initialValue: CGFloat.random(in: 60...(UIScreen.main.bounds.width - 30)))
         _duration = State(initialValue: Double.random(in: 3...7))
@@ -109,24 +113,23 @@ struct BubbleView: View {
     }
 
     func startAnimation() {
-        // Add random delay for natural staggering
+      
         DispatchQueue.main.asyncAfter(deadline: .now() + delayOffset) {
 
             guard animationActive else { return }
 
-            // Randomize vertical start offset
             let startYOffset = bottomY + CGFloat.random(in: 0...20)
             yOffset = startYOffset
             opacity = 0
 
-            // Randomize horizontal position on reset
+          // random positions
             xPosition = CGFloat.random(in: 50...(UIScreen.main.bounds.width - 30))
 
             withAnimation(.easeIn(duration: duration * 0.2)) { opacity = 1 }
             withAnimation(Animation.linear(duration: duration)) { yOffset = topY }
             withAnimation(.easeOut(duration: duration * 0.2).delay(duration * 0.8)) { opacity = 0 }
 
-            // Prepare next animation cycle
+         
             DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                 if animationActive { startAnimation() }
             }
@@ -135,7 +138,7 @@ struct BubbleView: View {
 }
 
 
-// MARK: - AquariumView
+
 struct AquariumView: View {
     @EnvironmentObject var aquariumState: AquariumState
     @EnvironmentObject var aquarium: AquariumFishList
@@ -149,21 +152,21 @@ struct AquariumView: View {
     var body: some View {
         if editState == .notEditing {
             ZStack {
-                // Static icon
+                
                 IconView().padding(.horizontal, 12)
 
-                // Main aquarium and overlays
+              
                 AquariumBackgroundView()
                     .environmentObject(aquariumState)
 
-                // Bubbles
+              
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
                     .environmentObject(aquariumState)
 
              
                 FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean)
                 
-                // Blue overlay
+   
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.blue)
@@ -172,7 +175,7 @@ struct AquariumView: View {
                            height: min(UIScreen.main.bounds.width * 0.46, 2000))
                     .padding(.top, 157)
                 
-                // Manage buttons
+                
                 ManageButtonsView(editState: $editState)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -198,7 +201,7 @@ struct AquariumView: View {
     }
 }
 
-// MARK: - Background + Clean Overlay
+
 struct AquariumBackgroundView: View {
     @EnvironmentObject var aquariumState: AquariumState
 
@@ -210,7 +213,7 @@ struct AquariumBackgroundView: View {
                 .foregroundStyle(.blue)
 
             ZStack {
-                // Aquarium image
+              
                 Image("Aquarium")
                     .resizable()
                     .frame(width: min(UIScreen.main.bounds.width * 0.7, 2000),
@@ -218,7 +221,7 @@ struct AquariumBackgroundView: View {
                     .padding(.bottom, 65)
                     .scaleEffect(1.45)
 
-                // Floor image
+          
                 Image("floor")
                     .resizable()
                     .frame(width: min(UIScreen.main.bounds.width * 0.815, 2000),
@@ -227,7 +230,7 @@ struct AquariumBackgroundView: View {
                     .padding(.horizontal, 50)
                     .opacity(0.85 - aquariumState.clean)
 
-                // Green clean overlay
+               
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.green)
@@ -238,7 +241,7 @@ struct AquariumBackgroundView: View {
 
    
 
-                // Brush button
+         // brush
                 HStack {
                     Spacer()
                     Button {
@@ -260,7 +263,7 @@ struct AquariumBackgroundView: View {
     }
 }
 
-// MARK: - Bubbles Layer
+
 struct BubbleLayerView: View {
     @EnvironmentObject var aquariumState: AquariumState
     let topY: CGFloat
@@ -276,7 +279,7 @@ struct BubbleLayerView: View {
     }
 }
 
-// MARK: - Manage Buttons
+
 struct ManageButtonsView: View {
     @Binding var editState: EditState
 

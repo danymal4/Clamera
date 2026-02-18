@@ -150,14 +150,14 @@ struct CatchView: View {
                 .edgesIgnoringSafeArea(.bottom)
             }
         } else {
-            // Pass the selected UIImage to CatchManageView
+         
             CatchManageView(editState: $editState, selectedUIImage: selectedImage)
        
         }
     }
 }
 
-// MARK: - Preview
+
 #Preview {
     CatchView()
 }

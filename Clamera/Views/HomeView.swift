@@ -18,7 +18,7 @@ struct HomeView: View {
                         Text("Home")
                             .font(.custom(
                                 "IslandMoments-Regular",
-                                size: min(geo.size.width * 0.3, 220) // cap max font size
+                                size: min(geo.size.width * 0.3, 220)
                             ))
                             .opacity(0.9)
                         
@@ -30,7 +30,7 @@ struct HomeView: View {
                     }
                     
                     WaterShipView()
-                        .offset(y: -geo.size.height * 0.078) // slightly deeper offset
+                        .offset(y: -geo.size.height * 0.078) 
                     
                     IconView()
                         .padding(.horizontal, 15)

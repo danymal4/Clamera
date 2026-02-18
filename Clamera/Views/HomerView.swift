@@ -21,13 +21,13 @@ struct HomerView: View {
     @EnvironmentObject var aquariumState: AquariumState
     @StateObject private var tabRouter = TabRouter()
 
-    // Global timer
+    //global timer
     @State private var cleanTimer: Timer?
     
-    // Track last timestamp for precise elapsed time
+  
     @State private var lastUpdate: Date = Date()
 
-    // Tab bar transparent appearance
+    // transparent tab bar looked up
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithTransparentBackground()
@@ -40,15 +40,14 @@ struct HomerView: View {
     var body: some View {
         TabView(selection: $tabRouter.viewState) {
 
-            // Home tab
+
             NavigationStack {
                 HomeView()
             }
             .tag(ViewState.home)
             .tabItem { Label("Home", systemImage: "house") }
 
-          
-            // Catch tab
+ 
             NavigationStack {
                 CatchView()
             }
@@ -56,14 +55,14 @@ struct HomerView: View {
             .tabItem { Label("Catch", systemImage: "fish") }
             
             
-            // Album tab
+ 
             NavigationStack {
                 AlbumView()
             }
             .tag(ViewState.album)
             .tabItem { Label("Album", systemImage: "book") }
 
-            // Aquarium tab
+    
             NavigationStack {
                 AquariumView()
                     .onAppear {
@@ -110,6 +109,8 @@ struct HomerView: View {
             }
         }
     }
+    
+    // global timer controlling filter: holds a pending value of clean while off aquariumView. Resets with animaton
 
     private func startCleanTimer() {
         cleanTimer?.invalidate()
@@ -123,11 +124,7 @@ struct HomerView: View {
             lastUpdate = now
 
             if tabRouter.viewState == .aquarium {
-                // OLD:
-                // let increment = aquariumState.maxClean / totalDuration * delta
-                // aquariumState.clean = min(aquariumState.clean + increment, aquariumState.maxClean)
-
-                // NEW: use the updateClean method instead
+       
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.updateClean(by: increment)
             } else {

@@ -41,13 +41,12 @@ struct LeaderboardView: View {
 
             }
 
-            //rectangles used as thin lines
+         
 
             ScrollView{
 
                 ZStack{
 
-                    //Main rectangle
 
                     Rectangle()
 
