@@ -7,7 +7,7 @@
 import SwiftUI
 
 enum ViewState {
-    case home, aquarium, profile, caught, album
+    case home, aquarium, profile, caught, album, social
 }
 
 final class TabRouter: ObservableObject {
@@ -83,15 +83,17 @@ struct HomerView: View {
             }
 
           
-
-            // Profile tab
-            NavigationStack {
-                ProfileView()
+            NavigationStack{
+                SocialView()
             }
-            .tag(ViewState.profile)
-            .tabItem { Label("Profile", systemImage: "person") }
+            .tag(ViewState.social)
+            .tabItem { Label("Social", systemImage: "person.2.fill") }
+
+         
+          
+         
         }
-        // Environment objects now flow to every child view
+
         .environmentObject(tabRouter)
         .environmentObject(aquarium)
         .environmentObject(aquariumState)
@@ -121,14 +123,20 @@ struct HomerView: View {
             lastUpdate = now
 
             if tabRouter.viewState == .aquarium {
+                // OLD:
+                // let increment = aquariumState.maxClean / totalDuration * delta
+                // aquariumState.clean = min(aquariumState.clean + increment, aquariumState.maxClean)
+
+                // NEW: use the updateClean method instead
                 let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.clean = min(aquariumState.clean + increment, aquariumState.maxClean)
+                aquariumState.updateClean(by: increment)
             } else {
                 let increment = aquariumState.maxClean * 0.05 / 60 * delta / tickInterval
                 aquariumState.updatePendingClean(to: min(aquariumState.pendingClean + increment, aquariumState.maxClean))
             }
         }
     }
+
 }
 
 #Preview {

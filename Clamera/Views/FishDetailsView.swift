@@ -92,7 +92,7 @@ struct FishDetailsView: View {
                         .padding(.top, 550)
                     Spacer()
                 }
-                .padding()
+                .padding().padding()
                 
                 HStack {
                     Spacer()
@@ -101,7 +101,7 @@ struct FishDetailsView: View {
                         .opacity(0.8)
                         .padding(.top, 550)
                 }
-                .padding()
+                .padding().padding()
 
                 Rectangle()
                     .cornerRadius(30)

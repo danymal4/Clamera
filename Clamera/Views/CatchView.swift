@@ -22,15 +22,21 @@ struct CatchView: View {
     var body: some View {
         if editState == .notEditing {
             ZStack {
-                WaterView().offset(y: -205 * vScale)
-                IconView().padding(.top, 15)
+                WaterView().offset(y: -200 * vScale)
+                IconView().padding(.top, 5)
                 
                 VStack(spacing: 20 * vScale) {
-                
-                    Text("Catch")
-                        .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.25))
-                        .opacity(0.9)
-                        .foregroundStyle(.blue).padding(.bottom, 15)
+                    HStack{
+                        Image("Rod").resizable().frame(
+                            width: UIScreen.main.bounds.width * 0.2,
+                            height: UIScreen.main.bounds.width * 0.2
+                        ).padding(.top, -91).padding(.horizontal, -35).opacity(0.9)
+                        Text("Catch")
+                            .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.25))
+                            .opacity(0.9)
+                            .foregroundStyle(.blue).padding(.bottom, 15).padding(.horizontal, -20).rotationEffect(.degrees(5))
+                       
+                    }
                     
                     ZStack {
                        
@@ -120,9 +126,9 @@ struct CatchView: View {
                                         width: min(UIScreen.main.bounds.width * 0.46, 220),
                                         height: min(UIScreen.main.bounds.width * 0.46, 220)
                                     )
-                                    .colorMultiply(selectedImage == nil ? Color(.systemGray4) : .white)
+                                   
                                 
-                                    .opacity(selectedImage == nil ? 0.6 : 0.9)
+                                    .opacity(selectedImage == nil ? 0.7 : 0.9)
                              
                                 Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.035))
                                     .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold() .opacity(selectedImage == nil ? 0.5 : 0.9)

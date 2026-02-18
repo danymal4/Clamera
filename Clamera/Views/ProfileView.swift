@@ -20,7 +20,7 @@ struct ProfileView: View {
                 
                 
                 
-                Text("Profile")                        .font(.custom("IslandMoments-Regular",  size: UIScreen.main.bounds.width * 0.2)).foregroundStyle(Color.blue).opacity(0.9).padding().padding(.bottom, -25)
+                Text("Profile")                        .font(.custom("IslandMoments-Regular",  size: UIScreen.main.bounds.width * 0.2)).foregroundStyle(Color.blue).opacity(0.9).padding().padding(.bottom, -55)
                 
                 Image("fisherman")
                     .resizable().aspectRatio(contentMode: .fit) .clipShape(Circle()).overlay(Circle().stroke(Color.blue, lineWidth: 5).opacity(0.2)).frame(width: min(UIScreen.main.bounds.width * 0.9, 2000),
@@ -40,7 +40,7 @@ struct ProfileView: View {
                             .opacity(0.3)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.48, 390)
+                                height: min(UIScreen.main.bounds.width * 0.54, 390)
                             )
                         Spacer()
                         Spacer()
@@ -67,6 +67,14 @@ struct ProfileView: View {
                                 )
                             
                             Text("Fish Caught:   230")
+                                .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                                .opacity(0.8)
+                                .bold().padding(.bottom).frame(
+                                    width: min(UIScreen.main.bounds.width * 0.8, 2000),
+                                    alignment: .leading
+                                )
+                            
+                            Text("Species Caught:  12/200")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(

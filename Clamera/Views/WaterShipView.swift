@@ -51,7 +51,7 @@ struct WaterShipView: View {
                Image("waterWave")
                    .resizable()
                    .scaleEffect(x: 1 + (horizontalScale * 0.18), y: 1.0, anchor: .center)
-                   .scaledToFit().offset(x: -1)
+                   .scaledToFit().offset(x: -2)
                    .offset(y: baseOffsetY - 0.3 * yOffsetAdjustment + (move ? -10 : 50))
                    .opacity(0.75)
                
