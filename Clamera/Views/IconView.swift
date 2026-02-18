@@ -7,18 +7,12 @@ import SwiftUI
 
 struct IconView: View {
     
-  
-    @EnvironmentObject var tabRouter: TabRouter
-
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack {
                 Spacer()
                 
-                Button {
-                    
-                    tabRouter.viewState = .profile
-                } label: {
+                NavigationLink(destination: ProfileView()) {
                     Image("fisherman")
                         .resizable()
                         .scaledToFill()
@@ -33,7 +27,8 @@ struct IconView: View {
     }
 }
 
+
 #Preview {
     IconView()
-        .environmentObject(TabRouter()) 
+        .environmentObject(TabRouter())
 }

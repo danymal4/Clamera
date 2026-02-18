@@ -8,7 +8,7 @@
 import SwiftUI
 import PhotosUI
 
-// MARK: - BlurView
+// fancy blur
 struct BlurView: UIViewRepresentable {
     let style: UIBlurEffect.Style
 
@@ -19,7 +19,7 @@ struct BlurView: UIViewRepresentable {
     func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
 }
 
-// MARK: - CatchManageView
+
 struct CatchManageView: View {
     
     @Binding var editState: EditState
@@ -27,10 +27,10 @@ struct CatchManageView: View {
     @State var species = ""
     @EnvironmentObject var speciesStore: SpeciesStore
     
-    // Receive the UIImage from CatchView
+    // image from Catch
     var selectedUIImage: UIImage?
     
-    // State for showing filtered dropdown
+    
     @State private var showSpeciesSuggestions: Bool = false
     
     var speciesSuggestions: [Species] {
@@ -54,7 +54,7 @@ struct CatchManageView: View {
             
             Image("fishies").resizable().opacity(0.03)
             
-            // Cancel button
+         
             HStack {
                 Button { editState = .notEditing } label: { Text("< cancel") }
                 Spacer()
@@ -65,7 +65,7 @@ struct CatchManageView: View {
             IconView().padding(.top, 25)
             
             
-            // Decorative rectangles
+       
             Rectangle()
                 .cornerRadius(40)
                 .foregroundStyle(.white)
@@ -80,7 +80,7 @@ struct CatchManageView: View {
                 .frame(width: min(UIScreen.main.bounds.width * 0.75, 2000),
                        height: min(UIScreen.main.bounds.width * 0.75, 5000)).padding(.top, 260)
             
-         
+         // dropdown logic
                 if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
                     VStack(spacing: 0) {
                         ForEach(speciesSuggestions.prefix(8)) { suggestion in
@@ -116,7 +116,7 @@ struct CatchManageView: View {
             
             
             
-            // Input fields and confirm button
+
             VStack {
                 Text("Description")
                     .font(.system(size: UIScreen.main.bounds.width * 0.05))
@@ -147,7 +147,7 @@ struct CatchManageView: View {
                                 showSpeciesSuggestions = !newValue.isEmpty
                             }
                         
-                        // Dropdown suggestions
+                      
                         
                     }
                 }
@@ -164,19 +164,20 @@ struct CatchManageView: View {
                         
                         var photoFilename = ""
                         
-                        // If the user provided a UIImage, save it
                         if let image = selectedUIImage {
-                            // Generate a unique filename
+                           
+                            // file name storage (chat)
+                            
                             photoFilename = "\(UUID().uuidString).jpg"
                             do {
                                 try saveImageToDocuments(image: image, key: photoFilename)
                             } catch {
                                 print("Failed to save image: \(error)")
-                                photoFilename = "" // fallback
+                                photoFilename = ""
                             }
                         }
                         
-                        // Append new Fish with the saved photo string
+                        // adding back to speciesStore
                         speciesStore.speciesList[index].fishList.append(
                             Fish(
                                 photo: photoFilename,

@@ -150,16 +150,23 @@ struct FishMoveView: View {
                 let now = timeline.date.timeIntervalSinceReferenceDate
 
                 ZStack {
+                   
+                   
 
+                  
                     // --- Ripples ---
+                   
                     ForEach(ripples) { ripple in
+                        // Find the fish that created this ripple, if possible
+                        let fishSizeMultiplier = ripple.size / 120 // optional: approximate original size
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.7)
+                            .stroke(Color.white, lineWidth: 1.7 * (1 + 0.8 * fishSizeMultiplier)) // scaled by size
                             .frame(width: ripple.size, height: ripple.size)
                             .position(ripple.position)
                             .opacity(ripple.opacity)
                             .animation(.easeOut(duration: 0.7), value: ripple.size)
                     }
+
 
                     // --- Fish ---
                     ForEach(aquarium.fish) { fish in
@@ -189,8 +196,7 @@ struct FishMoveView: View {
                         )
 
                         ZStack {
-
-                            // Normal fish image
+                            // Normal fish image only
                             Image(fish.imageName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
@@ -200,33 +206,6 @@ struct FishMoveView: View {
                                     axis: (x: 0, y: 1, z: 0)
                                 )
                                 .rotationEffect(.degrees(tailAngle))
-                                .offset(x: xOffset, y: yOffset)
-                                .opacity(fish.isActive ? 0.95 : 0)
-                                .animation(.easeInOut(duration: 0.3), value: facingRight)
-                                .onTapGesture {
-                                    if canBoost {
-                                        withAnimation(.linear(duration: 0.2)) {
-                                            speedMultipliers[fish.id] = 1.6
-                                        }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                            withAnimation(.linear(duration: 0.5)) {
-                                                speedMultipliers[fish.id] = 1.0
-                                            }
-                                        }
-                                    }
-                                }
-
-                            // Optional blue overlay for visual effect
-                            Image(fish.imageName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: fish.size.width, height: fish.size.height)
-                                .rotation3DEffect(
-                                    .degrees(facingRight ? 0 : 180),
-                                    axis: (x: 0, y: 1, z: 0)
-                                )
-                                .rotationEffect(.degrees(tailAngle))
-                                .colorMultiply(.blue.opacity(0.18))
                                 .offset(x: xOffset, y: yOffset)
                                 .opacity(fish.isActive ? 0.95 : 0)
                                 .animation(.easeInOut(duration: 0.3), value: facingRight)
@@ -245,8 +224,9 @@ struct FishMoveView: View {
                                     }
                                 }
                         }
-                        // Dynamic zIndex based on yOffset: lower y = further back, higher y = in front
+                        // Dynamic zIndex based on yOffset remains the same
                         .zIndex(Double(yOffset))
+
                     }
 
                 }
@@ -263,10 +243,12 @@ struct FishMoveView: View {
 
         withAnimation(.easeOut(duration: 1.1)) {
             if fish.isActive {
-                ripples[index].size = 120 * ((fish.size.width + fish.size.height) / 2 / 50)
+                let averageFishSize = (fish.size.width + fish.size.height) / 2
+                ripples[index].size = 120 * (averageFishSize / 50)
                 ripples[index].opacity = 0.0
             }
         }
+
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
             ripples.removeAll { $0.id == ripple.id }

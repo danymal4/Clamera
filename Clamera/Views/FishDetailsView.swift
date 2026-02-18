@@ -8,14 +8,14 @@ import SwiftUI
 
 struct FishDetailsView: View {
     
-    // Pass SpeciesStore explicitly from parent
+  
     @ObservedObject var speciesStore: SpeciesStore
     @ObservedObject var aquarium: AquariumFishList
     
     let fishID: UUID
 
     var body: some View {
-        // Find the binding safely inside the body
+      
         if let binding = findFishBinding() {
             let fish = binding.wrappedValue
 
@@ -92,7 +92,7 @@ struct FishDetailsView: View {
                         .padding(.top, 550)
                     Spacer()
                 }
-                .padding()
+                .padding().padding()
                 
                 HStack {
                     Spacer()
@@ -101,7 +101,7 @@ struct FishDetailsView: View {
                         .opacity(0.8)
                         .padding(.top, 550)
                 }
-                .padding()
+                .padding().padding()
 
                 Rectangle()
                     .cornerRadius(30)
@@ -193,7 +193,7 @@ struct FishDetailsView: View {
         }
     }
 
-    /// Helper function to safely get binding to Fish in SpeciesStore
+   // binding I looked up so structs can actually be modifiable
     private func findFishBinding() -> Binding<Fish>? {
         for speciesIndex in speciesStore.speciesList.indices {
             if let fishIndex = speciesStore.speciesList[speciesIndex]
@@ -215,6 +215,6 @@ struct FishDetailsView: View {
     
     NavigationStack {
         FishDetailsView(speciesStore: store, aquarium: aquarium, fishID: firstFishID)
-          // aquarium remains environment object
+          
     }
 }
