@@ -9,7 +9,7 @@ import SwiftUI
 
 struct LeaderboardView: View {
     
-    // 1. Data Source: Easily scalable to 20+ rows
+    
     let leaderboardData: [(name: String, score: String)] = [
         ("FishMaster69", "18,000"),
         ("FishNChips10", "13,000"),
@@ -35,7 +35,7 @@ struct LeaderboardView: View {
     
     var body: some View {
         ZStack {
-            // 2. Background Layer
+            
             WaterView()
                 .ignoresSafeArea()
             IconView()
@@ -43,7 +43,7 @@ struct LeaderboardView: View {
             
             VStack {
                 
-                // --- Header Section ---
+                
                 ZStack {
                     
                     VStack(spacing: -10) {
@@ -59,21 +59,21 @@ struct LeaderboardView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 20)
                 
-                // --- Table Section ---
+                
                 ScrollView {
                     VStack(spacing: 0) {
-                        // 3. Table Header Row
+                        
                         HStack(spacing: 0) {
-                            Text("Name")
+                            Text("Username")
                                 .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(Color.blue)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 15)
                             
-                            // Vertical Divider
+                            
                             Rectangle()
                                 .fill(Color.black)
-                                .frame(width: 2)
+                                .frame(width: 1)
                             
                             Text("ClamPoints")
                                 .font(.system(size: 22, weight: .bold))
@@ -81,12 +81,12 @@ struct LeaderboardView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 15)
                         }
-                        .background(Color(red: 0.5, green: 0.9, blue: 1.0)) // Light Cyan Header
+                        .background(Color(red: 0.5, green: 0.9, blue: 1.0))
                         
                         // Horizontal Divider
                         Rectangle()
                             .fill(Color.black)
-                            .frame(height: 2)
+                            .frame(height: 1)
                         
                         // 4. Data Rows
                         ForEach(0..<leaderboardData.count, id: \.self) { index in
@@ -102,7 +102,7 @@ struct LeaderboardView: View {
                                 // Vertical Divider inside row
                                 Rectangle()
                                     .fill(Color.black)
-                                    .frame(width: 2)
+                                    .frame(width: 1)
                                 
                                 Text(entry.score)
                                     .font(.system(size: 18, weight: .bold))
@@ -116,7 +116,7 @@ struct LeaderboardView: View {
                             if index < leaderboardData.count - 1 {
                                 Rectangle()
                                     .fill(Color.black)
-                                    .frame(height: 2)
+                                    .frame(height: 1)
                             }
                         }
                     }
@@ -126,7 +126,7 @@ struct LeaderboardView: View {
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(Color.black, lineWidth: 2)
                     )
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 10)
                     .padding(.bottom, 50)
                 }
             }
