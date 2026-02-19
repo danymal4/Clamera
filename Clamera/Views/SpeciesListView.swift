@@ -19,9 +19,9 @@ struct FishCardView: View {
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white.opacity(0.3))
-                .frame(width: baseWidth, height: baseHeight)
+            RoundedRectangle(cornerRadius: 45)
+                .fill(Color.blue.opacity(0.2))
+                .frame(width: baseWidth, height: baseHeight).shadow(color: .black.opacity(0.1), radius: 30)
             
             Image(fishPhoto: imageName)
                 .resizable()
@@ -30,7 +30,7 @@ struct FishCardView: View {
                     width: UIScreen.main.bounds.width * 0.85,
                     height: UIScreen.main.bounds.width * 0.8
                 )
-                .cornerRadius(10)
+                .cornerRadius(40)
                 .clipped()
                 .scaleEffect(isBreathing ? 1.035 : 1.0)
             
@@ -38,7 +38,7 @@ struct FishCardView: View {
                 .resizable()
                 .frame(
                     width: UIScreen.main.bounds.width * 1,
-                    height: UIScreen.main.bounds.width * 0.95
+                    height: UIScreen.main.bounds.width * 0.9
                 )
                 .opacity(animate ? 0.8 : 0.0)
                 .scaleEffect(isBreathing ? 1.035 : 1.0)
@@ -133,11 +133,8 @@ struct SpeciesListView: View {
                 ZStack(alignment: .top) {
                
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-                    
-                    WaterView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .offset(y: -310)
-
+                   
+                    WaterView().opacity(0.3)
                     IconView().offset(y: -40)
                     
                     
@@ -169,13 +166,13 @@ struct SpeciesListView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 75)
+                        .padding(.top, 105)
                         
                     }
                     VStack(spacing: 20) {
                         Text(species.name)
-                            .font(.custom("IslandMoments-Regular", size: 90))
-                            .foregroundStyle(.blue)
+                            .font(.custom("AkayaTelivigala-regular", size: 80))
+                                .foregroundStyle(.blue).opacity(0.8)
                             .padding(.top)
 
                  
@@ -191,12 +188,12 @@ struct SpeciesListView: View {
             VStack {
                 Spacer()
                 Rectangle()
-                    .fill(Color.white.opacity(0.6))
-                    .frame(height: 83)
+                    .fill(Color.white)
+                    .frame(height: 83).overlay(Color.blue.opacity(0.06))
                     .edgesIgnoringSafeArea(.bottom)
                     .padding(.bottom, -300)
             }
-        }
+        }.background(Color.blue.opacity(0.08))
     }
 
   

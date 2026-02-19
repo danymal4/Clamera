@@ -66,7 +66,7 @@ struct AquariumManageView: View {
                 .frame(
                     width: min(UIScreen.main.bounds.width * 0.85, 2000),
                     height: min(UIScreen.main.bounds.width * 1.03, 2000)
-                )
+                ).shadow(color: .black.opacity(0.1), radius: 10)
                 .padding(.bottom, -15)
 
             VStack(alignment: .leading, spacing: 15) {

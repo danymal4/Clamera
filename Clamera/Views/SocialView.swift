@@ -9,17 +9,16 @@ import SwiftUI
 struct SocialView: View {
     var body: some View {
         ZStack {
-            WaterView()
-                .offset(y: -190)
-            
+      
+            WaterView().opacity(0.3)
             IconView()
             
             VStack(spacing: 40) {
                 
                 Text("Social")
-                    .font(.custom("IslandMoments-Regular",
+                    .font(.custom("AkayaTelivigala-regular",
                                   size: UIScreen.main.bounds.width * 0.22))
-                    .opacity(0.9)
+                    .opacity(0.8)
                     .foregroundStyle(.blue)
                     .padding(.top, 60).padding(.bottom, 10)
                 
@@ -51,32 +50,33 @@ struct SocialView: View {
                         }
                       
                     }
-                    Button{
-                        
-                    }
-                    
-                    label: {
-                   
-                        ZStack{
-                       
+                    NavigationLink(
+                        destination: LeaderboardView()
+                    ) {
+                        ZStack {
                             socialCard()
                             
-                            HStack{
-                            Image("Trophy").resizable()  .frame(
-                                width: min(UIScreen.main.bounds.width * 0.15, 180),
-                                height: min(UIScreen.main.bounds.width * 0.15, 180)
-                            ).opacity(0.9)
-                            Text("Leaderboard").bold().foregroundStyle(.black).padding(.horizontal)
-                            Spacer()
-                        }.padding(.horizontal)
-                        
-                       
-                        
-                    
-                          
+                            HStack {
+                                Image("Trophy")
+                                    .resizable()
+                                    .frame(
+                                        width: min(UIScreen.main.bounds.width * 0.15, 180),
+                                        height: min(UIScreen.main.bounds.width * 0.15, 180)
+                                    )
+                                    .opacity(0.9)
+                                
+                                Text("Leaderboard")
+                                    .bold()
+                                    .foregroundStyle(.black)
+                                    .padding(.horizontal)
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal)
                         }
-                        
                     }
+                   
+
                     
                     Button {
                         
@@ -105,7 +105,7 @@ struct SocialView: View {
                 }
                 .padding(.horizontal)
             }
-        }
+        }.background(Color.blue.opacity(0.08))
         .overlay(
             VStack {
                 Spacer()

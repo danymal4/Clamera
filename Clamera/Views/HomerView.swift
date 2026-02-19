@@ -110,7 +110,7 @@ struct HomerView: View {
         }
     }
     
-    // global timer controlling filter: holds a pending value of clean while off aquariumView. Resets with animaton
+   
 
     private func startCleanTimer() {
         cleanTimer?.invalidate()

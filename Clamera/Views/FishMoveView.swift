@@ -160,7 +160,7 @@ struct FishMoveView: View {
                         // Find the fish that created this ripple, if possible
                         let fishSizeMultiplier = ripple.size / 120 // optional: approximate original size
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.7 * (1 + 0.8 * fishSizeMultiplier)) // scaled by size
+                            .stroke(Color.white, lineWidth: 1.7 * (1 + 0.2 * (1.8 * fishSizeMultiplier))) // scaled by size
                             .frame(width: ripple.size, height: ripple.size)
                             .position(ripple.position)
                             .opacity(ripple.opacity)

@@ -71,7 +71,7 @@ struct CatchManageView: View {
                 .foregroundStyle(.white)
                 .opacity(0.3)
                 .frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                       height: min(UIScreen.main.bounds.width * 0.8, 5000)).padding(.top, 250)
+                       height: min(UIScreen.main.bounds.width * 0.8, 5000)).padding(.top, 250).shadow(color: .black.opacity(0.1), radius: 10)
             
             Rectangle()
                 .cornerRadius(30)
@@ -193,7 +193,7 @@ struct CatchManageView: View {
                     .opacity(0.9)
                 }
             }
-            .padding(.top, 290)
+            .padding(.top, 295)
             
             VStack {
                 Spacer()

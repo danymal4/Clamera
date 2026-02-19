@@ -52,7 +52,7 @@ struct WaterShipView: View {
                    .resizable()
                    .scaleEffect(x: 1 + (horizontalScale * 0.18), y: 1.0, anchor: .center)
                    .scaledToFit().offset(x: -2)
-                   .offset(y: baseOffsetY - 0.3 * yOffsetAdjustment + (move ? -10 : 50))
+                   .offset(y: baseOffsetY - 0.3 * yOffsetAdjustment + (move ? 0 : 50))
                    .opacity(0.75)
                
                               
@@ -60,7 +60,7 @@ struct WaterShipView: View {
                    .resizable()
                    .frame(height: flatHeight)
                    .clipped()
-                   .offset(y: 0.96 * verticalScale * (444.5 + baseOffsetY - (0.3 * yOffsetAdjustment)) + (move ? -10 : 50))
+                   .offset(y: 0.96 * verticalScale * (444.5 + baseOffsetY - (0.3 * yOffsetAdjustment)) + (move ? 0 : 50))
                    .opacity(0.75)
                
                
@@ -68,14 +68,14 @@ struct WaterShipView: View {
                WaterWave()
                    .fill(Color.cyan.opacity(0.2)).offset(x: -2)
                // Controls y val movements of mid blue
-                   .offset(y: move ? -25 : 30)
+                   .offset(y: move ? -15 : 30)
                // Controls x val movements of mid blue
                    .offset(x: move ? 0 : 10)
                
                WaterWave()
                    .fill(Color.blue.opacity(0.14)).offset(x: -2)
                // Controls y val movements of light blue
-                   .offset(y: (move ? -40 : 10) )
+                   .offset(y: (move ? -30 : 10) )
                // Controls x val movements of light blue
                    .offset(x: move ? 0 : 10)
          
@@ -86,7 +86,7 @@ struct WaterShipView: View {
                    .mask(
                        ZStack {
                            Color.white
-                          WaterWave()     .offset(y: (move ? -40 : 10) ).offset(x: -2)
+                          WaterWave()     .offset(y: (move ? -30 : 10) ).offset(x: -2)
                               
                                .fill(Color.black)
                                .blendMode(.destinationOut).scaleEffect(y: 1.0015, anchor: .top)

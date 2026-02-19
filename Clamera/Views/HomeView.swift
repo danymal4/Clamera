@@ -15,12 +15,22 @@ struct HomeView: View {
                     VStack {
                         Spacer()
                         
-                        Text("Home")
+                        Text("Clamera")
                             .font(.custom(
-                                "IslandMoments-Regular",
-                                size: min(geo.size.width * 0.3, 220)
+                                "AkayaTelivigala-regular",
+                                size: min(geo.size.width * 0.2, 220)
                             ))
-                            .opacity(0.9)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        Color.black.opacity(0.6),
+                                        Color.blue.opacity(0.6)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+
                         
                         Spacer()
                         Spacer()
@@ -53,7 +63,7 @@ struct HomeView: View {
                                 
                                 Text("Recent Catches")
                                     .font(.system(size: geo.size.width * 0.06))
-                                    .opacity(0.8)
+                                    .opacity(0.7)
                                     .bold()
                             }
                             
@@ -79,7 +89,7 @@ struct HomeView: View {
                                         .cornerRadius(20)
                                         .frame(width: min(geo.size.width * 0.8, 2000),
                                                height: min(geo.size.width * 0.5, 2000))
-                                }
+                                }.padding(.bottom, 10)
                                 
                                 Spacer()
                                 Spacer()
@@ -97,8 +107,8 @@ struct HomeView: View {
             VStack {
                 Spacer()
                 Rectangle()
-                    .fill(Color.white.opacity(0.6))
-                    .frame(height: geo.size.height * 0.112)
+                    .fill(Color.white).overlay(Color.blue.opacity(0.08))
+                    .frame(height: geo.size.height * 0.112).shadow(color: .black.opacity(0.1), radius: 10)
             }
             .edgesIgnoringSafeArea(.bottom)
         }

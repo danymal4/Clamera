@@ -153,6 +153,7 @@ struct AquariumView: View {
         if editState == .notEditing {
             ZStack {
                 
+                WaterView().opacity(0.3)
                 IconView().padding(.horizontal, 12)
 
               
@@ -161,10 +162,10 @@ struct AquariumView: View {
 
               
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(aquariumState)
+                    .environmentObject(aquariumState).offset(y: -45)
 
              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean)
+                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -45)
                 
    
                 Rectangle()
@@ -173,18 +174,13 @@ struct AquariumView: View {
                     .opacity(0.14)
                     .frame(width: min(UIScreen.main.bounds.width * 0.84, 2000),
                            height: min(UIScreen.main.bounds.width * 0.46, 2000))
-                    .padding(.top, 157)
+                    .padding(.top, 80)
                 
                 
                 ManageButtonsView(editState: $editState)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                WaterView()
-                    .frame(height: UIScreen.main.bounds.height + 400)
-                    .offset(y: -130)
-                    .allowsHitTesting(false)
-            )
+            }.background(Color.blue.opacity(0.08))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
             .onAppear {
                 bubbleRefreshID = UUID()
                 aquariumState.commitPendingClean()
@@ -208,8 +204,8 @@ struct AquariumBackgroundView: View {
     var body: some View {
         VStack {
             Text("Aquarium")
-                .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.3))
-                .opacity(0.9)
+                .font(.custom("AkayaTelivigala-regular", size: UIScreen.main.bounds.width * 0.2))
+                .opacity(0.8)
                 .foregroundStyle(.blue)
 
             ZStack {
@@ -291,9 +287,9 @@ struct ManageButtonsView: View {
                     Rectangle()
                         .cornerRadius(30)
                         .foregroundStyle(.white)
-                        .opacity(0.3)
+                        .opacity(0.4)
                         .frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                               height: min(UIScreen.main.bounds.width * 0.2, 90))
+                               height: min(UIScreen.main.bounds.width * 0.2, 90)).shadow(color: .black.opacity(0.1), radius: 10)
                 }
                 Text("Manage")
                     .font(.system(size: UIScreen.main.bounds.width * 0.07))
@@ -301,7 +297,7 @@ struct ManageButtonsView: View {
                     .opacity(0.8)
                     .bold()
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, 60)
 
             Rectangle()
                 .colorInvert()

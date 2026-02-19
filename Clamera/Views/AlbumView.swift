@@ -141,19 +141,15 @@ struct AlbumView: View {
                 
                 ZStack(alignment: .top) {
                     
-                    
-                    
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-
-                    WaterView()
-                        .offset(y: -240)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .ignoresSafeArea()
-
+           
+                 
+                    WaterView().opacity(0.3)
+                   
                     IconView()
                     HStack {
                         Spacer()
-                        Text("\(filteredSpecies.count) species").padding(.top, 150).font(.caption).opacity(0.3).padding(.horizontal, 110)
+                        Text("\(filteredSpecies.count) species").padding(.top, 150).font(.caption).opacity(0.3).padding(.horizontal, 110).padding(.top, 5)
                     }
                     
                      if !searchSuggestions.isEmpty && showSuggestions {
@@ -186,7 +182,7 @@ struct AlbumView: View {
                              }
                          }
                          .background(
-                             RoundedRectangle(cornerRadius: 10)
+                             RoundedRectangle(cornerRadius: 30)
                                  .fill(Color.white)
                                  .shadow(radius: 5)
                          )
@@ -198,9 +194,9 @@ struct AlbumView: View {
 
                     VStack(spacing: 20) {
                         Text("Album")
-                            .font(.custom("IslandMoments-Regular", size: 90))
+                            .font(.custom("AkayaTelivigala-regular", size: 90))
                             .foregroundStyle(.blue)
-                            .padding(.top)
+                            .padding(.top).opacity(0.8)
 
                         // Search + filter bar
                         HStack(spacing: 10) {
@@ -276,12 +272,12 @@ struct AlbumView: View {
             VStack {
                 Spacer()
                 Rectangle()
-                    .fill(Color.white.opacity(0.6))
+                    .fill(Color.white).overlay(Color.blue.opacity(0.06))
                     .frame(height: 83)
                     .edgesIgnoringSafeArea(.bottom)
                     .padding(.bottom, -300)
             }
-        }
+        }.background(Color.blue.opacity(0.08))
     }
 }
 
@@ -294,13 +290,14 @@ struct SpeciesGridItem: View {
         VStack {
             ZStack {
                 Rectangle()
-                    .fill(Color.white.opacity(clickable ? 0.3 : 0.1))
+                    .fill(Color.blue.opacity(clickable ? 0.2 : 0.1))
                     .frame(
                         width: UIScreen.main.bounds.width * 0.88,
                         height: UIScreen.main.bounds.width * 0.83
-                    )
-                    .cornerRadius(15)
+                    ).shadow(color: .black.opacity(0.1), radius: 30)
 
+                    .cornerRadius(45)
+                
                 Image(species.imageName)
                     .resizable()
                     .scaledToFill()
@@ -308,7 +305,7 @@ struct SpeciesGridItem: View {
                         width: UIScreen.main.bounds.width * 0.85,
                         height: UIScreen.main.bounds.width * 0.8
                     )
-                    .cornerRadius(10)
+                    .cornerRadius(40)
                     .clipped()
                     .opacity(clickable ? 1.0 : 0.4)
             }
