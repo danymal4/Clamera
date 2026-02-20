@@ -77,6 +77,38 @@ final class SpeciesStore: ObservableObject {
         Species(name: "Salmon", imageName: "salmonExample", fishList: []),
         Species(name: "Cod", imageName: "codExample", fishList: [])
     ]
+    
+    func getSpecies() -> Int {
+     
+        var total: Int = 0
+        
+        for species in speciesList {
+            if species.fishList.count > 0 {
+                total += 1
+            }
+        }
+        
+        
+        
+        return total
+    }
+    
+  
+    
+    func getFish() -> Int {
+        
+        var total: Int = 0
+        
+        for species in speciesList {
+            total += species.fishList.count
+        }
+        
+        
+        
+        return total
+    }
+
+    
 }
 
 

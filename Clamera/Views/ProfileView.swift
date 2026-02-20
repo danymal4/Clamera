@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject var speciesStore: SpeciesStore
+    
     var body: some View {
         
         ZStack{
@@ -66,7 +68,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
                             
-                            Text("Fish Caught:   230")
+                            Text("Fish Caught:   \(speciesStore.getFish())")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -74,7 +76,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
                             
-                            Text("Species Caught:  12/200")
+                            Text("Species Caught:  \(speciesStore.getSpecies())/\(speciesStore.speciesList.count)")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -130,5 +132,5 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    ProfileView()        .environmentObject(SpeciesStore())
 }
