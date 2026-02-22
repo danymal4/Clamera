@@ -241,10 +241,10 @@ struct FishMoveView: View {
                                     }
                                 
                                 // Dynamic zIndex based on yOffset remains the same
-                                    .zIndex(Double(yOffset))
+                                   
                                 
                             }
-                        }
+                        } .zIndex(Double(yOffset))
                         }
                
                     }

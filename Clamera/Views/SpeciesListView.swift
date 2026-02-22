@@ -21,6 +21,7 @@ struct SpeciesListView: View {
 
     @State private var selectedFilter: FilterOption = .oldest
     @State private var showPinnedOnly: Bool = true
+    @State private var refreshID = false
 
     var species: Species {
         speciesStore.speciesList[speciesIndex]
@@ -29,13 +30,16 @@ struct SpeciesListView: View {
     // filter mechanic
     var filteredFish: [Fish] {
         var fish = species.fishList
-        
+
+        // Sort by filter
         if selectedFilter == .newest {
             fish.reverse()
         }
-        
-        if showPinnedOnly {
-            fish = fish.filter { $0.isPinned }
+
+        // Always show pinned fish; optionally hide unpinned fish if showPinnedOnly is true
+        if !showPinnedOnly {
+            // Keep pinned fish only
+            fish = fish.filter { !$0.isPinned }
         }
         
         return fish
@@ -81,7 +85,16 @@ struct SpeciesListView: View {
                                     NavigationLink(
                                         destination: FishDetailsView(speciesStore: speciesStore, aquarium: aquarium, fishID: fish.id)
                                     ) {
-                                        FishGridItem(fish: fish, clickable: true)
+                                   
+                                            FishGridItem(fish: fish, clickable: true)
+                                          
+                                                
+                                            
+                                            
+                                            
+                                        
+                                        
+                                      
                                     }
                                 }
                             }
@@ -89,7 +102,11 @@ struct SpeciesListView: View {
                         .padding(.horizontal, 15)
                     }
                 }
-            }
+            } .id(refreshID) // forces the view to reload whenever refreshID changes
+                .onAppear {
+                    // toggle to force refresh whenever view appears
+                    refreshID.toggle()
+                }
 
             VStack {
                 Spacer()
@@ -137,11 +154,17 @@ struct FishGridItem: View {
     let fish: Fish
     let clickable: Bool
     
+    @State private var animateScale: Bool = false
+    
     private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
     private var cardHeight: CGFloat { cardWidth }
 
+    
+    
+    
     var body: some View {
         ZStack {
+            // Fish image
             Image(fishPhoto: fish.photo)
                 .resizable()
                 .scaledToFill()
@@ -154,8 +177,29 @@ struct FishGridItem: View {
                 .opacity(clickable ? 1.0 : 0.4)
                 .shadow(color: .black.opacity(0.1), radius: 20)
             
-            
-          
+            // Anchor overlay if not pinned
+            if !fish.isPinned {
+                Image("anchorFrame")
+                    .resizable()
+                    .frame(
+                        width: UIScreen.main.bounds.width * 0.5 * 0.95,
+                        height: UIScreen.main.bounds.width * 0.5 * 0.95
+                    )
+                    .padding(.bottom, -20)
+                    .offset(y: -10)
+            }
+        }
+        // Tiny in-and-out scale animation for both
+        .scaleEffect(animateScale ? 1.02 : 1.0)
+        .animation(
+            Animation.easeInOut(duration: 0.6)
+                .repeatForever(autoreverses: true),
+            value: animateScale
+        )
+        .onAppear {
+            if !fish.isPinned {
+                animateScale = true
+            }
         }
     }
 }
@@ -184,6 +228,7 @@ struct SmallRoundedCard: View {
             )
             .foregroundStyle(Color.gray)
             .opacity(0.1)
+        
     }
 }
 

@@ -96,7 +96,7 @@ struct FishDetailsView: View {
                 
                 HStack {
                     Spacer()
-                    Text("Caught: 02/30/1976")
+                    Text("Caught: \(Text(fish.dateCaught, format: .dateTime.year().month(.wide).day()))")
                         .font(.system(size: UIScreen.main.bounds.width * 0.03))
                         .opacity(0.8)
                         .padding(.top, 550)
@@ -106,7 +106,7 @@ struct FishDetailsView: View {
                 Rectangle()
                     .cornerRadius(45)
                     .foregroundStyle(.blue)
-                    .opacity(0.2)
+                    .opacity(0.15)
                     .frame(
                         width: min(UIScreen.main.bounds.width * 0.88, 1800),
                         height: min(UIScreen.main.bounds.width * 0.83, 2000)

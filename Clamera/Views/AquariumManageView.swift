@@ -174,7 +174,12 @@ struct AquariumManageView: View {
                                             }
                                             
                                             
-                                            
+                                            else {
+                                                Image(systemName: "chevron.down")
+                                                    .foregroundStyle(.black)
+                                                    .frame(width: 24, height: 24).opacity(0)
+                                                
+                                            }
                                             
                                             
                                             
@@ -366,7 +371,7 @@ Spacer()
                                 
                                 
                                 
-                                Text("  \(String(format: "%.2f", (100 - (300 * aquariumState.clean))))")
+                                Text("  \(String(format: "%.2f", (100 - (300 * aquariumState.clean)))) %")
                                     .padding(.horizontal, -5)
                                     .foregroundStyle(.gray)
                                     .font(.system(size: UIScreen.main.bounds.width * 0.035))

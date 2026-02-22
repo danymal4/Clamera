@@ -155,6 +155,10 @@ struct CatchManageView: View {
                 HStack {
                     Spacer()
                     Button("Confirm") {
+                     
+                       
+                        
+                        
                         guard let index = speciesStore.speciesList.firstIndex(where: {
                             $0.name.lowercased() == species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                         }) else {
@@ -182,9 +186,26 @@ struct CatchManageView: View {
                             Fish(
                                 photo: photoFilename,
                                 speciesName: speciesStore.speciesList[index].name,
-                                description: info
+                                description: info,
+                            
                             )
+                       
                         )
+                        let fishIndex = speciesStore.speciesList[index].fishList.count - 1
+                        let previousFishDate: Date? = fishIndex > 0 ? speciesStore.speciesList[index].fishList[fishIndex - 1].dateCaught : nil
+
+                        let totalOfSpecies = fishIndex + 1
+                        let totalOtherFish = speciesStore.getFish() - totalOfSpecies
+
+                        let points = speciesStore.calculateClamPoints(
+                            totalOfSpecies: totalOfSpecies,
+                            totalOtherFish: totalOtherFish,
+                            previousFishDate: previousFishDate
+                        )
+                        
+                        
+                        
+                        
                         
                         editState = .notEditing
                     }

@@ -85,7 +85,7 @@ struct ProfileView: View {
                                 )
                             
                             HStack{
-                                Text("Clam Points:   2000")
+                                Text("Clam Points:   \(speciesStore.totalClamPoints)")
                                     .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                     .opacity(0.8)
                                     .bold().padding(.bottom, 4).frame(
@@ -115,19 +115,19 @@ struct ProfileView: View {
                 
                 
                 
-            }
-           
+            }.padding(.bottom, 60)
+            VStack {
+                          Spacer()
+                          Rectangle()
+                              .fill(Color.white.opacity(0.6))
+                              .frame(height: 83)
+                     
+                      }
+                  
+                  .edgesIgnoringSafeArea(.bottom)
             
-        }.padding(.top, 40).background(Color.blue.opacity(0.08))
-        VStack {
-                      Spacer()
-                      Rectangle()
-                          .fill(Color.white.opacity(0.6))
-                          .frame(height: 83)
-                 
-                  }
-              
-              .edgesIgnoringSafeArea(.bottom)
+        }
+       .background(Color.blue.opacity(0.08))
     }
 }
 

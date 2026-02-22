@@ -12,9 +12,10 @@ struct Fish: Identifiable, Hashable {
     var photo: String
     let speciesName: String
     var description: String = "cool fish I found with sam"
-    let dateCaught: Date = Date()
+    var dateCaught: Date = Date()
     var isPinned: Bool = true
     var isAquarium: Bool = false
+    var fishWeight: Int = 0
 }
 
 struct Species: Identifiable, Hashable {
@@ -50,10 +51,10 @@ final class SpeciesStore: ObservableObject {
             name: "Clownfish",
             imageName: "clownFishExample",
             fishList: [
-                Fish(photo: "clownfish1", speciesName: "Clownfish"),
-                Fish(photo: "clownfish2", speciesName: "Clownfish"),
-                Fish(photo: "clownfish3", speciesName: "Clownfish"),
-                Fish(photo: "nemo 1", speciesName: "Clownfish")
+                Fish(photo: "clownfish1", speciesName: "Clownfish", dateCaught: Date().addingTimeInterval(-86400 * 3)),
+                Fish(photo: "clownfish2", speciesName: "Clownfish", dateCaught: Date().addingTimeInterval(-86400 * 2)),
+                Fish(photo: "clownfish3", speciesName: "Clownfish", dateCaught: Date().addingTimeInterval(-86400)),
+                Fish(photo: "nemo 1", speciesName: "Clownfish", dateCaught: Date())
             ]
         ),
         Species(
@@ -77,6 +78,56 @@ final class SpeciesStore: ObservableObject {
         Species(name: "Salmon", imageName: "salmonExample", fishList: []),
         Species(name: "Cod", imageName: "codExample", icon: "codIcon", fishList: [])
     ]
+    @Published var totalClamPoints : Int = 0
+    
+    
+    
+    // clam points calc logic
+   
+    func calculateClamPoints(
+        totalOfSpecies caughtFish: Int,
+        totalOtherFish otherFish: Int,
+        previousFishDate: Date? = nil
+    ) -> Int {
+        
+        // Step 0: First catch always gives 90 points
+        if caughtFish == 1 {
+            let totalPoints = 90
+            totalClamPoints += totalPoints
+            return totalPoints
+        }
+        
+        // Step 1: Calculate caughtMin (like codMin)
+        let caughtMinRaw = 15 + abs(Double(otherFish - 5) / 3.0)
+        let caughtMin = min(caughtMinRaw, 30)
+        
+        // Prevent divide by zero
+        guard caughtMin > 2 else {
+            totalClamPoints += 50
+            return 50
+        }
+        
+        // Step 2: Base species points
+        let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
+        let speciesPoints = max(pointsRaw, 20)
+        
+        // Step 3: Time bonus
+        var timeBonus: Double = 0
+        if let prevDate = previousFishDate {
+            let daysSincePrevious = Calendar.current.dateComponents([.day], from: prevDate, to: Date()).day ?? 0
+            let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
+            timeBonus = min(rawTimeBonus, 12.0)
+        }
+        
+        // Step 4: Total points
+        let totalPoints = speciesPoints + timeBonus
+        
+        // Update published totalClamPoints
+        totalClamPoints += Int(totalPoints.rounded())
+        
+        return Int(totalPoints.rounded())
+    }
+    
     
     func getSpecies() -> Int {
      
