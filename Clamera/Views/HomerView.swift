@@ -7,7 +7,7 @@
 import SwiftUI
 
 enum ViewState {
-    case home, aquarium, profile, caught, album, social
+    case home, aquarium, profile, caught, album, social,  settings
 }
 
 final class TabRouter: ObservableObject {
@@ -123,7 +123,7 @@ struct HomerView: View {
             let delta = now.timeIntervalSince(lastUpdate)
             lastUpdate = now
 
-            if tabRouter.viewState == .aquarium {
+            if tabRouter.viewState == .aquarium  || aquariumState.isActiveScreen{
        
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.updateClean(by: increment)

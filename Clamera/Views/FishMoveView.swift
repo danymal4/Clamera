@@ -44,8 +44,8 @@ final class AquariumFishList: ObservableObject {
             AquariumFish(
                 imageName: "clownfishIcon",
                 size: CGSize(width: 80, height: 50),
-                horizontalRange: -120...120,
-                verticalRange: -30...30,
+                horizontalRange: -140...140,
+                verticalRange: -130...130,
                 swimDuration: 8,
                 phaseOffset: 0,
                 isActive: true,
@@ -54,8 +54,8 @@ final class AquariumFishList: ObservableObject {
             AquariumFish(
                 imageName: "pufferIcon",
                 size: CGSize(width: 70, height: 45),
-                horizontalRange: -130...100,
-                verticalRange: -40...40,
+                horizontalRange: -140...120,
+                verticalRange: -140...140,
                 swimDuration: 10,
                 phaseOffset: 1,
                 isActive: true,
@@ -64,8 +64,8 @@ final class AquariumFishList: ObservableObject {
             AquariumFish(
                 imageName: "grouperIcon",
                 size: CGSize(width: 90, height: 55),
-                horizontalRange: -100...128,
-                verticalRange: -20...20,
+                horizontalRange: -120...148,
+                verticalRange: -120...120,
                 swimDuration: 12,
                 phaseOffset: 2,
                 isActive: true,
@@ -162,23 +162,17 @@ struct FishMoveView: View {
                 let now = timeline.date.timeIntervalSinceReferenceDate
 
                 ZStack {
-                   
-                   
-
-                  
+            
                     // --- Ripples ---
-                   
                     ForEach(ripples) { ripple in
-                        // Find the fish that created this ripple, if possible
-                        let fishSizeMultiplier = ripple.size / 120 // optional: approximate original size
+                        let fishSizeMultiplier = ripple.size / 120
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.7 * (1 + 0.2 * (1.8 * fishSizeMultiplier))) // scaled by size
+                            .stroke(Color.white, lineWidth: 1.7 * (1 + 0.2 * (1.8 * fishSizeMultiplier)))
                             .frame(width: ripple.size, height: ripple.size)
                             .position(ripple.position)
                             .opacity(ripple.opacity)
                             .animation(.easeOut(duration: 0.7), value: ripple.size)
                     }
-
 
                     // --- Fish ---
                     ForEach(aquarium.fish) { fish in
@@ -188,15 +182,33 @@ struct FishMoveView: View {
                         let progress = sin(rawProgress)
                         let facingRight = progress >= 0
                         
+                        // Horizontal movement (unchanged)
                         let xOffset = fish.horizontalRange.lowerBound +
                         (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
                         
-                        let yOffset = fish.verticalRange.lowerBound +
-                        (fish.verticalRange.upperBound - fish.verticalRange.lowerBound) *
-                        ((sin(adjustedTime * 1.5) + 1) / 2)
+                        // --- Subtle drifting baseline for vertical movement ---
+                        let padding: CGFloat = 20
+                        let safeLower = fish.verticalRange.lowerBound + padding
+                        let safeUpper = fish.verticalRange.upperBound - padding
                         
+                        // Slightly vary drift speed per fish using phaseOffset
+                        let driftSpeed = 0.12 + (Double(fish.phaseOffset) * 0.01)
+                        
+                        let driftAmplitude = (safeUpper - safeLower) / 2
+                        let driftCenter = (safeUpper + safeLower) / 2
+                        
+                        // Tiny fixed vertical offset per fish
+                        let randomOffset = CGFloat(fish.phaseOffset) * 5
+                        
+                        // Slowly drifting baseline
+                        let driftingBaseY = driftCenter + driftAmplitude * sin(adjustedTime * driftSpeed + fish.phaseOffset) + randomOffset
+                        
+                        // Small bobbing around the drifting baseline
+                        let amplitude = (fish.verticalRange.upperBound - fish.verticalRange.lowerBound) / 4
+                        let yOffset = driftingBaseY + amplitude * sin(adjustedTime * 1.5)
+                        
+                        // Tail angle and boosting (unchanged)
                         let tailAngle = 12 * sin(adjustedTime * 2)
-                        
                         let deltaX = (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) / 1000
                         let projectedX = xOffset + (facingRight ? deltaX : -deltaX)
                         let canBoost = (facingRight && projectedX > xOffset) ||
@@ -204,15 +216,11 @@ struct FishMoveView: View {
                         
                         let fishCenter = CGPoint(
                             x: geo.frame(in: .local).midX + xOffset,
-                            y: geo.frame(in: .local).midY  + yOffset - 70
+                            y: geo.frame(in: .local).midY + yOffset - 70
                         )
                         
                         ZStack {
-                            // Normal fish image only
-                            
-                            
-                            if fish.isShown{
-                                
+                            if fish.isShown {
                                 Image(fish.imageName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
@@ -239,15 +247,11 @@ struct FishMoveView: View {
                                             addRipple(for: fish, at: fishCenter)
                                         }
                                     }
-                                
-                                // Dynamic zIndex based on yOffset remains the same
-                                   
-                                
                             }
-                        } .zIndex(Double(yOffset))
                         }
-               
+                        .zIndex(Double(yOffset))
                     }
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.top, 150)
             }
@@ -266,7 +270,6 @@ struct FishMoveView: View {
                 ripples[index].opacity = 0.0
             }
         }
-
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
             ripples.removeAll { $0.id == ripple.id }

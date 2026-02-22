@@ -18,6 +18,7 @@ final class AquariumState: ObservableObject {
     @Published var clean: Double = 0.3
     @Published var bubbleVisibility: Double = 1.0
     @Published var bubbleAmount: Double = 1.0
+    @Published var isActiveScreen: Bool = false
 
     let maxClean: Double = 0.3
     private(set) var pendingClean: Double = 0.3
@@ -62,6 +63,7 @@ final class AquariumState: ObservableObject {
 
 
 
+
 struct BubbleView: View {
     @EnvironmentObject var aquariumState: AquariumState
     @State private var yOffset: CGFloat = 0
@@ -78,13 +80,13 @@ struct BubbleView: View {
     @State private var delayOffset: Double
 
     init(topY: CGFloat, bottomY: CGFloat) {
-        self.topY = topY
-        self.bottomY = bottomY
+        self.topY = topY - 200
+        self.bottomY = bottomY + 200
 
         
-        _size = State(initialValue: CGFloat.random(in: 8...20))
+        _size = State(initialValue: CGFloat.random(in: 8...30))
         _xPosition = State(initialValue: CGFloat.random(in: 60...(UIScreen.main.bounds.width - 30)))
-        _duration = State(initialValue: Double.random(in: 3...7))
+        _duration = State(initialValue: Double.random(in: 6...17))
         _delayOffset = State(initialValue: Double.random(in: 0...1)) // 0–1s random delay
     }
 
@@ -123,7 +125,7 @@ struct BubbleView: View {
             opacity = 0
 
           // random positions
-            xPosition = CGFloat.random(in: 50...(UIScreen.main.bounds.width - 30))
+            xPosition = CGFloat.random(in: 0...(2 * UIScreen.main.bounds.width))
 
             withAnimation(.easeIn(duration: duration * 0.2)) { opacity = 1 }
             withAnimation(Animation.linear(duration: duration)) { yOffset = topY }
@@ -150,34 +152,47 @@ struct AquariumView: View {
     var aquariumBottom: CGFloat { UIScreen.main.bounds.height * 0.58 }
 
     var body: some View {
-        if editState == .notEditing {
+       
             ZStack {
                 
-                WaterView().opacity(0.3)
-                IconView().padding(.horizontal, 12)
+               
+               
 
-              
+           
                 AquariumBackgroundView()
                     .environmentObject(aquariumState)
 
               
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(aquariumState).offset(y: -45)
+                    .environmentObject(aquariumState).offset(y: 645)
 
              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -45)
+                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -45).scaleEffect(1.4)
                 
    
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.blue)
                     .opacity(0.14)
-                    .frame(width: min(UIScreen.main.bounds.width * 0.84, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.46, 2000))
-                    .padding(.top, 80)
+                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                           height: min(UIScreen.main.bounds.height * 1, 2000))
+                    .padding(.top, -58)
+                
+              
+                
+         
+                    VStack {
+                     
+                        Rectangle()
+                            .fill(Color.white.opacity(1))
+                            .frame(height: 83).overlay(Color.blue.opacity(0.05)).shadow(color: .black.opacity(0.1), radius: 10)
+                    }
+                    .edgesIgnoringSafeArea(.bottom).padding(.top, 812)
                 
                 
-                ManageButtonsView(editState: $editState)
+                
+                
+              
             }.background(Color.blue.opacity(0.08))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -191,9 +206,7 @@ struct AquariumView: View {
             .onDisappear {
                 aquariumState.updatePendingClean(to: aquariumState.clean)
             }
-        } else {
-            AquariumManageView(editState: $editState)
-        }
+      
     }
 }
 
@@ -202,60 +215,59 @@ struct AquariumBackgroundView: View {
     @EnvironmentObject var aquariumState: AquariumState
 
     var body: some View {
-        VStack {
-            Text("Aquarium")
-                .font(.custom("AkayaTelivigala-regular", size: UIScreen.main.bounds.width * 0.2))
-                .opacity(0.8)
-                .foregroundStyle(.blue)
+        
+            
 
             ZStack {
               
                 Image("Aquarium")
                     .resizable()
-                    .frame(width: min(UIScreen.main.bounds.width * 0.7, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.8, 700))
-                    .padding(.bottom, 65)
-                    .scaleEffect(1.45)
-
+                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                           height: min(UIScreen.main.bounds.height * 2.5, 2000)).padding(.bottom, 200)
+              
+                Image("grass2").resizable().frame(width: min(UIScreen.main.bounds.width * 2.9, 2000),
+                                                 height: min(UIScreen.main.bounds.height * 1, 2000))
+                
+                .padding(.top, 180 + ((UIScreen.main.bounds.width - 402) * 0.3)).opacity(0.15)
           
-                Image("floor")
+                Image("sandfloor")
                     .resizable()
-                    .frame(width: min(UIScreen.main.bounds.width * 0.815, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.2, 2000))
-                    .padding(.top, 25 + ((UIScreen.main.bounds.width - 402) * 0.3))
+                    .frame(width: min(UIScreen.main.bounds.width * 1.5, 2000),
+                           height: min(UIScreen.main.bounds.width * 0.5, 2000))
+                    .padding(.top, 520 + ((UIScreen.main.bounds.width - 302) * 0.3))
                     .padding(.horizontal, 50)
-                    .opacity(0.85 - aquariumState.clean)
+                    .opacity(0.95 - (aquariumState.clean * 0.25))
 
                
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.green)
                     .opacity(aquariumState.clean)
-                    .frame(width: min(UIScreen.main.bounds.width * 0.84, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.46, 2000))
-                    .padding(.bottom, 77)
+                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                           height: min(UIScreen.main.bounds.height * 1, 2000))
+                    .padding(.top, -58)
 
    
 
          // brush
                 HStack {
-                    Spacer()
+                Spacer()
                     Button {
                         aquariumState.cleanNow()
                     } label: {
                         Image("brush")
                             .resizable()
-                            .frame(width: min(UIScreen.main.bounds.width * 0.12, 2000),
-                                   height: min(UIScreen.main.bounds.width * 0.12, 700))
+                            .frame(width: min(UIScreen.main.bounds.width * 0.22, 2000),
+                                   height: min(UIScreen.main.bounds.width * 0.22, 700))
                             .opacity(aquariumState.clean > 0 ? min(aquariumState.clean * 2.5, 1) : 0)
                             .animation(.easeInOut(duration: 0.7), value: aquariumState.clean)
                     }
-                    .padding(.bottom, 215)
-                    .padding(.horizontal, 50)
+                    .padding(.top, -385)
+                    .padding(.horizontal, 395)
                     .disabled(aquariumState.clean <= 0)
                 }
             }
-        }
+        
     }
 }
 
@@ -267,7 +279,7 @@ struct BubbleLayerView: View {
     @Binding var refreshID: UUID
 
     var body: some View {
-        ForEach(0..<Int(8 * aquariumState.bubbleAmount), id: \.self) { _ in
+        ForEach(0..<Int(24 * aquariumState.bubbleAmount), id: \.self) { _ in
             BubbleView(topY: topY, bottomY: bottomY)
                 .id(refreshID)
                 .environmentObject(aquariumState)
@@ -276,38 +288,8 @@ struct BubbleLayerView: View {
 }
 
 
-struct ManageButtonsView: View {
-    @Binding var editState: EditState
 
-    var body: some View {
-        VStack {
-            Spacer()
-            ZStack {
-                Button { editState = .editing } label: {
-                    Rectangle()
-                        .cornerRadius(30)
-                        .foregroundStyle(.white)
-                        .opacity(0.4)
-                        .frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                               height: min(UIScreen.main.bounds.width * 0.2, 90)).shadow(color: .black.opacity(0.1), radius: 10)
-                }
-                Text("Manage")
-                    .font(.system(size: UIScreen.main.bounds.width * 0.07))
-                    .foregroundStyle(.black)
-                    .opacity(0.8)
-                    .bold()
-            }
-            .padding(.bottom, 60)
 
-            Rectangle()
-                .colorInvert()
-                .opacity(0.6)
-                .frame(width: min(UIScreen.main.bounds.width * 1, 2000),
-                       height: min(UIScreen.main.bounds.width * 0.205, 90))
-                .padding(.bottom, -330)
-        }
-    }
-}
 
 #Preview {
     AquariumView()

@@ -3,7 +3,6 @@ import SwiftUI
 struct AquariumManageView: View {
     @EnvironmentObject var aquarium: AquariumFishList
     @EnvironmentObject var aquariumState: AquariumState
-    @Binding var editState: EditState
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
     @State private var selectedFish: Int = -1
@@ -26,16 +25,8 @@ struct AquariumManageView: View {
         ZStack(alignment: .top) {
 
             ScrollView{
-    
 
-            VStack {
-                HStack {
-                    Button { editState = .notEditing } label: { Text("< back") }
-                    Spacer()
-                }
-                .padding(.horizontal, 10)
-                Spacer()
-            }
+                
 
             
             
@@ -542,7 +533,20 @@ Spacer()
             }
             .edgesIgnoringSafeArea(.bottom)
         }
-        .background(Color.gray.opacity(0.1))
+        .background(Color.gray.opacity(0.1)) .onAppear {
+            
+            aquariumState.commitPendingClean()
+            aquariumState.isActiveScreen = true
+         
+            }
+        
+        .onDisappear {
+          
+            aquariumState.updatePendingClean(to: aquariumState.clean)
+            
+            aquariumState.isActiveScreen = false
+        }
+   
     }
 }
 
@@ -556,7 +560,7 @@ extension Array {
 
 
 #Preview {
-    AquariumManageView(editState: Binding.constant(.editing)) .environmentObject(AquariumFishList()).environmentObject(AquariumState())
+    AquariumManageView() .environmentObject(AquariumFishList()).environmentObject(AquariumState())
 
 }
 
