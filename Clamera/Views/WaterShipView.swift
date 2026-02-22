@@ -118,7 +118,8 @@ struct WaterShipView: View {
                        
                        
                       
-                       Image("sailboat")
+                       Image("sailboat").resizable() .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
+                                                            height: min(UIScreen.main.bounds.width * 0.85, 750))
                            .scaleEffect(0.4 * boatScale) // original 0.4 multiplied by scaling factor
                            .offset(y: move ? -40 : 10)
                            .offset(x: move ? 0 : -80)

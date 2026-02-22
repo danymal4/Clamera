@@ -46,6 +46,7 @@ struct FishDetailsView: View {
                         if !fish.isAquarium {
                             aquarium.addFish(with: "\(fish.speciesName.lowercased())Icon")
                             binding.isAquarium.wrappedValue.toggle()
+                         
                             aquarium.refresh()
                         }
                     } label: {
