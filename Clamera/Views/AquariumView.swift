@@ -65,7 +65,17 @@ final class AquariumState: ObservableObject {
     }
     
     func updatePendingClean(to value: Double) {
-        pendingClean = min(value, maxClean)
+        if let target = targetClean {
+            let delta = (target - pendingClean) * 0.2
+            pendingClean += delta
+            if abs(pendingClean - target) < 0.01 {
+                pendingClean = target
+                targetClean = nil
+                clean = pendingClean
+            }
+        } else {
+            pendingClean = min(value, maxClean)
+        }
     }
     
     func cleanNow() {
