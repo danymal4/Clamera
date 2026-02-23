@@ -154,17 +154,13 @@ struct FishGridItem: View {
     let fish: Fish
     let clickable: Bool
     
-    @State private var animateScale: Bool = false
+    @State private var animateScale = false
     
     private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
     private var cardHeight: CGFloat { cardWidth }
-
-    
-    
     
     var body: some View {
         ZStack {
-            // Fish image
             Image(fishPhoto: fish.photo)
                 .resizable()
                 .scaledToFill()
@@ -178,18 +174,17 @@ struct FishGridItem: View {
                 .shadow(color: .black.opacity(0.1), radius: 20)
             
             HStack(spacing: 4) {
-                
                 if let weight = fish.fishWeight {
                     Text("\(weight) lbs")
                         .font(.system(size: UIScreen.main.bounds.width * 0.04))
                         .bold()
                         .foregroundColor(.white)
                 }
-                
                 Spacer()
-            }.padding(.top, 135).padding(.horizontal, 30)
+            }
+            .padding(.top, 135)
+            .padding(.horizontal, 30)
             
-            // Anchor overlay if not pinned
             if !fish.isPinned {
                 Image("anchorFrame")
                     .resizable()
@@ -201,18 +196,33 @@ struct FishGridItem: View {
                     .offset(y: -10)
             }
         }
-        // Tiny in-and-out scale animation for both
         .scaleEffect(animateScale ? 1.02 : 1.0)
-        .animation(
-            Animation.easeInOut(duration: 0.6)
-                .repeatForever(autoreverses: true),
-            value: animateScale
-        )
         .onAppear {
             if !fish.isPinned {
-                animateScale = true
+                startPulsing()
             }
         }
+        .onChange(of: fish.isPinned) { isPinned in
+            if isPinned {
+                stopPulsing()
+            } else {
+                startPulsing()
+            }
+        }
+    }
+    
+    private func startPulsing() {
+        animateScale = false
+        withAnimation(
+            .easeInOut(duration: 0.6)
+            .repeatForever(autoreverses: true)
+        ) {
+            animateScale = true
+        }
+    }
+    
+    private func stopPulsing() {
+        animateScale = false
     }
 }
 
