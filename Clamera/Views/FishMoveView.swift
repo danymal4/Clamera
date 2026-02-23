@@ -44,7 +44,7 @@ final class AquariumFishList: ObservableObject {
             AquariumFish(
                 imageName: "clownfishIcon",
                 size: CGSize(width: 80, height: 50),
-                horizontalRange: -140...140,
+                horizontalRange: -137...137,
                 verticalRange: -130...130,
                 swimDuration: 8,
                 phaseOffset: 0,
