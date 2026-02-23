@@ -15,7 +15,7 @@ struct Fish: Identifiable, Hashable {
     var dateCaught: Date = Date()
     var isPinned: Bool = true
     var isAquarium: Bool = false
-    var fishWeight: Int = 0
+    var fishWeight: Int? 
 }
 
 struct Species: Identifiable, Hashable {
@@ -440,7 +440,7 @@ struct AlbumView: View {
                     .overlay(Color.blue.opacity(0.06))
                     .frame(height: 83)
                     .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -300)
+                    .padding(.bottom, -300).shadow(color: .black.opacity(0.1), radius: 10)
             }
         }.background(Color.blue.opacity(0.08))
     }

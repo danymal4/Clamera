@@ -115,7 +115,7 @@ struct SpeciesListView: View {
                     .frame(height: 83)
                     .overlay(Color.blue.opacity(0.06))
                     .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -300)
+                    .padding(.bottom, -300).shadow(color: .black.opacity(0.1), radius: 10)
             }
         }
         .background(Color.blue.opacity(0.08))
@@ -149,7 +149,7 @@ struct SpeciesListView: View {
     }
 }
 
-// MARK: - Fish Grid Item (like AlbumView)
+
 struct FishGridItem: View {
     let fish: Fish
     let clickable: Bool
@@ -176,6 +176,18 @@ struct FishGridItem: View {
                 .clipped()
                 .opacity(clickable ? 1.0 : 0.4)
                 .shadow(color: .black.opacity(0.1), radius: 20)
+            
+            HStack(spacing: 4) {
+                
+                if let weight = fish.fishWeight {
+                    Text("\(weight) lbs")
+                        .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                        .bold()
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+            }.padding(.top, 135).padding(.horizontal, 30)
             
             // Anchor overlay if not pinned
             if !fish.isPinned {

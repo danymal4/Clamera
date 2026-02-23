@@ -182,9 +182,9 @@ struct FishDetailsView: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
                     .frame(height: 83)
-                    .padding(.top, 790)
+                    .padding(.top, 790).shadow(color: .black.opacity(0.1), radius: 10)
             }
-            .padding(.top, -10).background(Color.blue.opacity(0.08)).shadow(color: .black.opacity(0.1), radius: 10)
+            .padding(.top, -10).background(Color.blue.opacity(0.08))
 
         } else {
             Text("Fish not found")

@@ -111,7 +111,7 @@ struct SocialView: View {
                 Spacer()
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
-                    .frame(height: 83)
+                    .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
             }.edgesIgnoringSafeArea(.bottom)
         )
     }

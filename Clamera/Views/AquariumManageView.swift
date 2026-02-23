@@ -529,7 +529,7 @@ Spacer()
                 Spacer()
                 Rectangle()
                     .fill(Color.white.opacity(0.9))
-                    .frame(height: 83)
+                    .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
             }
             .edgesIgnoringSafeArea(.bottom)
         }
