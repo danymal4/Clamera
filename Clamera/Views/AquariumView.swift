@@ -44,6 +44,7 @@ final class AquariumState: ObservableObject {
             clean += delta
             if abs(clean - target) < 0.01 {
                 clean = target
+                pendingClean = clean
                 targetClean = nil
             }
         } else {
@@ -53,7 +54,13 @@ final class AquariumState: ObservableObject {
     
     func commitPendingClean() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            clean = max(clean, pendingClean)
+            if let target = targetClean, target == 0 {
+                // If brush is active, keep the smaller of pendingClean and current clean
+                clean = min(pendingClean, clean)
+            } else {
+                // Otherwise, take the larger to respect increments
+                clean = max(pendingClean, clean)
+            }
         }
     }
     
