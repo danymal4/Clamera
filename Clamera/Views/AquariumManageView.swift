@@ -534,17 +534,14 @@ Spacer()
             .edgesIgnoringSafeArea(.bottom)
         }
         .background(Color.gray.opacity(0.1)) .onAppear {
-            
-            aquariumState.commitPendingClean()
-            aquariumState.isActiveScreen = true
-         
-            }
-        
+            aquariumState.markActive("manage")
+        }
         .onDisappear {
-          
             aquariumState.updatePendingClean(to: aquariumState.clean)
+
+            aquariumState.markInactive("manage")
             
-            aquariumState.isActiveScreen = false
+       
         }
    
     }

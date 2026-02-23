@@ -11,54 +11,62 @@ enum EditState {
 }
 
 
-
 final class AquariumState: ObservableObject {
-   
-    // clean determines green overlay opacity
     @Published var clean: Double = 0.3
     @Published var bubbleVisibility: Double = 1.0
     @Published var bubbleAmount: Double = 1.0
-    @Published var isActiveScreen: Bool = false
-
+    @Published var lastUpdate: Date = Date()
+    
+    // Track active screens
+    @Published var activeScreens: Set<String> = []
+    
     let maxClean: Double = 0.3
     private(set) var pendingClean: Double = 0.3
-    
-  
     private var targetClean: Double? = nil
-
-    // func for animated brush cleaning
-    func cleanNow() {
-        targetClean = 0
+    
+    func markActive(_ screen: String) {
+        activeScreens.insert(screen)
+        commitPendingClean()
     }
-
-    // updates in homerview
+    
+    func markInactive(_ screen: String) {
+        activeScreens.remove(screen)
+        pendingClean = clean 
+    }
+    
+    var isActiveScreen: Bool {
+        !activeScreens.isEmpty
+    }
+    
     func updateClean(by increment: Double) {
         if let target = targetClean {
-            
-            let delta = (target - clean) * 0.2 //
-            
+            let delta = (target - clean) * 0.2
             clean += delta
-
             if abs(clean - target) < 0.01 {
                 clean = target
                 targetClean = nil
             }
         } else {
-            // filter getting dirtier over time incremnet represents periodic changes (elasped time added)
             clean = min(clean + increment, maxClean)
         }
     }
-
-    // pending prevents navigation errors
+    
     func commitPendingClean() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            clean = pendingClean
+            clean = max(clean, pendingClean)
         }
     }
-
+    
     func updatePendingClean(to value: Double) {
         pendingClean = min(value, maxClean)
     }
+    
+    func cleanNow() {
+        targetClean = 0
+    }
+    
+    
+    
 }
 
 
@@ -195,17 +203,10 @@ struct AquariumView: View {
               
             }.background(Color.blue.opacity(0.08))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            .onAppear {
-                bubbleRefreshID = UUID()
-                aquariumState.commitPendingClean()
-                DispatchQueue.main.async {
-                    aquariumState.commitPendingClean()
+                .onAppear {
+                    bubbleRefreshID = UUID()
+                   
                 }
-            }
-            .onDisappear {
-                aquariumState.updatePendingClean(to: aquariumState.clean)
-            }
       
     }
 }
