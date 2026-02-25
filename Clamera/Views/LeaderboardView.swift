@@ -92,7 +92,7 @@ struct LeaderboardView: View {
 
                         Text("Leaderboard ")
 
-                            .font(.custom("IslandMoments-Regular", size: 80))
+                            .font(.custom("AkayaTelivigala-regular", size: 70))
 
                             .foregroundColor(.blue)
 
@@ -100,7 +100,7 @@ struct LeaderboardView: View {
 
                         Text("Top 20")
 
-                            .font(.custom("IslandMoments-Regular", size: 40))
+                            .font(.custom("AkayaTelivigala-regular", size: 40))
 
                             .foregroundColor(.blue.opacity(0.8))
 
