@@ -5,88 +5,7 @@
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
 import SwiftUI
-import SwiftUI
 
-struct FishCardView: View {
-    let imageName: String
-    let animate: Bool
-    
-    @State private var isBreathing = false
-    @State private var refreshID = UUID()
-    
-    private let baseWidth = UIScreen.main.bounds.width * 0.88
-    private let baseHeight = UIScreen.main.bounds.width * 0.83
-    
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white.opacity(0.3))
-                .frame(width: baseWidth, height: baseHeight)
-            
-            Image(fishPhoto: imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(
-                    width: UIScreen.main.bounds.width * 0.85,
-                    height: UIScreen.main.bounds.width * 0.8
-                )
-                .cornerRadius(10)
-                .clipped()
-                .scaleEffect(isBreathing ? 1.035 : 1.0)
-            
-            Image("anchorFrame")
-                .resizable()
-                .frame(
-                    width: UIScreen.main.bounds.width * 1,
-                    height: UIScreen.main.bounds.width * 0.95
-                )
-                .opacity(animate ? 0.8 : 0.0)
-                .scaleEffect(isBreathing ? 1.035 : 1.0)
-                .allowsHitTesting(false)
-        }
-        .id(refreshID) // forces refresh when changed
-        .frame(width: baseWidth, height: baseHeight)
-        .onAppear {
-            restartAnimation()
-        }
-        .onChange(of: animate) { _ in
-            restartAnimation()
-        }
-        .onDisappear {
-            isBreathing = false
-        }
-    }
-    
-    private func restartAnimation() {
-        guard animate else {
-            isBreathing = false
-            return
-        }
-        
-        refreshID = UUID() // forces clean rebuild
-        isBreathing = false
-        
-        DispatchQueue.main.async {
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                isBreathing = true
-            }
-        }
-    }
-}
-
-extension Image {
-    /// Loads an image either from the app bundle (assets) or the documents folder (chat)
-    init(fishPhoto name: String) {
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(name)
-        
-        if let uiImage = UIImage(contentsOfFile: url.path) {
-            self.init(uiImage: uiImage)
-        } else {
-            self.init(name) // fallback to asset catalog image
-        }
-    }
-}
 
 struct SpeciesListView: View {
 
@@ -97,111 +16,112 @@ struct SpeciesListView: View {
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
         case newest = "Newest"
- 
         var id: String { self.rawValue }
     }
 
     @State private var selectedFilter: FilterOption = .oldest
-    @State private var showPinnedOnly: Bool = false
-
+    @State private var showPinnedOnly: Bool = true
+    @State private var refreshID = false
 
     var species: Species {
         speciesStore.speciesList[speciesIndex]
     }
 
     // filter mechanic
-  
     var filteredFish: [Fish] {
         var fish = species.fishList
-        
-        // Apply sort first
+
+        // Sort by filter
         if selectedFilter == .newest {
             fish.reverse()
         }
-        
-       // filtered with pin applied
-        if showPinnedOnly {
+
+        // Always show pinned fish; optionally hide unpinned fish if showPinnedOnly is true
+        if !showPinnedOnly {
+            // Keep pinned fish only
             fish = fish.filter { !$0.isPinned }
         }
         
         return fish
     }
 
+    let columns = [
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4)
+    ]
+
     var body: some View {
         ZStack {
             ScrollView {
                 ZStack(alignment: .top) {
-               
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-                    
-                    WaterView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .offset(y: -310)
-
+                    WaterView().opacity(0.3)
                     IconView().offset(y: -40)
-                    
-                    
-                    
-                    
-          
-                    HStack {
-                        Spacer()
-                        
-                        Menu {
-                            Button(selectedFilter == .oldest ? "Oldest  ✓" : "Oldest") {
-                                selectedFilter = .oldest
-                            }
-                            
-                            Button(selectedFilter == .newest ? "Newest  ✓" : "Newest") {
-                                selectedFilter = .newest
-                            }
-                            
-                            Button(showPinnedOnly ? "Pinned  ✓" : "Pinned") {
-                                showPinnedOnly.toggle()
-                            }
-                        } label: {
-                            VStack {
-                                Image(systemName: "line.horizontal.3.decrease")
-                                    .foregroundStyle(.black)
-                                Text("Filter")
-                                    .font(.custom("HelveticaNeue-Thin", size: 15))
-                                    .foregroundStyle(.black)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 75)
-                        
-                    }
+
                     VStack(spacing: 20) {
                         Text(species.name)
-                            .font(.custom("IslandMoments-Regular", size: 90))
-                            .foregroundStyle(.blue)
+                            .font(.custom("AkayaTelivigala-regular", size: 70))
+                            .foregroundStyle(.blue).opacity(0.8)
                             .padding(.top)
 
-                 
-                        ForEach(filteredFish) { fish in
-                            if let fishBinding = binding(for: fish) {
-                                fishRowView(fish: fish, fishBinding: fishBinding)
+                        // Filter buttons
+                        HStack {
+                            filterButton(title: "Oldest", selected: selectedFilter == .oldest) { selectedFilter = .oldest }
+                            filterButton(title: "Newest", selected: selectedFilter == .newest) { selectedFilter = .newest }
+                            filterButton(title: "Pinned", selected: !showPinnedOnly) { showPinnedOnly.toggle() }
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .colorInvert()
+                                .frame(width: UIScreen.main.bounds.width * 0.85,
+                                       height: UIScreen.main.bounds.width * 0.13)
+                                .shadow(color: .black.opacity(0.1), radius: 10)
+                        )
+
+                        // Grid of fish
+                        LazyVGrid(columns: columns, spacing: 15) {
+                            ForEach(filteredFish) { fish in
+                                if let fishBinding = binding(for: fish) {
+                                    NavigationLink(
+                                        destination: FishDetailsView(speciesStore: speciesStore, aquarium: aquarium, fishID: fish.id)
+                                    ) {
+                                   
+                                            FishGridItem(fish: fish, clickable: true)
+                                          
+                                                
+                                            
+                                            
+                                            
+                                        
+                                        
+                                      
+                                    }
+                                }
                             }
                         }
+                        .padding(.horizontal, 15)
                     }
                 }
-            }
+            } .id(refreshID) // forces the view to reload whenever refreshID changes
+                .onAppear {
+                    // toggle to force refresh whenever view appears
+                    refreshID.toggle()
+                }
 
             VStack {
                 Spacer()
                 Rectangle()
-                    .fill(Color.white.opacity(0.6))
+                    .fill(Color.white)
                     .frame(height: 83)
+                    .overlay(Color.blue.opacity(0.06))
                     .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -300)
+                    .padding(.bottom, -300).shadow(color: .black.opacity(0.1), radius: 10)
             }
         }
+        .background(Color.blue.opacity(0.08))
     }
 
-  
-
-// binding to fix struct issue
+    // MARK: - Binding Helper
     private func binding(for fish: Fish) -> Binding<Fish>? {
         guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
               let fishIdx = speciesStore.speciesList[speciesIdx]
@@ -211,34 +131,132 @@ struct SpeciesListView: View {
         return $speciesStore.speciesList[speciesIdx].fishList[fishIdx]
     }
 
+    // MARK: - Filter Button
     @ViewBuilder
-
-    private func fishRowView(fish: Fish, fishBinding: Binding<Fish>) -> some View {
-        VStack {
-            NavigationLink(
-                destination: FishDetailsView(speciesStore: speciesStore, aquarium: aquarium, fishID: fish.id)
-            ) {
-                FishCardView(imageName: fish.photo, animate: !fish.isPinned)
-                    .id(fish.isPinned)
+    private func filterButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            ZStack {
+                if selected {
+                    SmallRoundedCard()
+                } else {
+                    SmallRoundedCard().opacity(0.0)
+                }
+                Text(title)
+                    .foregroundStyle(Color.black)
+                    .opacity(0.7)
             }
-
-            Text("5/30")
-                .bold()
-                .font(.system(size: UIScreen.main.bounds.width * 0.05))
-                .opacity(0.7)
-                .scaleEffect(!fish.isPinned ? 1.035 : 1.0)
-                .animation(
-                    !fish.isPinned
-                    ? .easeInOut(duration: 4).repeatForever(autoreverses: true)
-                    : .default,
-                    value: !fish.isPinned
-                )
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal)
     }
-
 }
+
+
+struct FishGridItem: View {
+    let fish: Fish
+    let clickable: Bool
+    
+    @State private var animateScale = false
+    
+    private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
+    private var cardHeight: CGFloat { cardWidth }
+    
+    var body: some View {
+        ZStack {
+            Image(fishPhoto: fish.photo)
+                .resizable()
+                .scaledToFill()
+                .frame(
+                    width: cardWidth * 0.95,
+                    height: cardHeight * 0.95
+                )
+                .cornerRadius(25)
+                .clipped()
+                .opacity(clickable ? 1.0 : 0.4)
+                .shadow(color: .black.opacity(0.1), radius: 20)
+            
+            HStack(spacing: 4) {
+                if let weight = fish.fishWeight {
+                    Text("\(weight) lbs")
+                        .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                        .bold()
+                        .foregroundColor(.white)
+                }
+                Spacer()
+            }
+            .padding(.top, 135)
+            .padding(.horizontal, 30)
+            
+            if !fish.isPinned {
+                Image("anchorFrame")
+                    .resizable()
+                    .frame(
+                        width: UIScreen.main.bounds.width * 0.5 * 0.95,
+                        height: UIScreen.main.bounds.width * 0.5 * 0.95
+                    )
+                    .padding(.bottom, -20)
+                    .offset(y: -10)
+            }
+        }
+        .scaleEffect(animateScale ? 1.02 : 1.0)
+        .onAppear {
+            if !fish.isPinned {
+                startPulsing()
+            }
+        }
+        .onChange(of: fish.isPinned) { isPinned in
+            if isPinned {
+                stopPulsing()
+            } else {
+                startPulsing()
+            }
+        }
+    }
+    
+    private func startPulsing() {
+        animateScale = false
+        withAnimation(
+            .easeInOut(duration: 0.6)
+            .repeatForever(autoreverses: true)
+        ) {
+            animateScale = true
+        }
+    }
+    
+    private func stopPulsing() {
+        animateScale = false
+    }
+}
+
+// MARK: - Image Loader Extension
+extension Image {
+    init(fishPhoto name: String) {
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(name)
+        
+        if let uiImage = UIImage(contentsOfFile: url.path) {
+            self.init(uiImage: uiImage)
+        } else {
+            self.init(name)
+        }
+    }
+}
+
+
+struct SmallRoundedCard: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .frame(
+                width: UIScreen.main.bounds.width * 0.265,
+                height: UIScreen.main.bounds.width * 0.105
+            )
+            .foregroundStyle(Color.gray)
+            .opacity(0.1)
+        
+    }
+}
+
+
+
+
 
 #Preview {
     let store = SpeciesStore()

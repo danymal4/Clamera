@@ -8,15 +8,21 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject var speciesStore: SpeciesStore
+    
     var body: some View {
         
         ZStack{
         
-            WaterView().offset(y: -120)
-
+            WaterView().opacity(0.3)
+   
+            
             VStack{
-
-                Text("Profile")                        .font(.custom("IslandMoments-Regular",  size: UIScreen.main.bounds.width * 0.2)).foregroundStyle(Color.blue).opacity(0.9).padding().padding(.bottom, -25)
+                
+                
+                
+                
+                Text("Profile")                        .font(.custom("AkayaTelivigala-regular",  size: UIScreen.main.bounds.width * 0.175)).foregroundStyle(Color.blue).opacity(0.9).padding().padding(.bottom, -55)
                 
                 Image("fisherman")
                     .resizable().aspectRatio(contentMode: .fit) .clipShape(Circle()).overlay(Circle().stroke(Color.blue, lineWidth: 5).opacity(0.2)).frame(width: min(UIScreen.main.bounds.width * 0.9, 2000),
@@ -31,11 +37,11 @@ struct ProfileView: View {
                         Rectangle().colorInvert()
                             .cornerRadius(30)
                         
-                            .opacity(0.3)
+                            .opacity(0.5)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.8, 2000),
                                 height: min(UIScreen.main.bounds.width * 0.54, 390)
-                            )
+                            ) .shadow(color: .black.opacity(0.1), radius: 10)
                         Spacer()
                         Spacer()
                         Spacer()
@@ -60,7 +66,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
                             
-                            Text("Fish Caught:   230")
+                            Text("Fish Caught:   \(speciesStore.getFish())")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -68,7 +74,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
                             
-                            Text("Species Caught:  12/200")
+                            Text("Species Caught:  \(speciesStore.getSpecies())/\(speciesStore.speciesList.count)")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -77,7 +83,7 @@ struct ProfileView: View {
                                 )
                             
                             HStack{
-                                Text("Clam Points:   ∞")
+                                Text("Clam Points:   \(speciesStore.totalClamPoints)")
                                     .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                     .opacity(0.8)
                                     .bold().padding(.bottom, 4).frame(
@@ -101,28 +107,28 @@ struct ProfileView: View {
                         }
                         label: {
                             Text("Logout").opacity(0.8)
-                        }
+                        }.padding(.bottom, 5)
                     }.padding(.top, 230).padding(.horizontal)
                 }
                 
                 
                 
-            }
-           
+            }.padding(.bottom, 60)
+            VStack {
+                          Spacer()
+                          Rectangle()
+                              .fill(Color.white.opacity(0.6))
+                              .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
+                     
+                      }
+                  
+                  .edgesIgnoringSafeArea(.bottom)
             
-        }.padding(.top, 40)
-        VStack {
-                      Spacer()
-                      Rectangle()
-                          .fill(Color.white.opacity(0.6))
-                          .frame(height: 83)
-                 
-                  }
-              
-              .edgesIgnoringSafeArea(.bottom)
+        }
+       .background(Color.blue.opacity(0.08))
     }
 }
 
 #Preview {
-    ProfileView()
+    ProfileView()        .environmentObject(SpeciesStore())
 }

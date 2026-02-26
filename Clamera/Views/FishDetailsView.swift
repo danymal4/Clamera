@@ -21,22 +21,21 @@ struct FishDetailsView: View {
 
             ZStack {
 
-                WaterView()
-                    .offset(y: -350)
-
+            
+                WaterView().opacity(0.3)
                 IconView()
-                    .padding(.top, 60)
+                    .padding(.top, 55)
 
                 ZStack {
                     Rectangle()
                         .cornerRadius(20)
                         .foregroundStyle(.white)
-                        .opacity(0.4)
+                        .opacity(0.5)
                         .frame(
                             width: min(UIScreen.main.bounds.width * 0.9, 1800),
                             height: min(UIScreen.main.bounds.width * 0.48, 2000)
                         )
-                        .padding(.top, 320)
+                        .padding(.top, 320).shadow(color: .black.opacity(0.1), radius: 10)
                 }
 
                 // Add to Aquarium
@@ -47,6 +46,7 @@ struct FishDetailsView: View {
                         if !fish.isAquarium {
                             aquarium.addFish(with: "\(fish.speciesName.lowercased())Icon")
                             binding.isAquarium.wrappedValue.toggle()
+                         
                             aquarium.refresh()
                         }
                     } label: {
@@ -96,7 +96,7 @@ struct FishDetailsView: View {
                 
                 HStack {
                     Spacer()
-                    Text("Caught: 02/30/1976")
+                    Text("Caught: \(Text(fish.dateCaught, format: .dateTime.year().month(.wide).day()))")
                         .font(.system(size: UIScreen.main.bounds.width * 0.03))
                         .opacity(0.8)
                         .padding(.top, 550)
@@ -104,11 +104,11 @@ struct FishDetailsView: View {
                 .padding().padding()
 
                 Rectangle()
-                    .cornerRadius(30)
-                    .foregroundStyle(.white)
-                    .opacity(0.3)
+                    .cornerRadius(45)
+                    .foregroundStyle(.blue)
+                    .opacity(0.15)
                     .frame(
-                        width: min(UIScreen.main.bounds.width * 0.9, 1800),
+                        width: min(UIScreen.main.bounds.width * 0.88, 1800),
                         height: min(UIScreen.main.bounds.width * 0.83, 2000)
                     )
                     .padding(.bottom, 250)
@@ -122,10 +122,10 @@ struct FishDetailsView: View {
                     .resizable()
                     .scaledToFill()
                     .frame(
-                        width: min(UIScreen.main.bounds.width * 0.83, 1800),
-                        height: min(UIScreen.main.bounds.width * 0.76, 2000)
+                        width: min(UIScreen.main.bounds.width * 0.85, 1800),
+                        height: min(UIScreen.main.bounds.width * 0.8, 2000)
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: 40))
                     .padding(.bottom, 250)
 
                 // Pin Button
@@ -182,9 +182,9 @@ struct FishDetailsView: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.6))
                     .frame(height: 83)
-                    .padding(.top, 790)
+                    .padding(.top, 790).shadow(color: .black.opacity(0.1), radius: 10)
             }
-            .padding(.top, -20)
+            .padding(.top, -10).background(Color.blue.opacity(0.08))
 
         } else {
             Text("Fish not found")

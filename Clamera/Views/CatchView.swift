@@ -22,19 +22,20 @@ struct CatchView: View {
     var body: some View {
         if editState == .notEditing {
             ZStack {
-                WaterView().offset(y: -200 * vScale)
-                IconView().padding(.top, 5)
+               
+                WaterView().opacity(0.3)
+                IconView().padding(.top, 10)
                 
                 VStack(spacing: 20 * vScale) {
                     HStack{
                         Image("Rod").resizable().frame(
                             width: UIScreen.main.bounds.width * 0.2,
                             height: UIScreen.main.bounds.width * 0.2
-                        ).padding(.top, -91).padding(.horizontal, -35).opacity(0.9)
+                        ).padding(.top, -93).padding(.horizontal, -35).opacity(0.9)
                         Text("Catch")
-                            .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.25))
-                            .opacity(0.9)
-                            .foregroundStyle(.blue).padding(.bottom, 15).padding(.horizontal, -20).rotationEffect(.degrees(5))
+                            .font(.custom("AkayaTelivigala-regular", size: UIScreen.main.bounds.width * 0.25))
+                            .opacity(0.8)
+                            .padding(.bottom, 15).padding(.horizontal, -20).rotationEffect(.degrees(5)).foregroundStyle(.blue)
                        
                     }
                     
@@ -46,14 +47,14 @@ struct CatchView: View {
                                 width: UIScreen.main.bounds.width * 0.88,
                                 height: UIScreen.main.bounds.width * 0.83
                             )
-                            .cornerRadius(15) .colorMultiply(selectedImage == nil ? Color(.systemGray4) : .white)
+                            .cornerRadius(45) .colorMultiply(selectedImage == nil ? Color(.systemGray4) : Color(.blue.opacity(0.4))) .shadow(color: .black.opacity(0.1), radius: 10)
                         
                         Rectangle()
                             .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
                                    height: min(UIScreen.main.bounds.width * 0.8, 750))
-                            .foregroundStyle(Color.gray.opacity(0.4))
+                            .foregroundStyle(Color.gray.opacity(0.25))
                             .compositingGroup()
-                            .cornerRadius(10)
+                            .cornerRadius(40)
                         
                         
                         if let image = selectedImage {
@@ -61,7 +62,7 @@ struct CatchView: View {
                                 .resizable()
                                 .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
                                        height: min(UIScreen.main.bounds.width * 0.8, 750))
-                                .cornerRadius(10)
+                                .cornerRadius(40)
                         } else {
                             HStack(spacing: 20 * hScale) {
                                 Text("Fish image")
@@ -97,9 +98,9 @@ struct CatchView: View {
                                     .clipShape(Circle())
                                     .frame(width: min(UIScreen.main.bounds.width * 0.32, 220),
                                            height: min(UIScreen.main.bounds.width * 0.37, 160))
-                                    .opacity(0.85)
-                                Text("Add Photo") .font(.system(size: UIScreen.main.bounds.width * 0.035))
-                                    .foregroundStyle(.black.opacity(0.7)).bold()
+                                    .opacity(0.85).shadow(color: .black.opacity(0.1), radius: 10)
+                                Text("Add Photo") .font(.system(size: UIScreen.main.bounds.width * 0.045))
+                                    .foregroundStyle(.black.opacity(0.9)).bold()
                             }
                         }
                         .onChange(of: selectedItem) { newItem in
@@ -128,10 +129,10 @@ struct CatchView: View {
                                     )
                                    
                                 
-                                    .opacity(selectedImage == nil ? 0.7 : 0.9)
+                                    .opacity(selectedImage == nil ? 0.7 : 0.9).shadow(color: .black.opacity(selectedImage == nil ? 0.0 : 0.1), radius: 10)
                              
-                                Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.035))
-                                    .foregroundStyle(.black.opacity(0.7)).offset(y: -42 * vScale).bold() .opacity(selectedImage == nil ? 0.5 : 0.9)
+                                Text("Upload") .font(.system(size: UIScreen.main.bounds.width * 0.045))
+                                    .foregroundStyle(.black.opacity(0.9)).offset(y: -42 * vScale).bold() .opacity(selectedImage == nil ? 0.5 : 0.9).bold()
                             }
                         }
                         .offset(y: 15 * vScale)
@@ -148,7 +149,16 @@ struct CatchView: View {
                         .frame(height: 83)
                 }
                 .edgesIgnoringSafeArea(.bottom)
-            }
+            }.background(Color.blue.opacity(0.08)) .foregroundStyle(
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.6),
+                        Color.blue.opacity(0.6)
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
         } else {
          
             CatchManageView(editState: $editState, selectedUIImage: selectedImage)

@@ -6,6 +6,7 @@
 	<string></string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>AkayaTelivigala-Regular.ttf</string>
 		<string>IslandMoments-Regular.ttf</string>
 	</array>
 </dict>

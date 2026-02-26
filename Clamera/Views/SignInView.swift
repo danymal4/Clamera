@@ -29,7 +29,7 @@ struct SignInView: View {
 
                     Text("Clamera")
 
-                        .font(.custom("IslandMoments-Regular", size: 90))
+                        .font(.custom("AkayaTelivigala-regular", size: 90))
 
                         .foregroundStyle(.blue)
 

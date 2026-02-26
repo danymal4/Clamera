@@ -12,9 +12,10 @@ struct Fish: Identifiable, Hashable {
     var photo: String
     let speciesName: String
     var description: String = "cool fish I found with sam"
-    let dateCaught: Date = Date()
+    var dateCaught: Date = Date()
     var isPinned: Bool = true
     var isAquarium: Bool = false
+    var fishWeight: Int? 
 }
 
 struct Species: Identifiable, Hashable {
@@ -50,10 +51,10 @@ final class SpeciesStore: ObservableObject {
             name: "Clownfish",
             imageName: "clownFishExample",
             fishList: [
-                Fish(photo: "clownfish1", speciesName: "Clownfish"),
-                Fish(photo: "clownfish2", speciesName: "Clownfish"),
-                Fish(photo: "clownfish3", speciesName: "Clownfish"),
-                Fish(photo: "nemo 1", speciesName: "Clownfish")
+                Fish(photo: "clownfish1", speciesName: "Clownfish", dateCaught: Date().addingTimeInterval(-86400 * 3)),
+                Fish(photo: "clownfish2", speciesName: "Clownfish", dateCaught: Date().addingTimeInterval(-86400 * 2)),
+                Fish(photo: "clownfish3", speciesName: "Clownfish", dateCaught: Date().addingTimeInterval(-86400)),
+                Fish(photo: "nemo 1", speciesName: "Clownfish", dateCaught: Date())
             ]
         ),
         Species(
@@ -75,8 +76,87 @@ final class SpeciesStore: ObservableObject {
             ]
         ),
         Species(name: "Salmon", imageName: "salmonExample", fishList: []),
-        Species(name: "Cod", imageName: "codExample", fishList: [])
+        Species(name: "Cod", imageName: "codExample", icon: "codIcon", fishList: [])
     ]
+    @Published var totalClamPoints : Int = 0
+    
+    
+    
+    // clam points calc logic
+   
+    func calculateClamPoints(
+        totalOfSpecies caughtFish: Int,
+        totalOtherFish otherFish: Int,
+        previousFishDate: Date? = nil
+    ) -> Int {
+
+        // ✅ Defensive: prevent negative or zero values
+        guard caughtFish > 0 else { return 0 }
+        let safeOtherFish = max(otherFish, 0)
+
+        // Step 0: First catch always gives 90 points
+        if caughtFish == 1 {
+            return 90
+        }
+
+        // Step 1: Calculate caughtMin
+        let caughtMinRaw = 15 + abs(Double(safeOtherFish - 5) / 3.0)
+        let caughtMin = min(caughtMinRaw, 30)
+
+        // Prevent divide by zero
+        guard caughtMin > 2 else {
+            return 50
+        }
+
+        // Step 2: Base species points
+        let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
+        let speciesPoints = max(pointsRaw, 20)
+
+        // Step 3: Time bonus
+        var timeBonus: Double = 0
+        if let prevDate = previousFishDate {
+            let daysSincePrevious = Calendar.current.dateComponents([.day], from: prevDate, to: Date()).day ?? 0
+            let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
+            timeBonus = min(rawTimeBonus, 12.0)
+        }
+
+        let totalPoints = speciesPoints + timeBonus
+
+        return Int(totalPoints.rounded())
+    }
+    
+    
+    func getSpecies() -> Int {
+     
+        var total: Int = 0
+        
+        for species in speciesList {
+            if species.fishList.count > 0 {
+                total += 1
+            }
+        }
+        
+        
+        
+        return total
+    }
+    
+  
+    
+    func getFish() -> Int {
+        
+        var total: Int = 0
+        
+        for species in speciesList {
+            total += species.fishList.count
+        }
+        
+        
+        
+        return total
+    }
+
+    
 }
 
 
@@ -89,8 +169,15 @@ struct AlbumView: View {
     @State private var searchText: String = ""
     
     @State var showSuggestions: Bool = false
+    @State var showSearch: Bool = false
+    @State var showHint: Bool = false
     
-    
+    let columns = [
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.flexible(), spacing: 4)
+    ]
+
+ 
    
 
 
@@ -141,196 +228,284 @@ struct AlbumView: View {
                 
                 ZStack(alignment: .top) {
                     
-                    
-                    
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-
-                    WaterView()
-                        .offset(y: -240)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .ignoresSafeArea()
-
+                    
+                    
+                    WaterView().opacity(0.3)
+                    
                     IconView()
                     HStack {
                         Spacer()
-                        Text("\(filteredSpecies.count) species").padding(.top, 150).font(.caption).opacity(0.3).padding(.horizontal, 110)
+                        Text("\(filteredSpecies.count) species").padding(.top, 150).font(.caption).opacity(0.3).padding(.horizontal, 110).padding(.top, 5)
                     }
                     
-                     if !searchSuggestions.isEmpty && showSuggestions {
-                         VStack(spacing: 0) {
-                             ForEach(searchSuggestions) { species in
-                                 if let index = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
-                                     
-                                     NavigationLink(
-                                         destination: SpeciesListView(
-                                             aquarium: aquarium,
-                                             speciesStore: speciesStore,
-                                             speciesIndex: index
-                                         )
-                                     ) {
-                                         HStack {
-                                             Text(species.name)
-                                                 .foregroundColor(.black)
-                                                 .padding(.vertical, 10)
-                                             Spacer()
-                                         }
-                                         .padding(.horizontal)
-                                         .background(Color.white).cornerRadius(20)
-                                     }.simultaneousGesture(TapGesture().onEnded {
-                                         showSuggestions = false
-                                     })
-
-
-                                     Divider()
-                                 }
-                             }
-                         }
-                         .background(
-                             RoundedRectangle(cornerRadius: 10)
-                                 .fill(Color.white)
-                                 .shadow(radius: 5)
-                         )
-                         .padding(.horizontal).padding(.top, 176)
-                         .transition(.opacity)
-                         .zIndex(1)
-                     }
+                 
                     
-
                     VStack(spacing: 20) {
                         Text("Album")
-                            .font(.custom("IslandMoments-Regular", size: 90))
+                            .font(.custom("AkayaTelivigala-regular", size: 90))
                             .foregroundStyle(.blue)
-                            .padding(.top)
-
+                            .padding(.top).opacity(0.8)
+                        
                         // Search + filter bar
-                        HStack(spacing: 10) {
-                     
-
+                        ZStack {
+                            
+                            
                             
                             HStack {
-                                TextField("Search", text: $searchText)
-                                    .foregroundColor(.black)
-                                    .padding(.leading, 10).onChange(of: searchText) { newValue in
-                                        showSuggestions = !newValue.isEmpty
-                                    }
-
-                                Spacer()
+                            
+                                
+                                
                             }
-                            .frame(height: 40)
                             .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(.gray, lineWidth: 2)
+                                RoundedRectangle(cornerRadius: 20).colorInvert()  .frame(
+                                    width: UIScreen.main.bounds.width * 0.85,
+                                    height: UIScreen.main.bounds.width * 0.13
+                                )  .shadow(color: .black.opacity(0.1), radius: 10)
+                                
                             )
-                            Menu {
-                                Button(selectedFilter == .alphabetical ? "Alphabetical  ✓" : "Alphabetical") {
+                            HStack {
+                                Button {
                                     selectedFilter = .alphabetical
                                 }
+                                label : {
+                                    
+                                    ZStack{
+                                        
+                                        if  selectedFilter == .alphabetical {
+                                            
+                                            
+                                            SmallRoundedCard()
+                                            
+                                        }
+                                        
+                                        else {
+                                            SmallRoundedCard().opacity(0.0)
+                                            
+                                        }
+                                        Text("Species").foregroundStyle(Color.black).opacity(0.7)
+                                    }
+                                    
+                                }
                                 
-                                Button(selectedFilter == .caught ? "Caught Fish  ✓" : "Caught Fish") {
+                                Button {
                                     selectedFilter = .caught
                                 }
                                 
-                                Button(selectedFilter == .notCaught ? "Not Caught Fish  ✓" : "Not Caught Fish") {
-                                    selectedFilter = .notCaught
-                                }
-                            } label: {
-                                VStack {
-                                    Image(systemName: "line.horizontal.3.decrease")
-                                        .foregroundStyle(.black)
-                                    Text("Filter")
-                                        .font(.custom("HelveticaNeue-Thin", size: 15))
-                                        .foregroundStyle(.black)
-                                }
-                                .padding(.horizontal)
-                            }
-
-                        }
-                        .padding(.horizontal)
-
-                        // Species grid
-                        ForEach(filteredSpecies) { item in
-                            let hasFish = !item.fishList.isEmpty
-
-                            if hasFish {
-                                if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
-                                    // NavigationLink now works because HomerView's NavigationStack wraps Album tab
-                                    NavigationLink(
-                                        destination: SpeciesListView(
-                                            aquarium: aquarium, speciesStore: speciesStore, speciesIndex: index
-                                        )
-                                    )
- {
-                                        SpeciesGridItem(species: item, clickable: true)
+                                label: {
+                                    
+                                    ZStack{
+                                        
+                                        if selectedFilter == .caught {
+                                            
+                                            SmallRoundedCard()
+                                            
+                                            
+                                        }
+                                        
+                                        else {
+                                            SmallRoundedCard().opacity(0.0)
+                                            
+                                        }
+                                        
+                                        Text("Caught").foregroundStyle(Color.black).opacity(0.7)
                                     }
                                 }
-                            } else {
-                                SpeciesGridItem(species: item, clickable: false)
+                                
+                                Button {
+                                    selectedFilter = .notCaught
+                                    
+                                } label: {
+                                    
+                                    ZStack{
+                                        
+                                        
+                                        if selectedFilter == .notCaught {
+                                            
+                                            SmallRoundedCard()
+                                            
+                                        }
+                                        
+                                        else {
+                                            
+                                            SmallRoundedCard().opacity(0.0)
+                                            
+                                        }
+                                        
+                                        Text("Uncaught").foregroundStyle(Color.black).opacity(0.7)
+                                        
+                                        
+                                    }
+                                }
                             }
+                            
                         }
-                        .padding(.horizontal)
-                    }
-                }
+                        
+                        
+                        LazyVGrid(columns: columns, spacing: 15) {
+                            
+                            
+                            ForEach(filteredSpecies) { item in
+                                let hasFish = !item.fishList.isEmpty
+                                
+                                if hasFish {
+                                    if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                        // NavigationLink now works because HomerView's NavigationStack wraps Album tab
+                                        NavigationLink(
+                                            destination: SpeciesListView(
+                                                aquarium: aquarium, speciesStore: speciesStore, speciesIndex: index
+                                            )
+                                        )
+                                        {
+                                            
+                                                SpeciesGridItem(species: item, clickable: true)
+                                                
+                                            
+                                        }
+                                    }
+                                } else {
+                                    SpeciesGridItem(species: item, clickable: false)
+                                }
+                            }
+                           
+                        }.padding(.horizontal, 15)
+                    }}
             }
 
       
             VStack {
                 Spacer()
+                Spacer()
+
+                ZStack(alignment: .trailing) {
+
+                    // Background + TextField animates up
+                    HStack {
+                        TextField("Search", text: $searchText)
+                            .foregroundColor(.black)
+                            .padding(.leading, 5)
+                            .frame(height: 55)
+                            .background(Color.white.opacity(0.95).overlay(Color.blue.opacity(0.06)))
+                            .cornerRadius(40)
+                            .opacity(showSearch ? 1 : 0)
+                            .onChange(of: searchText) { newValue in
+                                showSuggestions = !newValue.isEmpty
+                            }
+
+                        Spacer() // Keep TextField on the left
+                    }
+                    .padding(.horizontal, 20)
+                    .offset(y: showSearch ? -5 : 100) // Animate from below
+                    .animation(.easeInOut(duration: 0.3), value: showSearch)
+
+                    // Magnifying glass stays fixed
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showSearch.toggle()
+                        }
+                    } label: {
+                       
+
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 28))
+                            .foregroundColor(.blue)
+                            .scaleEffect(showHint ? 1.06 : 1.0)
+                            .shadow(color: Color.blue.opacity(0.2), radius: 3, x: 0, y: 1)
+                            .onAppear {
+                                withAnimation(
+                                    .easeInOut(duration: 1)
+                                        .repeatForever(autoreverses: true)
+                                ) {
+                                   
+                                                                            showHint.toggle()
+                                    
+                                    
+                                   
+                                        
+                                      
+                                    
+                                }
+                            }
+                    }
+                    .padding(.trailing, 35)
+                    .padding(.bottom, 10) // Slightly above bottom rectangle
+                }
+
+                // Bottom rectangle stays fixed
                 Rectangle()
-                    .fill(Color.white.opacity(0.6))
+                    .fill(Color.white)
+                    .overlay(Color.blue.opacity(0.06))
                     .frame(height: 83)
                     .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -300)
+                    .padding(.bottom, -300).shadow(color: .black.opacity(0.1), radius: 10)
             }
-        }
+        }.background(Color.blue.opacity(0.08))
     }
 }
+
+
+
 
 
 struct SpeciesGridItem: View {
     let species: Species
     let clickable: Bool
+    
+    private var cardWidth: CGFloat {
+        UIScreen.main.bounds.width * 0.45   // ~2 columns with spacing
+    }
+    
+    private var cardHeight: CGFloat {
+        cardWidth
+    }
 
     var body: some View {
-        VStack {
+        ZStack {
             ZStack {
-                Rectangle()
-                    .fill(Color.white.opacity(clickable ? 0.3 : 0.1))
-                    .frame(
-                        width: UIScreen.main.bounds.width * 0.88,
-                        height: UIScreen.main.bounds.width * 0.83
-                    )
-                    .cornerRadius(15)
-
-                Image(species.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(
-                        width: UIScreen.main.bounds.width * 0.85,
-                        height: UIScreen.main.bounds.width * 0.8
-                    )
-                    .cornerRadius(10)
-                    .clipped()
-                    .opacity(clickable ? 1.0 : 0.4)
-            }
-
-            HStack {
-                Text(species.name)
-                    .font(.system(size: UIScreen.main.bounds.width * 0.07))
-                    .bold()
-                    .foregroundColor(clickable ? .black : .gray)
-                    .opacity(0.7)
-
-                if clickable {
-                    Text("(\(species.numberOfFish))")
-                        .foregroundStyle(.black)
-                        .font(.system(size: UIScreen.main.bounds.width * 0.05))
-                        .opacity(0.4)
+             
+             
+                HStack{
+                 
+             
+                    Image(species.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(
+                            width: cardWidth * 0.95,
+                            height: cardHeight * 0.95
+                        )
+                        .cornerRadius(25)
+                        .clipped()
+                        .opacity(clickable ? 1.0 : 0.4) .shadow(color: .black.opacity(0.1), radius: 20)
+                
+                   
                 }
             }
+
+            HStack(spacing: 4) {
+                
+                
+                Text(species.name)
+                    .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                    .bold()
+                    .foregroundColor(clickable ? .white : .gray)
+                  
+                
+                if clickable {
+                    Text("(\(species.numberOfFish))")
+                        .foregroundStyle(.white)
+                        .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                        .opacity(0.8)
+                }
+             
+                Spacer()
+                
+            }.padding(.top, 135).padding(.horizontal, 30)
         }
-        .padding(.vertical, 5)
+     
     }
 }
+
 
 #Preview {
     AlbumView()

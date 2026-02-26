@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "filename" : "bubble-icon-filled-outline-style-clear-water-splash-soap-foam-fizzy-drink-oxygen-bubble-pictogram-symbol-fresh-aqua-drop-for-wet-symbol-illustration-design-on-white-background-eps-10-vector.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

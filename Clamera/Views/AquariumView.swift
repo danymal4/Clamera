@@ -11,54 +11,81 @@ enum EditState {
 }
 
 
-
 final class AquariumState: ObservableObject {
-   
-    // clean determines green overlay opacity
     @Published var clean: Double = 0.3
     @Published var bubbleVisibility: Double = 1.0
     @Published var bubbleAmount: Double = 1.0
-
+    @Published var lastUpdate: Date = Date()
+    
+    // Track active screens
+    @Published var activeScreens: Set<String> = []
+    
     let maxClean: Double = 0.3
     private(set) var pendingClean: Double = 0.3
-    
-  
     private var targetClean: Double? = nil
-
-    // func for animated brush cleaning
-    func cleanNow() {
-        targetClean = 0
+    
+    func markActive(_ screen: String) {
+        activeScreens.insert(screen)
+        commitPendingClean()
     }
-
-    // updates in homerview
+    
+    func markInactive(_ screen: String) {
+        activeScreens.remove(screen)
+        pendingClean = clean 
+    }
+    
+    var isActiveScreen: Bool {
+        !activeScreens.isEmpty
+    }
+    
     func updateClean(by increment: Double) {
         if let target = targetClean {
-            
-            let delta = (target - clean) * 0.2 //
-            
+            let delta = (target - clean) * 0.8
             clean += delta
-
             if abs(clean - target) < 0.01 {
                 clean = target
+                pendingClean = clean
                 targetClean = nil
             }
         } else {
-            // filter getting dirtier over time incremnet represents periodic changes (elasped time added)
             clean = min(clean + increment, maxClean)
         }
     }
-
-    // pending prevents navigation errors
+    
     func commitPendingClean() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            clean = pendingClean
+            if let target = targetClean, target == 0 {
+                // If brush is active, keep the smaller of pendingClean and current clean
+                clean = min(pendingClean, clean)
+            } else {
+                // Otherwise, take the larger to respect increments
+                clean = max(pendingClean, clean)
+            }
         }
     }
-
+    
     func updatePendingClean(to value: Double) {
-        pendingClean = min(value, maxClean)
+        if let target = targetClean {
+            let delta = (target - pendingClean) * 0.8
+            pendingClean += delta
+            if abs(pendingClean - target) < 0.01 {
+                pendingClean = target
+                targetClean = nil
+                clean = pendingClean
+            }
+        } else {
+            pendingClean = min(value, maxClean)
+        }
     }
+    
+    func cleanNow() {
+        targetClean = 0
+    }
+    
+    
+    
 }
+
 
 
 
@@ -78,13 +105,13 @@ struct BubbleView: View {
     @State private var delayOffset: Double
 
     init(topY: CGFloat, bottomY: CGFloat) {
-        self.topY = topY
-        self.bottomY = bottomY
+        self.topY = topY - 350
+        self.bottomY = bottomY + 200
 
         
-        _size = State(initialValue: CGFloat.random(in: 8...20))
+        _size = State(initialValue: CGFloat.random(in: 8...30))
         _xPosition = State(initialValue: CGFloat.random(in: 60...(UIScreen.main.bounds.width - 30)))
-        _duration = State(initialValue: Double.random(in: 3...7))
+        _duration = State(initialValue: Double.random(in: 7...20))
         _delayOffset = State(initialValue: Double.random(in: 0...1)) // 0–1s random delay
     }
 
@@ -123,7 +150,7 @@ struct BubbleView: View {
             opacity = 0
 
           // random positions
-            xPosition = CGFloat.random(in: 50...(UIScreen.main.bounds.width - 30))
+            xPosition = CGFloat.random(in: 0...(2 * UIScreen.main.bounds.width))
 
             withAnimation(.easeIn(duration: duration * 0.2)) { opacity = 1 }
             withAnimation(Animation.linear(duration: duration)) { yOffset = topY }
@@ -150,54 +177,55 @@ struct AquariumView: View {
     var aquariumBottom: CGFloat { UIScreen.main.bounds.height * 0.58 }
 
     var body: some View {
-        if editState == .notEditing {
+       
             ZStack {
                 
-                IconView().padding(.horizontal, 12)
+               
+               
 
-              
+           
                 AquariumBackgroundView()
                     .environmentObject(aquariumState)
 
+                
               
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(aquariumState)
+                    .environmentObject(aquariumState).offset(y: 645)
 
              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean)
+                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -70).scaleEffect(1.4)
                 
    
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.blue)
                     .opacity(0.14)
-                    .frame(width: min(UIScreen.main.bounds.width * 0.84, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.46, 2000))
-                    .padding(.top, 157)
+                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                           height: min(UIScreen.main.bounds.height * 1, 2000))
+                    .padding(.top, -58)
+                
+              
+                
+         
+                    VStack {
+                     
+                        Rectangle()
+                            .fill(Color.white)
+                            .frame(height: 83).overlay(Color.blue.opacity(0.06)).shadow(color: .black.opacity(0.1), radius: 10)
+                    }
+                    .edgesIgnoringSafeArea(.bottom).padding(.top, 812)
                 
                 
-                ManageButtonsView(editState: $editState)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                WaterView()
-                    .frame(height: UIScreen.main.bounds.height + 400)
-                    .offset(y: -130)
-                    .allowsHitTesting(false)
-            )
-            .onAppear {
-                bubbleRefreshID = UUID()
-                aquariumState.commitPendingClean()
-                DispatchQueue.main.async {
-                    aquariumState.commitPendingClean()
+                
+                
+              
+            }.background(Color.blue.opacity(0.08))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onAppear {
+                    bubbleRefreshID = UUID()
+                   
                 }
-            }
-            .onDisappear {
-                aquariumState.updatePendingClean(to: aquariumState.clean)
-            }
-        } else {
-            AquariumManageView(editState: $editState)
-        }
+      
     }
 }
 
@@ -206,60 +234,68 @@ struct AquariumBackgroundView: View {
     @EnvironmentObject var aquariumState: AquariumState
 
     var body: some View {
-        VStack {
-            Text("Aquarium")
-                .font(.custom("IslandMoments-Regular", size: UIScreen.main.bounds.width * 0.3))
-                .opacity(0.9)
-                .foregroundStyle(.blue)
+        
+            
 
             ZStack {
               
                 Image("Aquarium")
                     .resizable()
-                    .frame(width: min(UIScreen.main.bounds.width * 0.7, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.8, 700))
-                    .padding(.bottom, 65)
-                    .scaleEffect(1.45)
-
+                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                           height: min(UIScreen.main.bounds.height * 2.5, 2000)).padding(.bottom, 200)
+              
+              
+                Image("flatAquarium") .resizable()
+                    .frame(width: min(UIScreen.main.bounds.width * 1, 2000),
+                           height: min(UIScreen.main.bounds.height * 1, 2000)).padding(.bottom, 1300)
+              
+                
+                
+                
+                
+                Image("grass2").resizable().frame(width: min(UIScreen.main.bounds.width * 2.9, 2000),
+                                                  height: min(UIScreen.main.bounds.height * 1.1, 2000))
+                
+                .padding(.top, 180 + ((UIScreen.main.bounds.width - 402) * 0.3)).opacity(0.15)
           
-                Image("floor")
+                Image("sandfloor")
                     .resizable()
-                    .frame(width: min(UIScreen.main.bounds.width * 0.815, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.2, 2000))
-                    .padding(.top, 25 + ((UIScreen.main.bounds.width - 402) * 0.3))
+                    .frame(width: min(UIScreen.main.bounds.width * 1.5, 2000),
+                           height: min(UIScreen.main.bounds.width * 0.5, 2000))
+                    .padding(.top, 520 + ((UIScreen.main.bounds.width - 302) * 0.3))
                     .padding(.horizontal, 50)
-                    .opacity(0.85 - aquariumState.clean)
+                    .opacity(0.95 - (aquariumState.clean * 0.25))
 
                
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.green)
                     .opacity(aquariumState.clean)
-                    .frame(width: min(UIScreen.main.bounds.width * 0.84, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.46, 2000))
-                    .padding(.bottom, 77)
+                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                           height: min(UIScreen.main.bounds.height * 1, 2000))
+                    .padding(.top, -58)
 
    
 
          // brush
                 HStack {
-                    Spacer()
+                Spacer()
                     Button {
                         aquariumState.cleanNow()
                     } label: {
                         Image("brush")
                             .resizable()
-                            .frame(width: min(UIScreen.main.bounds.width * 0.12, 2000),
-                                   height: min(UIScreen.main.bounds.width * 0.12, 700))
+                            .frame(width: min(UIScreen.main.bounds.width * 0.22, 2000),
+                                   height: min(UIScreen.main.bounds.width * 0.22, 700))
                             .opacity(aquariumState.clean > 0 ? min(aquariumState.clean * 2.5, 1) : 0)
                             .animation(.easeInOut(duration: 0.7), value: aquariumState.clean)
                     }
-                    .padding(.bottom, 215)
-                    .padding(.horizontal, 50)
+                    .padding(.top, -385)
+                    .padding(.horizontal, 395)
                     .disabled(aquariumState.clean <= 0)
                 }
             }
-        }
+        
     }
 }
 
@@ -271,7 +307,7 @@ struct BubbleLayerView: View {
     @Binding var refreshID: UUID
 
     var body: some View {
-        ForEach(0..<Int(8 * aquariumState.bubbleAmount), id: \.self) { _ in
+        ForEach(0..<Int(24 * aquariumState.bubbleAmount), id: \.self) { _ in
             BubbleView(topY: topY, bottomY: bottomY)
                 .id(refreshID)
                 .environmentObject(aquariumState)
@@ -280,38 +316,8 @@ struct BubbleLayerView: View {
 }
 
 
-struct ManageButtonsView: View {
-    @Binding var editState: EditState
 
-    var body: some View {
-        VStack {
-            Spacer()
-            ZStack {
-                Button { editState = .editing } label: {
-                    Rectangle()
-                        .cornerRadius(30)
-                        .foregroundStyle(.white)
-                        .opacity(0.3)
-                        .frame(width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                               height: min(UIScreen.main.bounds.width * 0.2, 90))
-                }
-                Text("Manage")
-                    .font(.system(size: UIScreen.main.bounds.width * 0.07))
-                    .foregroundStyle(.black)
-                    .opacity(0.8)
-                    .bold()
-            }
-            .padding(.bottom, 40)
 
-            Rectangle()
-                .colorInvert()
-                .opacity(0.6)
-                .frame(width: min(UIScreen.main.bounds.width * 1, 2000),
-                       height: min(UIScreen.main.bounds.width * 0.205, 90))
-                .padding(.bottom, -330)
-        }
-    }
-}
 
 #Preview {
     AquariumView()

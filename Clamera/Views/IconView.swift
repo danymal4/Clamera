@@ -5,6 +5,8 @@
 //  Created by Ellis Kamplain (student LM) on 2/3/26.
 import SwiftUI
 
+
+
 struct IconView: View {
     
     var body: some View {
@@ -12,7 +14,15 @@ struct IconView: View {
             HStack {
                 Spacer()
                 
-                NavigationLink(destination: ProfileView()) {
+                Menu {
+                    NavigationLink(destination: ProfileView()) {
+                        Label("Profile", systemImage: "person")
+                    }
+                    
+                    NavigationLink(destination: AquariumManageView()) {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+                } label: {
                     Image("fisherman")
                         .resizable()
                         .scaledToFill()
@@ -26,7 +36,6 @@ struct IconView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
     }
 }
-
 
 #Preview {
     IconView()
