@@ -40,7 +40,7 @@ final class AquariumState: ObservableObject {
     
     func updateClean(by increment: Double) {
         if let target = targetClean {
-            let delta = (target - clean) * 0.2
+            let delta = (target - clean) * 0.8
             clean += delta
             if abs(clean - target) < 0.01 {
                 clean = target
@@ -66,7 +66,7 @@ final class AquariumState: ObservableObject {
     
     func updatePendingClean(to value: Double) {
         if let target = targetClean {
-            let delta = (target - pendingClean) * 0.2
+            let delta = (target - pendingClean) * 0.8
             pendingClean += delta
             if abs(pendingClean - target) < 0.01 {
                 pendingClean = target
@@ -105,13 +105,13 @@ struct BubbleView: View {
     @State private var delayOffset: Double
 
     init(topY: CGFloat, bottomY: CGFloat) {
-        self.topY = topY - 200
+        self.topY = topY - 350
         self.bottomY = bottomY + 200
 
         
         _size = State(initialValue: CGFloat.random(in: 8...30))
         _xPosition = State(initialValue: CGFloat.random(in: 60...(UIScreen.main.bounds.width - 30)))
-        _duration = State(initialValue: Double.random(in: 6...17))
+        _duration = State(initialValue: Double.random(in: 7...20))
         _delayOffset = State(initialValue: Double.random(in: 0...1)) // 0–1s random delay
     }
 
@@ -187,12 +187,13 @@ struct AquariumView: View {
                 AquariumBackgroundView()
                     .environmentObject(aquariumState)
 
+                
               
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
                     .environmentObject(aquariumState).offset(y: 645)
 
              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -45).scaleEffect(1.4)
+                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -70).scaleEffect(1.4)
                 
    
                 Rectangle()
@@ -209,8 +210,8 @@ struct AquariumView: View {
                     VStack {
                      
                         Rectangle()
-                            .fill(Color.white.opacity(1))
-                            .frame(height: 83).overlay(Color.blue.opacity(0.05)).shadow(color: .black.opacity(0.1), radius: 10)
+                            .fill(Color.white)
+                            .frame(height: 83).overlay(Color.blue.opacity(0.06)).shadow(color: .black.opacity(0.1), radius: 10)
                     }
                     .edgesIgnoringSafeArea(.bottom).padding(.top, 812)
                 
@@ -243,8 +244,17 @@ struct AquariumBackgroundView: View {
                     .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
                            height: min(UIScreen.main.bounds.height * 2.5, 2000)).padding(.bottom, 200)
               
+              
+                Image("flatAquarium") .resizable()
+                    .frame(width: min(UIScreen.main.bounds.width * 1, 2000),
+                           height: min(UIScreen.main.bounds.height * 1, 2000)).padding(.bottom, 1300)
+              
+                
+                
+                
+                
                 Image("grass2").resizable().frame(width: min(UIScreen.main.bounds.width * 2.9, 2000),
-                                                 height: min(UIScreen.main.bounds.height * 1, 2000))
+                                                  height: min(UIScreen.main.bounds.height * 1.1, 2000))
                 
                 .padding(.top, 180 + ((UIScreen.main.bounds.width - 402) * 0.3)).opacity(0.15)
           

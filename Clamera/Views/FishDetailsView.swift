@@ -24,7 +24,7 @@ struct FishDetailsView: View {
             
                 WaterView().opacity(0.3)
                 IconView()
-                    .padding(.top, 50)
+                    .padding(.top, 55)
 
                 ZStack {
                     Rectangle()

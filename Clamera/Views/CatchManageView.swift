@@ -74,10 +74,8 @@ struct CatchManageView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(15)
                         .onChange(of: species) { newValue in
-                            
                             showSpeciesSuggestions = !newValue.isEmpty
                             
-                            // ✅ Calculate preview safely here
                             guard let index = speciesStore.speciesList.firstIndex(where: {
                                 $0.name.lowercased() ==
                                 newValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -86,15 +84,14 @@ struct CatchManageView: View {
                                 return
                             }
                             
-                            let fishIndex = speciesStore.speciesList[index].fishList.count
+                            let fishList = speciesStore.speciesList[index].fishList
+                            let fishCount = fishList.count
                             
-                            let previousFishDate: Date? =
-                            fishIndex > 0
-                            ? speciesStore.speciesList[index].fishList[fishIndex - 1].dateCaught
-                            : nil
+                            // ✅ Safe previousFishDate
+                            let previousFishDate: Date? = fishCount > 0 ? fishList[fishCount - 1].dateCaught : nil
                             
-                            let totalOfSpecies = fishIndex + 1
-                            let totalOtherFish = speciesStore.getFish() - fishIndex
+                            let totalOfSpecies = fishCount + 1   // the fish being added
+                            let totalOtherFish = max(speciesStore.getFish() - fishCount, 0)
                             
                             previewPoints = speciesStore.calculateClamPoints(
                                 totalOfSpecies: totalOfSpecies,
@@ -225,6 +222,7 @@ struct CatchManageView: View {
             }
         }
         
+        // Add the fish to the list
         speciesStore.speciesList[index].fishList.append(
             Fish(photo: photoFilename,
                  speciesName: speciesStore.speciesList[index].name,
@@ -232,6 +230,25 @@ struct CatchManageView: View {
                  fishWeight: weight)
         )
         
+        // ✅ Calculate points and commit them now
+        let fishIndex = speciesStore.speciesList[index].fishList.count
+        let previousFishDate: Date? =
+            fishIndex > 1
+            ? speciesStore.speciesList[index].fishList[fishIndex - 2].dateCaught
+            : nil
+        
+        let totalOfSpecies = fishIndex
+        let totalOtherFish = speciesStore.getFish() - 1  // exclude this new fish
+        
+        let points = speciesStore.calculateClamPoints(
+            totalOfSpecies: totalOfSpecies,
+            totalOtherFish: totalOtherFish,
+            previousFishDate: previousFishDate
+        )
+        
+        speciesStore.totalClamPoints += points
+        
+        // Close editor
         editState = .notEditing
     }
     

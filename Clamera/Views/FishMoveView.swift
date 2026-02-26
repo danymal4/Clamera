@@ -141,7 +141,6 @@ final class AquariumFishList: ObservableObject {
 
 
 
-
 struct FishMoveView: View {
 
     struct Ripple: Identifiable {
@@ -155,14 +154,21 @@ struct FishMoveView: View {
     @State private var speedMultipliers: [UUID: Double] = [:]
     @State private var ripples: [Ripple] = []
 
+    // --- RESET LOGIC ---
+    @State private var startTime: TimeInterval = Date().timeIntervalSinceReferenceDate
+    @State private var verticalOffsets: [UUID: CGFloat] = [:]  // stores small vertical adjustments per fish
+
     var body: some View {
 
         GeometryReader { geo in
             TimelineView(AnimationTimelineSchedule()) { timeline in
                 let now = timeline.date.timeIntervalSinceReferenceDate
 
+                // Adjusted time relative to the startTime (resets on appear)
+                let adjustedGlobalTime = now - startTime
+
                 ZStack {
-            
+
                     // --- Ripples ---
                     ForEach(ripples) { ripple in
                         let fishSizeMultiplier = ripple.size / 120
@@ -177,48 +183,41 @@ struct FishMoveView: View {
                     // --- Fish ---
                     ForEach(aquarium.fish) { fish in
                         let speed = speedMultipliers[fish.id] ?? 1.0
-                        let adjustedTime = (now + fish.phaseOffset) * speed
+                        let adjustedTime = (adjustedGlobalTime + fish.phaseOffset) * speed
                         let rawProgress = adjustedTime / fish.swimDuration * 2 * .pi
                         let progress = sin(rawProgress)
                         let facingRight = progress >= 0
-                        
-                        // Horizontal movement (unchanged)
+
+                        // Horizontal movement
                         let xOffset = fish.horizontalRange.lowerBound +
                         (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
-                        
-                        // --- Subtle drifting baseline for vertical movement ---
+
+                        // Vertical drifting & bobbing
                         let padding: CGFloat = 20
                         let safeLower = fish.verticalRange.lowerBound + padding
                         let safeUpper = fish.verticalRange.upperBound - padding
-                        
-                        // Slightly vary drift speed per fish using phaseOffset
                         let driftSpeed = 0.12 + (Double(fish.phaseOffset) * 0.01)
-                        
                         let driftAmplitude = (safeUpper - safeLower) / 2
                         let driftCenter = (safeUpper + safeLower) / 2
                         
-                        // Tiny fixed vertical offset per fish
-                        let randomOffset = CGFloat(fish.phaseOffset) * 5
-                        
-                        // Slowly drifting baseline
+                        // Use verticalOffsets to slightly desync fish within their safe vertical range
+                        let randomOffset = verticalOffsets[fish.id] ?? 0
                         let driftingBaseY = driftCenter + driftAmplitude * sin(adjustedTime * driftSpeed + fish.phaseOffset) + randomOffset
-                        
-                        // Small bobbing around the drifting baseline
                         let amplitude = (fish.verticalRange.upperBound - fish.verticalRange.lowerBound) / 4
                         let yOffset = driftingBaseY + amplitude * sin(adjustedTime * 1.5)
-                        
-                        // Tail angle and boosting (unchanged)
+
+                        // Tail angle & boost
                         let tailAngle = 12 * sin(adjustedTime * 2)
                         let deltaX = (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) / 1000
                         let projectedX = xOffset + (facingRight ? deltaX : -deltaX)
                         let canBoost = (facingRight && projectedX > xOffset) ||
                         (!facingRight && projectedX < xOffset)
-                        
+
                         let fishCenter = CGPoint(
                             x: geo.frame(in: .local).midX + xOffset,
                             y: geo.frame(in: .local).midY + yOffset - 70
                         )
-                        
+
                         ZStack {
                             if fish.isShown {
                                 Image(fish.imageName)
@@ -243,7 +242,7 @@ struct FishMoveView: View {
                                                     speedMultipliers[fish.id] = 1.0
                                                 }
                                             }
-                                            
+
                                             addRipple(for: fish, at: fishCenter)
                                         }
                                     }
@@ -254,6 +253,11 @@ struct FishMoveView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.top, 150)
+                // --- RESET ON APPEAR ---
+                .onAppear {
+                    startTime = Date().timeIntervalSinceReferenceDate
+                    resetVerticalOffsets()
+                }
             }
         }
     }
@@ -275,10 +279,23 @@ struct FishMoveView: View {
             ripples.removeAll { $0.id == ripple.id }
         }
     }
+
+    // --- Vertical-only reset logic ---
+    private func resetVerticalOffsets() {
+        for fish in aquarium.fish {
+            let padding: CGFloat = 10
+            let minY = (fish.verticalRange.lowerBound + padding  + 50)
+            let maxY = (fish.verticalRange.upperBound - padding - 50)
+
+            // Small random offset within safe range
+            verticalOffsets[fish.id] = CGFloat.random(in: minY...maxY)
+        }
+
+        // Reset speed multipliers to default
+        speedMultipliers = [:]
+    }
 }
 
 #Preview {
     FishMoveView(aquarium: AquariumFishList())
 }
-
-

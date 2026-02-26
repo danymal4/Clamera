@@ -89,28 +89,29 @@ final class SpeciesStore: ObservableObject {
         totalOtherFish otherFish: Int,
         previousFishDate: Date? = nil
     ) -> Int {
-        
+
+        // ✅ Defensive: prevent negative or zero values
+        guard caughtFish > 0 else { return 0 }
+        let safeOtherFish = max(otherFish, 0)
+
         // Step 0: First catch always gives 90 points
         if caughtFish == 1 {
-            let totalPoints = 90
-            totalClamPoints += totalPoints
-            return totalPoints
+            return 90
         }
-        
-        // Step 1: Calculate caughtMin (like codMin)
-        let caughtMinRaw = 15 + abs(Double(otherFish - 5) / 3.0)
+
+        // Step 1: Calculate caughtMin
+        let caughtMinRaw = 15 + abs(Double(safeOtherFish - 5) / 3.0)
         let caughtMin = min(caughtMinRaw, 30)
-        
+
         // Prevent divide by zero
         guard caughtMin > 2 else {
-            totalClamPoints += 50
             return 50
         }
-        
+
         // Step 2: Base species points
         let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
         let speciesPoints = max(pointsRaw, 20)
-        
+
         // Step 3: Time bonus
         var timeBonus: Double = 0
         if let prevDate = previousFishDate {
@@ -118,13 +119,9 @@ final class SpeciesStore: ObservableObject {
             let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
             timeBonus = min(rawTimeBonus, 12.0)
         }
-        
-        // Step 4: Total points
+
         let totalPoints = speciesPoints + timeBonus
-        
-        // Update published totalClamPoints
-        totalClamPoints += Int(totalPoints.rounded())
-        
+
         return Int(totalPoints.rounded())
     }
     

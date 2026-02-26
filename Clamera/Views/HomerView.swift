@@ -37,7 +37,7 @@ struct HomerView: View {
     var body: some View {
         TabView(selection: $tabRouter.viewState) {
 
-            NavigationStack { HomeView() }
+            NavigationStack { HomeRevised() }
                 .tag(ViewState.home)
                 .tabItem { Label("Home", systemImage: "house") }
 
@@ -55,6 +55,7 @@ struct HomerView: View {
                         aquariumState.markActive("aquarium")
                         lastUpdate = Date()
                         aquariumState.commitPendingClean()
+                      
                     }
                     .onDisappear {
                         aquariumState.markInactive("aquarium")
@@ -92,8 +93,8 @@ struct HomerView: View {
 
     private func startCleanTimer() {
         cleanTimer?.invalidate()
-        let totalDuration: TimeInterval = 60.0 * 5
-        let tickInterval: TimeInterval = 0.5
+        let totalDuration: TimeInterval = 60 * 60 // 1 hour to go from dirty -> clean
+         let tickInterval: TimeInterval = 5
         lastUpdate = Date()
 
         cleanTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { _ in

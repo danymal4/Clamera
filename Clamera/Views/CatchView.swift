@@ -24,7 +24,7 @@ struct CatchView: View {
             ZStack {
                
                 WaterView().opacity(0.3)
-                IconView().padding(.top, 5)
+                IconView().padding(.top, 10)
                 
                 VStack(spacing: 20 * vScale) {
                     HStack{
