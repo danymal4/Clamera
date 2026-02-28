@@ -440,11 +440,7 @@
     "CommonName": "Brown Trout (River Variant)",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Bachforelle_Zeichnung.jpg"
   },
-  {
-    "Species": "Salmo salar sebago",
-    "CommonName": "Atlantic Salmon (Sebago Variant)",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/8/82/Wst_atlantischer_lachs_stoer_001.jpg"
-  },
+
   {
     "Species": "Pseudorasbora parva",
     "CommonName": "Stone Moroko",
@@ -456,9 +452,9 @@
     "Image": "https://upload.wikimedia.org/wikipedia/commons/8/86/Misgurnus_anguillicaudatus.jpg"
   },
   {
-    "Species": "Gobiobotia filifer",
-    "CommonName": "Filamented Gudgeon",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/5/50/Gobiobotia_filifer.jpg"
+    "Species": "Gobio gobio",
+    "CommonName": "Gudgeon",
+    "Image": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Coxs_Gudgeon.png"
   },
   {
     "Species": "Chrosomus neogaeus",
@@ -856,11 +852,7 @@
     "CommonName": "Greenland Cod",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Atlantic_cod.jpg"
   },
-  {
-    "Species": "Salmo salar sebago",
-    "CommonName": "Lake Sebago Atlantic Salmon",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/8/82/Wst_atlantischer_lachs_stoer_001.jpg"
-  },
+
   {
     "Species": "Salmo salar trutta",
     "CommonName": "Sea Trout Variant of Atlantic Salmon",
@@ -985,7 +977,7 @@
   {
     "Species": "Thryssa aestuaria",
     "CommonName": "Estuarine Anchovy",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/8/85/Thryssa_aestuaria.jpg"
+    "Image": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Captured_bay_anchovy_%289601223064%29.jpg"
   },
   {
     "Species": "Saurida umeyoshii",
@@ -1270,7 +1262,7 @@
   {
     "Species": "Ophichthus apicalis",
     "CommonName": "Darkspotted Snake Eel",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Ophichthys_apicalis_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15200067.tif/lossy-page1-1000px-Ophichthys_apicalis_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15200067.tif.jpg"
+    "Image": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Spotted_Snake_Eel.jpg"
   },
   {
     "Species": "Harpadon nehereus",
@@ -1858,7 +1850,7 @@
   {
     "Species": "Salmo salar",
     "CommonName": "Atlantic Salmon",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/8/82/Wst_atlantischer_lachs_stoer_001.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772304553991-8a772b02-35f0-47d4-a45a-ddbba3dcb766.png"
   },
   {
     "Species": "Thymallus thymallus",
