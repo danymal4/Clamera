@@ -300,11 +300,7 @@
     "CommonName": "Bighead Carp",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Bighead_carp_%28March_2012%29.jpg/1280px-Bighead_carp_%28March_2012%29.jpg"
   },
-  {
-    "Species": "Ctenopharyngodon idella var. alborella",
-    "CommonName": "Alborella Grass Carp Variant",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/2x_amur_b%C3%ADl%C3%BD.jpg/1280px-2x_amur_b%C3%ADl%C3%BD.jpg"
-  },
+
   {
     "Species": "Pseudolabrus biserialis",
     "CommonName": "Two-lined Wrasse",
@@ -489,13 +485,9 @@
   {
     "Species": "Micropterus salmoides floridanus",
     "CommonName": "Florida Largemouth Bass",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Smallmouth_Bass_%28Micropterus_dolomieu%29.jpg/1280px-Smallmouth_Bass_%28Micropterus_dolomieu%29.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772306238272-227cf520-029b-4938-ba33-71fe1bc8dde3.png"
   },
-  {
-    "Species": "Micropterus salmoides salmoides",
-    "CommonName": "Northern Largemouth Bass",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Smallmouth_Bass_%28Micropterus_dolomieu%29.jpg/1280px-Smallmouth_Bass_%28Micropterus_dolomieu%29.jpg"
-  },
+
   {
     "Species": "Lepomis microlophus",
     "CommonName": "Redear Sunfish",
@@ -544,13 +536,9 @@
   {
     "Species": "Ameiurus melas",
     "CommonName": "Black Bullhead",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Ictalurus_nebulosus_GLERL_1.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772311463094-ce416353-311d-4e25-a29a-dde10eb6d042.png"
   },
-  {
-    "Species": "Ameiurus nebulosus",
-    "CommonName": "Brown Bullhead",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Ictalurus_nebulosus_GLERL_1.jpg"
-  },
+
   {
     "Species": "Ictalurus punctatus",
     "CommonName": "Channel Catfish",
@@ -624,7 +612,7 @@
   {
     "Species": "Ameiurus melas",
     "CommonName": "Black Bullhead",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Ictalurus_nebulosus_GLERL_1.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772311463094-ce416353-311d-4e25-a29a-dde10eb6d042.png"
   },
   {
     "Species": "Esox americanus",
@@ -686,11 +674,7 @@
     "CommonName": "Spotted Bass",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Micropterus_punctulatus.jpg"
   },
-  {
-    "Species": "Lepomis gibbosus",
-    "CommonName": "Pumpkinseed",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Lepomis_adult.jpg/1280px-Lepomis_adult.jpg"
-  },
+ 
   {
     "Species": "Lepomis macrochirus",
     "CommonName": "Bluegill",
@@ -699,7 +683,7 @@
   {
     "Species": "Lepomis cyanellus",
     "CommonName": "Green Sunfish",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Lepomis_auritus.jpg/1280px-Lepomis_auritus.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772308421763-a87809f9-0de0-451a-ba7a-2c70dd77833d.png"
   },
   {
     "Species": "Pomoxis annularis",
@@ -751,21 +735,13 @@
     "CommonName": "Banded Killifish",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/5/59/Banded_killifish.JPG"
   },
-  {
-    "Species": "Gadus macrocephalus ogac",
-    "CommonName": "Greenland Pacific Cod",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Atlantic_cod.jpg"
-  },
+ 
   {
     "Species": "Salmo trutta fario",
     "CommonName": "Brown Trout (River Variant)",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Bachforelle_Zeichnung.jpg"
   },
-  {
-    "Species": "Salmo trutta lacustris",
-    "CommonName": "Brown Trout (Lake Variant)",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Brown_Trout_%28Salmo_trutta%29_%2853678765394%29.jpg/1280px-Brown_Trout_%28Salmo_trutta%29_%2853678765394%29.jpg"
-  },
+
   {
     "Species": "Oncorhynchus kisutch",
     "CommonName": "Coho Salmon",
@@ -821,11 +797,7 @@
     "CommonName": "Blue Mackerel",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/e/ef/GomaSB.jpg"
   },
-  {
-    "Species": "Gadus morhua callarias var.",
-    "CommonName": "Eastern Atlantic Cod Variant",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Atlantic_Cod%2C_Atlantischer_Kabeljau_%28Gadus_morhua%29.jpg/1280px-Atlantic_Cod%2C_Atlantischer_Kabeljau_%28Gadus_morhua%29.jpg"
-  },
+
  
   {
     "Species": "Serranus scriba",
@@ -1458,7 +1430,7 @@
   {
     "Species": "Paralichthys dentatus",
     "CommonName": "Summer Flounder",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Paralichthys-dentatus-1024x576.webp/1024px-Paralichthys-dentatus-1024x576.webp.png"
+    "Image": "https://image2url.com/r2/default/images/1772312127249-9b76849b-59bd-4a2e-96bb-112c042325f4.png"
   },
   {
     "Species": "Chanos chanos",
@@ -2596,7 +2568,7 @@
   {
     "Species": "Sebastes melanops",
     "CommonName": "Black Rockfish",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Sebastes_melanops_VA_02.jpg/1280px-Sebastes_melanops_VA_02.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772311922792-0fc46fba-34ce-4aac-9a38-d589eb4de4be.png"
   },
   {
     "Species": "Scophthalmus maximus",
@@ -2717,6 +2689,205 @@
     "Species": "Seriola lalandi",
     "CommonName": "Yellowtail Amberjack",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Yellowtail_amberjack.jpg/1280px-Yellowtail_amberjack.jpg"
-  }
-]
+  },
+  
+  {
+     "Species": "Sander vitreus",
+     "CommonName": "Walleye",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Walleye_%28Sander_vitreus%29_%281%29.jpg/1280px-Walleye_%28Sander_vitreus%29_%281%29.jpg"
+   },
+   {
+     "Species": "Sander canadensis × Sander vitreus",
+     "CommonName": "Saugeye (hybrid)",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Walleye_painting.jpg"
+   },
+   {
+     "Species": "Esox lucius",
+     "CommonName": "Northern Pike",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Esox_lucius_ZOO_1.jpg/1280px-Esox_lucius_ZOO_1.jpg"
+   },
+   {
+     "Species": "Esox masquinongy",
+     "CommonName": "Muskellunge",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Esox_masquinongyeditcrop.jpg/1280px-Esox_masquinongyeditcrop.jpg"
+   },
+   {
+     "Species": "Esox masquinongy × Esox lucius",
+     "CommonName": "Tiger Muskellunge (hybrid)",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Esox_lucius_ZOO_1.jpg/1280px-Esox_lucius_ZOO_1.jpg"
+   },
+   {
+     "Species": "Oncorhynchus mykiss",
+     "CommonName": "Steelhead",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Close_up_of_rainbow_trout_fish_underwater_oncorhynchus_mykiss.jpg/1280px-Close_up_of_rainbow_trout_fish_underwater_oncorhynchus_mykiss.jpg"
+   },
+   {
+     "Species": "Acipenser fulvescens",
+     "CommonName": "Lake Sturgeon",
+     "Image": "https://image2url.com/r2/default/images/1772311676505-23f5f76b-0264-47bc-95a2-096c6f8c232f.png"
+   },
+   {
+     "Species": "Acipenser oxyrinchus",
+     "CommonName": "Atlantic Sturgeon",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Huge_sturgeon_in_the_Gulf_of_St._Lawrence_ecosystem_-_panoramio.jpg/1280px-Huge_sturgeon_in_the_Gulf_of_St._Lawrence_ecosystem_-_panoramio.jpg"
+   },
+   {
+     "Species": "Acipenser brevirostrum",
+     "CommonName": "Shortnose Sturgeon",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Acipenser_brevirostrum_head.jpg"
+   },
+   {
+     "Species": "Acipenser transmontanus",
+     "CommonName": "White Sturgeon",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/4803_white_sturgeon_swart_odfw_%284455050144%29.jpg/1280px-4803_white_sturgeon_swart_odfw_%284455050144%29.jpg"
+   },
+   {
+     "Species": "Coregonus clupeaformis",
+     "CommonName": "Lake Whitefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Lake_whitefish1.jpg"
+   },
+   {
+     "Species": "Prosopium williamsoni",
+     "CommonName": "Mountain Whitefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Prosopium_williamsoni.jpg"
+   },
+   {
+     "Species": "Catostomus commersonii",
+     "CommonName": "White Sucker",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/White_Sucker%2C_Catostomus_commersonii.jpg/1280px-White_Sucker%2C_Catostomus_commersonii.jpg"
+   },
+   {
+     "Species": "Ictiobus bubalus",
+     "CommonName": "Bigmouth Buffalo",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Smallmouth-buffalo.jpg/1280px-Smallmouth-buffalo.jpg"
+   },
+   {
+     "Species": "Moxostoma erythrurum",
+     "CommonName": "Golden Redhorse",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Robust_Redhorse_Sucker_Moxostoma_robustum.jpg/1280px-Robust_Redhorse_Sucker_Moxostoma_robustum.jpg"
+   },
+   {
+     "Species": "Esox niger",
+     "CommonName": "Chain Pickerel",
+     "Image": "https://en.wikipedia.org/wiki/Chain_pickerel#/media/File:ChainPickerel.jpg"
+   },
+   {
+     "Species": "Esox americanus",
+     "CommonName": "American Pickerel",
+     "Image": "https://image2url.com/r2/default/images/1772311205020-e6096aa2-1392-4b58-9cd1-0fa74f2aa4e4.png"
+   },
+   {
+     "Species": "Ameiurus nebulosus",
+     "CommonName": "Brown Bullhead",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Ameiurus_nebulosus.jpg"
+   },
+ 
+   {
+     "Species": "Ameiurus natalis",
+     "CommonName": "Yellow Bullhead",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Ameiurus_natalis.jpg/1280px-Ameiurus_natalis.jpg"
+   },
+   {
+     "Species": "Lepomis macrochirus",
+     "CommonName": "Bluegill",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Bluegill_%28cropped%29.jpg"
+   },
+   {
+     "Species": "Morone saxatilis",
+     "CommonName": "Striped Bass",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/7/74/Morone_saxatilis_SI2.jpg"
+   },
+   {
+     "Species": "Pomatomus saltatrix",
+     "CommonName": "Bluefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/d/de/Pomatomus_saltatrix.png"
+   },
+  
+   {
+     "Species": "Paralichthys californicus",
+     "CommonName": "California Flounder",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/d/db/Halibut_300.jpg"
+   },
+   {
+     "Species": "Hippoglossina oblonga",
+     "CommonName": "Fourspot Flounder",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Fourspottedflounder.jpg"
+   },
+   {
+     "Species": "Centropristis striata",
+     "CommonName": "Black Seabass",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/9/98/Centropristis_striata.png"
+   },
+   {
+     "Species": "Hippoglossus hippoglossus",
+     "CommonName": "Atlantic Halibut",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Hippoglossus_hippoglossus_196509307.jpg/1280px-Hippoglossus_hippoglossus_196509307.jpg"
+   },
+   {
+     "Species": "Hippoglossus stenolepis",
+     "CommonName": "Pacific Halibut",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/9/96/Hippoglossus_stenolepis.png"
+   },
+   {
+     "Species": "Sebastes mystinus",
+     "CommonName": "Blue Rockfish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/2/26/Bluerockfish_300.jpg"
+   },
+   {
+     "Species": "Sebastes auriculatus",
+     "CommonName": "Brown Rockfish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Brown_rockfish.jpg"
+   },
+   {
+     "Species": "Sebastes paucispinis",
+     "CommonName": "Bocaccio Rockfish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Sebastes_paucispinis.jpg/1280px-Sebastes_paucispinis.jpg"
+   },
+   {
+     "Species": "Trachinotus carolinus",
+     "CommonName": "Florida Pompano",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/American_food_and_game_fishes_%28Plate_%2828%29%29_BHL8308905.jpg/1280px-American_food_and_game_fishes_%28Plate_%2828%29%29_BHL8308905.jpg"
+   },
+   {
+     "Species": "Trachinotus falcatus",
+     "CommonName": "Permit",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/6/69/Trachinotus_falcatus.jpg"
+   },
+   {
+     "Species": "Megalops atlanticus",
+     "CommonName": "Atlantic Tarpon",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Megalops_atlanticus.jpg"
+   },
+   {
+     "Species": "Centropomus undecimalis",
+     "CommonName": "Common Snook",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/5/55/Centropomus.jpg"
+   },
+   {
+     "Species": "Albula vulpes",
+     "CommonName": "Bonefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Bonefish_Albula_vulpes.jpg/1280px-Bonefish_Albula_vulpes.jpg"
+   },
+   {
+     "Species": "Albula pacifica",
+     "CommonName": "Pacific Bonefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Albula_pacifica_SI2.jpg"
+   },
+   {
+     "Species": "Lopholatilus chamaeleonticeps",
+     "CommonName": "Golden Tilefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Lopholatilus_chamaeleonticeps2.jpg/1280px-Lopholatilus_chamaeleonticeps2.jpg"
+   },
+   {
+     "Species": "Caulolatilus cyanops",
+     "CommonName": "Blackline Tilefish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Caulolatilus_cyanops.jpg/1280px-Caulolatilus_cyanops.jpg"
+   },
+   {
+     "Species": "Cynoscion regalis",
+     "CommonName": "Weakfish",
+     "Image": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Cynot_u3.jpg"
+   }
+
+  ]
 

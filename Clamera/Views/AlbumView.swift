@@ -261,7 +261,7 @@ struct AlbumView: View {
                             .foregroundColor(.black)
                             .padding(.leading, 5)
                             .frame(height: 55)
-                            .background(Color.white.opacity(0.95).overlay(Color.blue.opacity(0.06)))
+                            .background(Color.white.opacity(0.95).overlay(Color.blue.opacity(0.02)))
                             .cornerRadius(40)
                             .opacity(showSearch ? 1 : 0)
                             .onChange(of: searchText) { newValue in
