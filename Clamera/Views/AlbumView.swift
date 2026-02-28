@@ -5,6 +5,7 @@
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
 import SwiftUI
+import Kingfisher
 
 
 // MARK: - Fish Model
@@ -275,6 +276,7 @@ struct AlbumView: View {
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showSearch.toggle()
+                            searchText = ""
                         }
                     } label: {
                         Image(systemName: "magnifyingglass")
@@ -328,45 +330,30 @@ struct SpeciesGridItem: View {
     
     var body: some View {
         ZStack {
-            // Trim spaces/newlines from image URL
-            if let url = URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        Color.gray.opacity(0.3)
-                    case .success(let image):
-                        ZStack {
-                            // Background for transparent images
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color(.systemGray5))   // or .white, or custom color
-                                .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
-
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
-                                .clipped()
-                                .cornerRadius(25)
-                                .brightness(clickable ? -0.15 : 0)
-                                .opacity(clickable ? 1.0 : 0.6)
-                        }
-                    
-                         
-                    case .failure:
-                        // Show fallback image or color
-                        Image("stockPhoto")   .resizable()
-                            .scaledToFill()
-                            .frame(width: cardWidth * 0.95, height: cardHeight * 0.95).cornerRadius(25) .brightness( clickable ? -0.15 : 0) .opacity(clickable ? 1.0 : 0.6)
-                    @unknown default:
-                        Color.gray
-                    }
-                }
-            } else {
-                // Invalid URL fallback
-              
-                    Image("stockPhoto")
-            }
             
+
+            KFImage(
+                URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines))
+            )
+            .placeholder { // optional placeholder while .placeholder {
+                // Show this while the image is loading or if the URL is invalid
+                Image("stockPhoto")
+                    .resizable()
+                    .scaledToFill()
+            
+               
+            }
+            .retry(maxCount: 3, interval: .seconds(5)) // retry a few times if needed
+            .resizable()
+            .scaledToFill()
+            .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color(.systemGray5))
+            )
+            .cornerRadius(25)
+            .opacity(clickable ? 1.0 : 0.6)
+            .brightness(clickable ? -0.15 : 0)
             HStack(spacing: 4) {
                 Text(species.name)
                     .font(.system(size: 18, weight: .bold))   // base size

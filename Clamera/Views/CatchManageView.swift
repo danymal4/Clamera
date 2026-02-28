@@ -24,10 +24,24 @@ struct CatchManageView: View {
     
     var speciesSuggestions: [Species] {
         if species.isEmpty { return [] }
-        return speciesStore.speciesList
+
+        let filtered = speciesStore.speciesList
             .filter { $0.name.lowercased().contains(species.lowercased()) }
             .sorted { $0.name < $1.name }
+
+        var seenNames = Set<String>()
+        return filtered.filter { species in
+            if seenNames.contains(species.name) {
+                return false
+            } else {
+                seenNames.insert(species.name)
+                return true
+            }
+        }
     }
+    
+    
+    
     
     var body: some View {
         
