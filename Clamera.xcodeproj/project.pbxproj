@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4050C1A12F5161BD0061F5CE /* fish_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 4050C1A02F5161BD0061F5CE /* fish_data.json */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		16BA8AA82F2A490600BA04E9 /* Clamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4050C1A02F5161BD0061F5CE /* fish_data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fish_data.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -47,6 +52,7 @@
 			children = (
 				16BA8AAA2F2A490600BA04E9 /* Clamera */,
 				16BA8AA92F2A490600BA04E9 /* Products */,
+				4050C1A02F5161BD0061F5CE /* fish_data.json */,
 			);
 			sourceTree = "<group>";
 		};
@@ -122,6 +128,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4050C1A12F5161BD0061F5CE /* fish_data.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

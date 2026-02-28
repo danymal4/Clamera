@@ -59,10 +59,14 @@ struct SpeciesListView: View {
                     IconView().offset(y: -40)
 
                     VStack(spacing: 20) {
-                        Text(species.name)
-                            .font(.custom("AkayaTelivigala-regular", size: 70))
-                            .foregroundStyle(.blue).opacity(0.8)
-                            .padding(.top)
+                        ZStack{
+                            Text(species.name)
+                                .font(.custom("AkayaTelivigala-regular", size: 70))
+                                .foregroundStyle(.blue).opacity(0.8).minimumScaleFactor(0.5)                  // allows shrinking to 50%
+                                .lineLimit(1)                             // keep it on one line
+                                .allowsTightening(true)
+                        }
+                        .padding(.top).padding(.horizontal)
 
                         // Filter buttons
                         HStack {

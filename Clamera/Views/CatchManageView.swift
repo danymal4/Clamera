@@ -103,7 +103,7 @@ struct CatchManageView: View {
                     // Dropdown (UNCHANGED)
                     if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
                         VStack(spacing: 0) {
-                            ForEach(speciesSuggestions.prefix(8)) { suggestion in
+                            ForEach(speciesSuggestions.prefix(4)) { suggestion in
                                 Button(action: {
                                     species = suggestion.name
                                     showSpeciesSuggestions = false
