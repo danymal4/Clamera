@@ -10,9 +10,14 @@ enum ViewState {
     case home, aquarium, profile, caught, album, social,  settings
 }
 
+
+
+
+
 final class TabRouter: ObservableObject {
     @Published var viewState: ViewState = .home
 }
+
 
 import SwiftUI
 
