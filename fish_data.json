@@ -964,7 +964,7 @@
   {
     "Species": "Acanthopagrus morrisoni",
     "CommonName": "Western Yellowfin Bream",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/4/48/Acanthopagrus_morrisoni.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772320579002-d9cebbd5-af84-4fac-8716-828cb972a58f.png"
   },
   {
     "Species": "Cynoglossus acaudatus",
@@ -1329,7 +1329,7 @@
   {
     "Species": "Arius maculatus",
     "CommonName": "Spotted Catfish",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Arius_maculatus.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772314129646-f00d5a05-01eb-4692-a090-cb937208abf0.png"
   },
   {
     "Species": "Epinephelus awoara",
@@ -1359,7 +1359,13 @@
   {
     "Species": "Pristipomoides multidens",
     "CommonName": "Goldbanded Jobfish",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Anthias_multidens_Ford_7.jpg/1280px-Anthias_multidens_Ford_7.jpg"
+    "Image": "https://image2url.com/r2/default/images/1772321098849-d929a0ef-23ec-4321-b094-a5513ced527d.webp"
+  },
+  
+  {
+    "Species": "Aprion virescens",
+    "CommonName": "Green Jobfish",
+    "Image": "https://image2url.com/r2/default/images/1772321077593-2fb9c917-d2fc-4079-9e75-85bfdc40e43a.jpg"
   },
   {
     "Species": "Menticirrhus americanus",
@@ -2084,11 +2090,7 @@
     "CommonName": "Blue Marlin",
     "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Atlantic_blue_marlin.jpg/1280px-Atlantic_blue_marlin.jpg"
   },
-  {
-    "Species": "Istiophorus platypterus",
-    "CommonName": "Indo-Pacific Sailfish",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Istiophorus_platypterus_101956558.jpg/1280px-Istiophorus_platypterus_101956558.jpg"
-  },
+
   {
     "Species": "Coryphaena hippurus",
     "CommonName": "Dorado / Mahi Mahi",
@@ -2378,7 +2380,7 @@
   {
     "Species": "Clupea pallasii",
     "CommonName": "Pacific Herring",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/0/04/Clupea_harengus.png"
+    "Image": "https://image2url.com/r2/default/images/1772321884158-39150648-ebf3-4746-8cbb-567e4617fe5f.png"
   },
   {
     "Species": "Sphyraena jello",
@@ -2538,7 +2540,7 @@
   {
     "Species": "Sciaenops ocellatus",
     "CommonName": "Red Drum",
-    "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Redfish_or_Red_drum.webp/551px-Redfish_or_Red_drum.webp.png"
+    "Image": "https://image2url.com/r2/default/images/1772320340090-760ef421-c9ba-4478-bf61-30dad64721e7.jpg"
   },
   {
     "Species": "Cynoscion nebulosus",
