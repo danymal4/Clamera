@@ -136,6 +136,7 @@ struct AlbumView: View {
                                     }
                                 } else {
                                     SpeciesGridItem(species: item, clickable: false)
+                                 
                                 }
                             }
                         }.padding(.horizontal, 15)

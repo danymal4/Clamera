@@ -193,7 +193,7 @@ struct AquariumView: View {
                     .environmentObject(aquariumState).offset(y: 645)
 
              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -70).scaleEffect(1.4)
+                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -70).scaleEffect(1.6)
                 
    
                 Rectangle()
