@@ -44,13 +44,13 @@ struct FishDetailsView: View {
 
                     Button {
                         if !fish.isAquarium {
-                            aquarium.addFish(with: "\(fish.speciesName.lowercased())Icon")
+                            aquarium.addFish(with: "\(fish.speciesName)Icon")
                             binding.isAquarium.wrappedValue.toggle()
                          
                             aquarium.refresh()
                         }
                     } label: {
-                        Image("\(fish.speciesName.lowercased())Icon")
+                        Image("\(fish.speciesName)Icon")
                             .resizable()
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.13, 180),
@@ -67,11 +67,11 @@ struct FishDetailsView: View {
                     Spacer()
 
                     Button {
-                        aquarium.removeFish(with: "\(fish.speciesName.lowercased())Icon")
+                        aquarium.removeFish(with: "\(fish.speciesName)Icon")
                         binding.isAquarium.wrappedValue = false
                         aquarium.refresh()
                     } label: {
-                        Image("\(fish.speciesName.lowercased())Icon")
+                        Image("\(fish.speciesName)Icon")
                             .resizable()
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.13, 180),
