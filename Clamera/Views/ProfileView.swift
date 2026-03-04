@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var speciesStore: SpeciesStore
+    
+    @EnvironmentObject var user: User
     
     var body: some View {
         
@@ -66,7 +67,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
                             
-                            Text("Fish Caught:   \(speciesStore.getFish())")
+                            Text("Fish Caught:   \(user.speciesStore.getFish())")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -74,7 +75,7 @@ struct ProfileView: View {
                                     alignment: .leading
                                 )
                             
-                            Text("Species Caught:  \(speciesStore.getSpecies())/\(speciesStore.speciesList.count)")
+                            Text("Species Caught:  \(user.speciesStore.getSpecies())/\(user.speciesStore.speciesList.count)")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -83,7 +84,7 @@ struct ProfileView: View {
                                 )
                             
                             HStack{
-                                Text("Clam Points:   \(speciesStore.totalClamPoints)")
+                                Text("Clam Points:   \(user.speciesStore.totalClamPoints)")
                                     .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                     .opacity(0.8)
                                     .bold().padding(.bottom, 4).frame(
@@ -130,5 +131,6 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()        .environmentObject(SpeciesStore())
+    ProfileView()
+        .environmentObject(User())
 }

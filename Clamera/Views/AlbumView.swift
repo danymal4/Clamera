@@ -18,10 +18,8 @@ struct FishData: Codable, Identifiable {
 
 // MARK: - Album View
 struct AlbumView: View {
-
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var speciesStore: SpeciesStore
-
+    
+    @EnvironmentObject var user: User
     @State private var searchText: String = ""
     @State private var showSuggestions: Bool = false
     @State private var showSearch: Bool = false
@@ -44,7 +42,7 @@ struct AlbumView: View {
     @State private var selectedFilter: FilterOption = .alphabetical
     
     var filteredSpecies: [Species] {
-        var filtered = speciesStore.speciesList
+        var filtered = user.speciesStore.speciesList
 
         // Apply search text
         if !searchText.isEmpty {
@@ -123,11 +121,11 @@ struct AlbumView: View {
                                 let hasFish = item.fishList.isEmpty
                                 
                                 if !hasFish {
-                                    if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                    if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
                                         NavigationLink(
                                             destination: SpeciesListView(
-                                                aquarium: aquarium,
-                                                speciesStore: speciesStore,
+                                                aquarium: user.aquarium,
+                                                speciesStore: user.speciesStore,
                                                 speciesIndex: index
                                             )
                                         ) {
@@ -280,6 +278,5 @@ struct SpeciesGridItem: View {
 // MARK: - Preview
 #Preview {
     AlbumView()
-        .environmentObject(AquariumFishList())
-        .environmentObject(SpeciesStore())
+        .environmentObject(User())
 }
