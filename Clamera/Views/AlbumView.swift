@@ -7,42 +7,6 @@
 import SwiftUI
 import Kingfisher
 
-
-// MARK: - Fish Model
-struct Fish: Identifiable, Hashable {
-    let id = UUID()
-    var photo: String
-    let speciesName: String
-    var description: String = "cool fish I found with sam"
-    var dateCaught: Date = Date()
-    var isPinned: Bool = true
-    var isAquarium: Bool = false
-    var fishWeight: Int?
-}
-
-// MARK: - Species Model
-struct Species: Identifiable, Hashable {
-    let id: String   // stable ID = species name
-    let name: String
-    let imageName: String
-    let icon: String
-    var fishList: [Fish]
-
-    var numberOfFish: Int { fishList.count }
-
-    func getFishPhotos() -> [String] {
-        fishList.map { $0.photo }
-    }
-
-    init(name: String, imageName: String, icon: String = "clownfishIcon", fishList: [Fish] = []) {
-        self.id = name
-        self.name = name
-        self.imageName = imageName
-        self.icon = icon
-        self.fishList = fishList
-    }
-}
-
 // MARK: - Fish JSON Structure
 // MARK: - Fish JSON Structure (Matches fish_data.json)
 struct FishData: Codable, Identifiable {
@@ -50,78 +14,6 @@ struct FishData: Codable, Identifiable {
     let Species: String        // Scientific name
     let CommonName: String     // Human-friendly name
     let Image: String          // URL of image
-}
-
-// MARK: - Species Store
-final class SpeciesStore: ObservableObject {
-    
-    @Published var speciesList: [Species] = []
-    @Published var totalClamPoints: Int = 0
-    
-    init() {
-        loadFromJSON()
-    }
-    
-    private func loadFromJSON() {
-        guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
-            print("❌ Could not find fish_data.json")
-            return
-        }
-        
-        do {
-            let data = try Data(contentsOf: url)
-            let decoded = try JSONDecoder().decode([FishData].self, from: data)
-            
-            // Map FishData → Species
-            self.speciesList = decoded.map { fish in
-                Species(
-                    name: fish.CommonName,      // Use CommonName for display
-                    imageName: fish.Image,      // Image URL
-                    fishList: []                // Empty unless user caught one
-                )
-            }
-            
-            print("✅ Loaded \(speciesList.count) species")
-        } catch {
-            print("❌ JSON decode error:", error)
-        }
-    }
-    
-    // MARK: - Clam Points Logic
-    func calculateClamPoints(
-        totalOfSpecies caughtFish: Int,
-        totalOtherFish otherFish: Int,
-        previousFishDate: Date? = nil
-    ) -> Int {
-        guard caughtFish > 0 else { return 0 }
-        let safeOtherFish = max(otherFish, 0)
-        if caughtFish == 1 { return 90 }
-
-        let caughtMinRaw = 15 + abs(Double(safeOtherFish - 5) / 3.0)
-        let caughtMin = min(caughtMinRaw, 30)
-        guard caughtMin > 2 else { return 50 }
-
-        let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
-        let speciesPoints = max(pointsRaw, 20)
-
-        var timeBonus: Double = 0
-        if let prevDate = previousFishDate {
-            let daysSincePrevious = Calendar.current.dateComponents([.day], from: prevDate, to: Date()).day ?? 0
-            let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
-            timeBonus = min(rawTimeBonus, 12.0)
-        }
-
-        return Int((speciesPoints + timeBonus).rounded())
-    }
-    
-    // MARK: - Stats
-    func getSpecies() -> Int {
-        speciesList.filter { !$0.fishList.isEmpty }.count
-    }
-    
-    func getFish() -> Int {
-        speciesList.reduce(0) { $0 + $1.fishList.count }
-    }
 }
 
 // MARK: - Album View
@@ -356,9 +248,13 @@ struct SpeciesGridItem: View {
             .opacity(clickable ? 1.0 : 0.6)
             .brightness(clickable ? -0.15 : 0)
             HStack(spacing: 4) {
+                let imageName = "\(species.name)Icon"
+                let imageExists = UIImage(named: imageName) != nil
+
+                    
                 Text(species.name)
                     .font(.system(size: 18, weight: .bold))   // base size
-                    .foregroundColor(.white)
+                    .foregroundColor(imageExists ? .blue : .white)
                     .minimumScaleFactor(0.5)                  // allows shrinking to 50%
                     .lineLimit(2)                             // keep it on one line
                     .allowsTightening(true)                   // slightly tighter spacing if needed

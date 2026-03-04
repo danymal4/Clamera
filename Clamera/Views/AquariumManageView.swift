@@ -8,6 +8,7 @@ struct AquariumManageView: View {
     @State private var selectedFish: Int = -1
     @State private var delay: Bool = false
     @State private var refreshID = UUID()
+    @State private var swipedIndex: Int? = nil
 
 
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
@@ -70,10 +71,10 @@ struct AquariumManageView: View {
                     
                     let collapsedHeight = min(UIScreen.main.bounds.width * 0.45, 2000)
                     let expandedHeight = min(UIScreen.main.bounds.width * 0.6, 2000)
+
                     ZStack {
-                      
-               
-                        
+
+                        // 🔵 BACKGROUND RECTANGLE (big white box)
                         Rectangle()
                             .opacity(1)
                             .colorInvert()
@@ -82,76 +83,52 @@ struct AquariumManageView: View {
                                 width: min(UIScreen.main.bounds.width * 0.9, 2000),
                                 height: isDropdown ? collapsedHeight : expandedHeight
                             )
-                          
                             .animation(.easeInOut(duration: 0.3), value: isDropdown)
                             .shadow(color: .black.opacity(0.1), radius: 10)
-                        
+
+                        // Header
                         HStack {
-                            
-                            
-                            Text("Fish").opacity(0.5).font(.system(size: UIScreen.main.bounds.width * 0.045)).bold().offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15)
-                            
-                            
-                          
+                            Text("Fish")
+                                .opacity(0.5)
+                                .font(.system(size: UIScreen.main.bounds.width * 0.045))
+                                .bold()
+                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15)
                             Spacer()
                         }
-                        .padding(.horizontal, 75).padding(.top, -115)
-                        
-                        
-                        
-                        
-                        VStack(spacing: 10) {
+                        .padding(.horizontal, 50)
+                        .padding(.top, -115)
+
+                        // Fish rows
+                        VStack(spacing: 14.5) {
                             ForEach(aquarium.fish.indices, id: \.self) { i in
                                 let fish = aquarium.fish[i]
 
                                 VStack(spacing: 5) {
                                     // Fish row: icon + toggle + divider
                                     HStack {
-                                        Spacer().frame(width: 220)
+                                        Spacer().frame(width: 180)
 
                                         if fish.isActive {
-                                          
-                                                Image(fish.imageName)
-                                                    .resizable()
-                                                    .frame(
-                                                        width: min(UIScreen.main.bounds.width * 0.1, 180),
-                                                        height: min(UIScreen.main.bounds.width * 0.1, 180)
-                                                    )
-                                                    .opacity(fish.isShown ? 0.9 : 0.4)
-                                        
-                                            
-                                            
-                                            
+                                            Image(fish.imageName)
+                                                .resizable()
+                                                .frame(
+                                                    width: min(UIScreen.main.bounds.width * 0.1, 180),
+                                                    height: min(UIScreen.main.bounds.width * 0.1, 180)
+                                                )
+                                                .opacity(fish.isShown ? 0.9 : 0.4)
+                                                .offset(x: swipedIndex == i ? 70 : 0)
+
                                             if fish.isShown {
-                                                
-                                                
                                                 Button {
-                                                    
-                                                    
                                                     withAnimation(.easeInOut(duration: 0.3)) {
-                                                        
+                                                        swipedIndex = nil
                                                         if selectedFish != i && !isDropdown {
-                                                            
                                                             selectedFish = i
-                                                        }
-                                                        
-                                                        else {
-                                                            // Switch selection to a new fish and expand it immediately
+                                                        } else {
                                                             selectedFish = i
                                                             isDropdown.toggle()
                                                         }
-                                                        
-                                                        
-                                                        
-                                                        
-                                                        
                                                     }
-                                                    
-                                                    
-                                                    
-                                                    
-                                                    
-                                                    
                                                 } label: {
                                                     Image(systemName: "chevron.down")
                                                         .foregroundStyle(.black)
@@ -160,30 +137,14 @@ struct AquariumManageView: View {
                                                         .animation(.easeInOut(duration: 0.3), value: isDropdown)
                                                 }
                                                 .buttonStyle(.plain)
-                                                
-                                                
-                                            }
-                                            
-                                            
-                                            else {
+                                                .offset(x: swipedIndex == i ? 70 : 0)
+                                            } else {
                                                 Image(systemName: "chevron.down")
                                                     .foregroundStyle(.black)
-                                                    .frame(width: 24, height: 24).opacity(0)
-                                                
+                                                    .frame(width: 24, height: 24)
+                                                    .opacity(0)
+                                                    .offset(x: swipedIndex == i ? 70 : 0)
                                             }
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
                                         } else {
                                             Image("FishIcon")
                                                 .resizable()
@@ -193,8 +154,14 @@ struct AquariumManageView: View {
                                                 )
                                                 .opacity(0.9)
                                                 .scaleEffect(x: -1, y: 1, anchor: .center)
+                                                .offset(x: swipedIndex == i ? 70 : 0)
                                         }
-Spacer()
+                                       
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
 
                                         if fish.isActive {
                                             Toggle("", isOn: Binding(
@@ -203,17 +170,19 @@ Spacer()
                                                     var updatedFish = fish
                                                     updatedFish.isShown = newValue
                                                     aquarium.fish[i] = updatedFish
-                                                    
+
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
                                                     }
                                                 }
                                             ))
                                             .labelsHidden()
-                                            
                                         }
-                                        
                                         Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        
                                     }
                                     .padding(.horizontal, -210)
                                     .offset(y: isDropdown
@@ -223,19 +192,18 @@ Spacer()
                                                : -0.5 * UIScreen.main.bounds.width * 0.04))
                                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
 
-                                   
-                                        Divider()
-                                            .frame(width: min(UIScreen.main.bounds.width * 0.85, 1800))
-                                            .offset(y: isDropdown
-                                                    ? 0
-                                                    : (i <= selectedFish
-                                                       ? 0.5 * UIScreen.main.bounds.width * 0.04
-                                                       : -0.5 * UIScreen.main.bounds.width * 0.04))
-                                            .animation(.easeInOut(duration: 0.3), value: isDropdown)
-                                            .opacity(i == 2 || (i == selectedFish && !isDropdown) ? 0 : 1) // replicate your original condition
-                                    
+                                    Divider()
+                                        .frame(width: min(UIScreen.main.bounds.width * 0.85, 1800))
+                                        .offset(y: isDropdown
+                                                ? 0
+                                                : (i <= selectedFish
+                                                   ? 0.5 * UIScreen.main.bounds.width * 0.04
+                                                   : -0.5 * UIScreen.main.bounds.width * 0.04))
+                                        .animation(.easeInOut(duration: 0.3), value: isDropdown)
+                                        .opacity(i == 2 || (i == selectedFish && !isDropdown) ? 0 : 1)
+                                        .offset(x: swipedIndex == i ? 70 : 0)
 
-                                    // Sliders for the selected fish (only show when dropdown closed)
+                                    // Sliders
                                     if !isDropdown && i == selectedFish {
                                         VStack(spacing: 10) {
                                             HStack {
@@ -252,13 +220,13 @@ Spacer()
                                                     ),
                                                     in: 1...15
                                                 ).accentColor(.blue.opacity(0.6))
-                                                
+
                                                 Image("fast").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.06, 2000),
                                                     height: min(UIScreen.main.bounds.width * 0.06, 2000)
                                                 )
                                             }
-                                            
+
                                             HStack {
                                                 Image("small").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.065, 2000),
@@ -273,34 +241,66 @@ Spacer()
                                                         }
                                                     ),
                                                     in: 20...150
-                                              
-                                            
                                                 ).accentColor(.blue.opacity(0.6))
-                                                
+
                                                 Image("big").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.08, 2000),
                                                     height: min(UIScreen.main.bounds.width * 0.1, 2000)
                                                 )
                                             }
                                             Divider()
-                                                .frame(width: min(UIScreen.main.bounds.width * 0.85, 1800))
-                                            
-                                            
+                                                .frame(width: min(UIScreen.main.bounds.width * 0.85, 2000))
                                         }
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .transition(.move(edge: .top).combined(with: .opacity))
                                     }
                                 }
+                                .contentShape(Rectangle())
+                                .background(
+                                    HStack {
+                                        Spacer()
+                                        Button {
+                                            withAnimation(.easeInOut) {
+                                                aquarium.removeFish(with: fish.imageName)
+                                                swipedIndex = nil
+                                            }
+                                        } label: {
+                                            Image(systemName: "trash")
+                                                .foregroundColor(.white)
+                                                .frame(width: 70, height: 61)
+                                                .background(Color.red)
+                                        }
+                                        .padding(.top, -12.5)
+                                        .offset(x: swipedIndex == i ? 90 : 90)
+                                        .animation(.easeInOut(duration: 0.25), value: swipedIndex)
+                                    }
+                                )
+                                .offset(x: swipedIndex == i ? -70 : 0)
+                                .highPriorityGesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            guard isDropdown else { return }
+
+                                            if value.translation.width < -30 {
+                                                withAnimation(.easeOut) { swipedIndex = i }
+                                            }
+
+                                            if value.translation.width > 30 {
+                                                withAnimation(.easeOut) { swipedIndex = nil }
+                                            }
+                                        }
+                                )
                                 .padding(.horizontal, 60)
                             }
                         }
-                        .padding(.bottom, -10)
-                        
-                    } .frame(
-                        width: min(UIScreen.main.bounds.width * 0.9, 2000),
-                        height: isDropdown ? collapsedHeight : expandedHeight
-                    )
-                  
+                        .padding(.bottom, -10)  .frame(
+                            width: min(UIScreen.main.bounds.width * 0.9, 2000),
+                            height: isDropdown ? collapsedHeight : expandedHeight
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 30)) // ✅ global mask fixes corner radius
+                    }
+                    // 🔒 APPLY GLOBAL MASK ON OUTSIDE ZSTACK
+                 
                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
                   
                     

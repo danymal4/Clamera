@@ -58,7 +58,7 @@ struct FishDetailsView: View {
                             )
                             .opacity(0.9)
                     }
-                    .padding(.top, 325)
+                    .padding(.top, 305)
                     .padding(.trailing, 45)
                 }
 
@@ -80,7 +80,7 @@ struct FishDetailsView: View {
                             .colorMultiply(.gray)
                             .opacity(0.2)
                     }
-                    .padding(.top, 435)
+                    .padding(.top, 410)
                     .padding(.trailing, 45)
                 }
 
