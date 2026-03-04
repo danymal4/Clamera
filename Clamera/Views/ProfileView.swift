@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ProfileView: View {
+    
+    @EnvironmentObject var user: User
     @EnvironmentObject var speciesStore: SpeciesStore
     
     var body: some View {
@@ -132,5 +134,7 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()        .environmentObject(SpeciesStore())
+    ProfileView()
+        .environmentObject(SpeciesStore())
+        .environmentObject(User())
 }

@@ -22,6 +22,7 @@ final class TabRouter: ObservableObject {
 import SwiftUI
 
 struct HomerView: View {
+    @EnvironmentObject var user: User
     @EnvironmentObject var aquarium: AquariumFishList
     @EnvironmentObject var speciesStore: SpeciesStore
     @EnvironmentObject var aquariumState: AquariumState
@@ -82,6 +83,7 @@ struct HomerView: View {
         .environmentObject(aquarium)
         .environmentObject(aquariumState)
         .environmentObject(speciesStore)
+        .environmentObject(user)
         .onAppear { startCleanTimer() }
         .onDisappear {
             cleanTimer?.invalidate()
@@ -127,4 +129,5 @@ struct HomerView: View {
         .environmentObject(AquariumFishList())
         .environmentObject(SpeciesStore())
         .environmentObject(AquariumState())
+        .environmentObject(User())
 }

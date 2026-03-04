@@ -11,85 +11,13 @@ enum EditState {
 }
 
 
-final class AquariumState: ObservableObject {
-    @Published var clean: Double = 0.3
-    @Published var bubbleVisibility: Double = 1.0
-    @Published var bubbleAmount: Double = 1.0
-    @Published var lastUpdate: Date = Date()
-    
-    // Track active screens
-    @Published var activeScreens: Set<String> = []
-    
-    let maxClean: Double = 0.3
-    private(set) var pendingClean: Double = 0.3
-    private var targetClean: Double? = nil
-    
-    func markActive(_ screen: String) {
-        activeScreens.insert(screen)
-        commitPendingClean()
-    }
-    
-    func markInactive(_ screen: String) {
-        activeScreens.remove(screen)
-        pendingClean = clean 
-    }
-    
-    var isActiveScreen: Bool {
-        !activeScreens.isEmpty
-    }
-    
-    func updateClean(by increment: Double) {
-        if let target = targetClean {
-            let delta = (target - clean) * 0.8
-            clean += delta
-            if abs(clean - target) < 0.01 {
-                clean = target
-                pendingClean = clean
-                targetClean = nil
-            }
-        } else {
-            clean = min(clean + increment, maxClean)
-        }
-    }
-    
-    func commitPendingClean() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            if let target = targetClean, target == 0 {
-                // If brush is active, keep the smaller of pendingClean and current clean
-                clean = min(pendingClean, clean)
-            } else {
-                // Otherwise, take the larger to respect increments
-                clean = max(pendingClean, clean)
-            }
-        }
-    }
-    
-    func updatePendingClean(to value: Double) {
-        if let target = targetClean {
-            let delta = (target - pendingClean) * 0.8
-            pendingClean += delta
-            if abs(pendingClean - target) < 0.01 {
-                pendingClean = target
-                targetClean = nil
-                clean = pendingClean
-            }
-        } else {
-            pendingClean = min(value, maxClean)
-        }
-    }
-    
-    func cleanNow() {
-        targetClean = 0
-    }
-    
-    
-    
-}
+
 
 
 
 
 struct BubbleView: View {
+    @EnvironmentObject var user: User
     @EnvironmentObject var aquariumState: AquariumState
     @State private var yOffset: CGFloat = 0
     @State private var opacity: Double = 0
@@ -167,6 +95,7 @@ struct BubbleView: View {
 
 
 struct AquariumView: View {
+    @EnvironmentObject var user: User
     @EnvironmentObject var aquariumState: AquariumState
     @EnvironmentObject var aquarium: AquariumFishList
 
@@ -186,11 +115,14 @@ struct AquariumView: View {
            
                 AquariumBackgroundView()
                     .environmentObject(aquariumState)
+                    .environmentObject(user)
 
                 
               
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(aquariumState).offset(y: 645)
+                    .environmentObject(aquariumState)
+                    .environmentObject(user)
+                    .offset(y: 645)
 
              
                 FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -70).scaleEffect(1.6)
@@ -231,6 +163,7 @@ struct AquariumView: View {
 
 
 struct AquariumBackgroundView: View {
+    @EnvironmentObject var user: User
     @EnvironmentObject var aquariumState: AquariumState
 
     var body: some View {
@@ -301,6 +234,7 @@ struct AquariumBackgroundView: View {
 
 
 struct BubbleLayerView: View {
+    @EnvironmentObject var user: User
     @EnvironmentObject var aquariumState: AquariumState
     let topY: CGFloat
     let bottomY: CGFloat
@@ -311,6 +245,7 @@ struct BubbleLayerView: View {
             BubbleView(topY: topY, bottomY: bottomY)
                 .id(refreshID)
                 .environmentObject(aquariumState)
+                .environmentObject(user)
         }
     }
 }
@@ -321,5 +256,7 @@ struct BubbleLayerView: View {
 
 #Preview {
     AquariumView()
-        .environmentObject(AquariumFishList())  .environmentObject(AquariumState())
+        .environmentObject(AquariumFishList())
+        .environmentObject(AquariumState())
+        .environmentObject(User())
 }

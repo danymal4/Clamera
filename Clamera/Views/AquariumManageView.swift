@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AquariumManageView: View {
+    @EnvironmentObject var user: User
     @EnvironmentObject var aquarium: AquariumFishList
     @EnvironmentObject var aquariumState: AquariumState
     @State var isDropdown: Bool = true
@@ -101,8 +102,8 @@ struct AquariumManageView: View {
                         
                         
                         VStack(spacing: 10) {
-                            ForEach(aquarium.fish.indices, id: \.self) { i in
-                                let fish = aquarium.fish[i]
+                            ForEach(user.aquarium.fish.indices, id: \.self) { i in
+                                let fish = user.aquarium.fish[i]
 
                                 VStack(spacing: 5) {
                                     // Fish row: icon + toggle + divider
@@ -202,7 +203,7 @@ Spacer()
                                                 set: { newValue in
                                                     var updatedFish = fish
                                                     updatedFish.isShown = newValue
-                                                    aquarium.fish[i] = updatedFish
+                                                    user.aquarium.fish[i] = updatedFish
                                                     
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
@@ -247,7 +248,7 @@ Spacer()
                                                     value: Binding(
                                                         get: { 16 - fish.swimDuration },
                                                         set: { newVal in
-                                                            aquarium.updateSpeed(for: fish, to: 16 - newVal)
+                                                            user.aquarium.updateSpeed(for: fish, to: 16 - newVal)
                                                         }
                                                     ),
                                                     in: 1...15
@@ -269,7 +270,7 @@ Spacer()
                                                         get: { Double(fish.size.width) },
                                                         set: { newVal in
                                                             let newHeight = fish.size.height * newVal / fish.size.width
-                                                            aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
+                                                            user.aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
                                                         }
                                                     ),
                                                     in: 20...150
@@ -337,12 +338,12 @@ Spacer()
                             HStack {
                                 
                                 
-                                if (100 - (300 * aquariumState.clean)) > 60 {
+                                if (100 - (300 * user.aquariumState.clean)) > 60 {
                                     Image("good").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.12, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.12, 2000)
                                     )
-                                } else if (100 - (300 * aquariumState.clean)) > 20 {
+                                } else if (100 - (300 * user.aquariumState.clean)) > 20 {
                                     Image("med").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.12, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.12, 2000)
@@ -362,7 +363,7 @@ Spacer()
                                 
                                 
                                 
-                                Text("  \(String(format: "%.2f", (100 - (300 * aquariumState.clean)))) %")
+                                Text("  \(String(format: "%.2f", (100 - (300 * user.aquariumState.clean)))) %")
                                     .padding(.horizontal, -5)
                                     .foregroundStyle(.gray)
                                     .font(.system(size: UIScreen.main.bounds.width * 0.035))
@@ -434,9 +435,9 @@ Spacer()
                                 Spacer()
                                 
                                 Toggle("Bubbles", isOn: Binding(
-                                    get: { aquariumState.bubbleVisibility > 0 },
+                                    get: { user.aquariumState.bubbleVisibility > 0 },
                                     set: { newValue in
-                                        aquariumState.bubbleVisibility = newValue ? 1 : 0
+                                        user.aquariumState.bubbleVisibility = newValue ? 1 : 0
                                     }
                                 ))
                                 .labelsHidden()
@@ -457,12 +458,12 @@ Spacer()
                                     height: min(UIScreen.main.bounds.width * 0.1, 2000)).cornerRadius(10).padding(.horizontal, -40)
                                 
                                 
-                                Text("Amount  \(String(format: "%.1f", aquariumState.bubbleAmount))").opacity(0.9).opacity(0.5)
+                                Text("Amount  \(String(format: "%.1f", user.aquariumState.bubbleAmount))").opacity(0.9).opacity(0.5)
                                 
                                 Spacer()
                             
                                 
-                                Stepper("", value: $aquariumState.bubbleAmount, in: 0.1...3, step: 0.1)
+                                Stepper("", value: $user.aquariumState.bubbleAmount, in: 0.1...3, step: 0.1)
                                        .labelsHidden()
                                        .frame(width: UIScreen.main.bounds.width * 0.6).padding(.horizontal, -40)
                            
@@ -477,12 +478,12 @@ Spacer()
                                     width: min(UIScreen.main.bounds.width * 0.1, 2000),
                                     height: min(UIScreen.main.bounds.width * 0.1, 2000)).colorInvert().cornerRadius(10).padding(.horizontal, -40)
                                 
-                                Text("Visibility  \(String(format: "%.1f", aquariumState.bubbleVisibility))").opacity(0.9).opacity(0.5)
+                                Text("Visibility  \(String(format: "%.1f", user.aquariumState.bubbleVisibility))").opacity(0.9).opacity(0.5)
                            
                                 Spacer()
                                 
                                 
-                                Stepper("", value: $aquariumState.bubbleVisibility, in: 0.1...2, step: 0.1)
+                                Stepper("", value: $user.aquariumState.bubbleVisibility, in: 0.1...2, step: 0.1)
                                        .labelsHidden()
                                 .frame(width: UIScreen.main.bounds.width * 0.6).padding(.horizontal, -40)
                                 
@@ -500,7 +501,7 @@ Spacer()
  
 
                         Button {
-                            aquarium.toggleAll()               // your existing logic
+                            user.aquarium.toggleAll()               // your existing logic
                             refreshID = UUID()                  // triggers SwiftUI to re-render the view
                         } label: {
                             Rectangle()
@@ -534,12 +535,12 @@ Spacer()
             .edgesIgnoringSafeArea(.bottom)
         }
         .background(Color.gray.opacity(0.1)) .onAppear {
-            aquariumState.markActive("manage")
+            user.aquariumState.markActive("manage")
         }
         .onDisappear {
-            aquariumState.updatePendingClean(to: aquariumState.clean)
+            user.aquariumState.updatePendingClean(to: aquariumState.clean)
 
-            aquariumState.markInactive("manage")
+            user.aquariumState.markInactive("manage")
             
        
         }
@@ -557,7 +558,10 @@ extension Array {
 
 
 #Preview {
-    AquariumManageView() .environmentObject(AquariumFishList()).environmentObject(AquariumState())
+    AquariumManageView()
+        .environmentObject(AquariumFishList())
+        .environmentObject(AquariumState())
+        .environmentObject(User())
 
 }
 

@@ -16,6 +16,7 @@ struct CatchManageView: View {
     @State private var weight: Int? = nil
     @State private var previewPoints: Int? = nil   // ✅ now stored state
     
+    @EnvironmentObject var user: User
     @EnvironmentObject var speciesStore: SpeciesStore
     
     var selectedUIImage: UIImage?
@@ -295,4 +296,5 @@ struct CatchManageView: View {
         selectedUIImage: UIImage(systemName: "photo")
     )
     .environmentObject(SpeciesStore())
+    .environmentObject(User())
 }
