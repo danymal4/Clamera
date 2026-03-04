@@ -17,7 +17,6 @@ struct CatchManageView: View {
     @State private var previewPoints: Int? = nil   // ✅ now stored state
     
     @EnvironmentObject var user: User
-    @EnvironmentObject var speciesStore: SpeciesStore
     
     var selectedUIImage: UIImage?
     
@@ -26,7 +25,7 @@ struct CatchManageView: View {
     var speciesSuggestions: [Species] {
         if species.isEmpty { return [] }
 
-        let filtered = speciesStore.speciesList
+        let filtered = user.speciesStore.speciesList
             .filter { $0.name.lowercased().contains(species.lowercased()) }
             .sorted { $0.name < $1.name }
 
@@ -91,7 +90,7 @@ struct CatchManageView: View {
                         .onChange(of: species) { newValue in
                             showSpeciesSuggestions = !newValue.isEmpty
                             
-                            guard let index = speciesStore.speciesList.firstIndex(where: {
+                            guard let index = user.speciesStore.speciesList.firstIndex(where: {
                                 $0.name.lowercased() ==
                                 newValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                             }) else {
@@ -99,16 +98,16 @@ struct CatchManageView: View {
                                 return
                             }
                             
-                            let fishList = speciesStore.speciesList[index].fishList
+                            let fishList = user.speciesStore.speciesList[index].fishList
                             let fishCount = fishList.count
                             
                             // ✅ Safe previousFishDate
                             let previousFishDate: Date? = fishCount > 0 ? fishList[fishCount - 1].dateCaught : nil
                             
                             let totalOfSpecies = fishCount + 1   // the fish being added
-                            let totalOtherFish = max(speciesStore.getFish() - fishCount, 0)
+                            let totalOtherFish = max(user.speciesStore.getFish() - fishCount, 0)
                             
-                            previewPoints = speciesStore.calculateClamPoints(
+                            previewPoints = user.speciesStore.calculateClamPoints(
                                 totalOfSpecies: totalOfSpecies,
                                 totalOtherFish: totalOtherFish,
                                 previousFishDate: previousFishDate
@@ -217,7 +216,7 @@ struct CatchManageView: View {
     }
     
     func saveCatch() {
-        guard let index = speciesStore.speciesList.firstIndex(where: {
+        guard let index = user.speciesStore.speciesList.firstIndex(where: {
             $0.name.lowercased() ==
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else {
@@ -238,30 +237,30 @@ struct CatchManageView: View {
         }
         
         // Add the fish to the list
-        speciesStore.speciesList[index].fishList.append(
+        user.speciesStore.speciesList[index].fishList.append(
             Fish(photo: photoFilename,
-                 speciesName: speciesStore.speciesList[index].name,
+                 speciesName: user.speciesStore.speciesList[index].name,
                  description: info,
                  fishWeight: weight)
         )
         
         // ✅ Calculate points and commit them now
-        let fishIndex = speciesStore.speciesList[index].fishList.count
+        let fishIndex = user.speciesStore.speciesList[index].fishList.count
         let previousFishDate: Date? =
             fishIndex > 1
-            ? speciesStore.speciesList[index].fishList[fishIndex - 2].dateCaught
+        ? user.speciesStore.speciesList[index].fishList[fishIndex - 2].dateCaught
             : nil
         
         let totalOfSpecies = fishIndex
-        let totalOtherFish = speciesStore.getFish() - 1  // exclude this new fish
+        let totalOtherFish = user.speciesStore.getFish() - 1  // exclude this new fish
         
-        let points = speciesStore.calculateClamPoints(
+        let points = user.speciesStore.calculateClamPoints(
             totalOfSpecies: totalOfSpecies,
             totalOtherFish: totalOtherFish,
             previousFishDate: previousFishDate
         )
         
-        speciesStore.totalClamPoints += points
+        user.speciesStore.totalClamPoints += points
         
         // Close editor
         editState = .notEditing
@@ -295,6 +294,5 @@ struct CatchManageView: View {
         editState: Binding.constant(.editing),
         selectedUIImage: UIImage(systemName: "photo")
     )
-    .environmentObject(SpeciesStore())
     .environmentObject(User())
 }

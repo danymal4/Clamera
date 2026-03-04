@@ -18,7 +18,6 @@ enum EditState {
 
 struct BubbleView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquariumState: AquariumState
     @State private var yOffset: CGFloat = 0
     @State private var opacity: Double = 0
     @State private var animationActive = true
@@ -48,11 +47,11 @@ struct BubbleView: View {
             .fill(Color.white.opacity(0.3))
             .overlay(
                     Circle()
-                        .fill(Color.green.opacity(aquariumState.clean * 0.6 * aquariumState.bubbleVisibility))
+                        .fill(Color.green.opacity(user.aquariumState.clean * 0.6 * user.aquariumState.bubbleVisibility))
                 )
             .frame(width: size, height: size)
             .position(x: xPosition, y: yOffset)
-            .opacity(opacity * aquariumState.bubbleVisibility)
+            .opacity(opacity * user.aquariumState.bubbleVisibility)
            
         
         
@@ -96,8 +95,6 @@ struct BubbleView: View {
 
 struct AquariumView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquariumState: AquariumState
-    @EnvironmentObject var aquarium: AquariumFishList
 
     @State var editState: EditState = .notEditing
     @State private var bubbleRefreshID = UUID()
@@ -114,18 +111,16 @@ struct AquariumView: View {
 
            
                 AquariumBackgroundView()
-                    .environmentObject(aquariumState)
                     .environmentObject(user)
 
                 
               
                 BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(aquariumState)
                     .environmentObject(user)
                     .offset(y: 645)
 
              
-                FishMoveView(aquarium: aquarium).opacity(1 - aquariumState.clean).offset(y: -70).scaleEffect(1.6)
+                FishMoveView(aquarium: user.aquarium).opacity(1 - user.aquariumState.clean).offset(y: -70).scaleEffect(1.6)
                 
    
                 Rectangle()
@@ -164,7 +159,6 @@ struct AquariumView: View {
 
 struct AquariumBackgroundView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquariumState: AquariumState
 
     var body: some View {
         
@@ -197,13 +191,13 @@ struct AquariumBackgroundView: View {
                            height: min(UIScreen.main.bounds.width * 0.5, 2000))
                     .padding(.top, 520 + ((UIScreen.main.bounds.width - 302) * 0.3))
                     .padding(.horizontal, 50)
-                    .opacity(0.95 - (aquariumState.clean * 0.25))
+                    .opacity(0.95 - (user.aquariumState.clean * 0.25))
 
                
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.green)
-                    .opacity(aquariumState.clean)
+                    .opacity(user.aquariumState.clean)
                     .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
                            height: min(UIScreen.main.bounds.height * 1, 2000))
                     .padding(.top, -58)
@@ -214,18 +208,18 @@ struct AquariumBackgroundView: View {
                 HStack {
                 Spacer()
                     Button {
-                        aquariumState.cleanNow()
+                        user.aquariumState.cleanNow()
                     } label: {
                         Image("brush")
                             .resizable()
                             .frame(width: min(UIScreen.main.bounds.width * 0.22, 2000),
                                    height: min(UIScreen.main.bounds.width * 0.22, 700))
-                            .opacity(aquariumState.clean > 0 ? min(aquariumState.clean * 2.5, 1) : 0)
-                            .animation(.easeInOut(duration: 0.7), value: aquariumState.clean)
+                            .opacity(user.aquariumState.clean > 0 ? min(user.aquariumState.clean * 2.5, 1) : 0)
+                            .animation(.easeInOut(duration: 0.7), value: user.aquariumState.clean)
                     }
                     .padding(.top, -385)
                     .padding(.horizontal, 395)
-                    .disabled(aquariumState.clean <= 0)
+                    .disabled(user.aquariumState.clean <= 0)
                 }
             }
         
@@ -235,16 +229,14 @@ struct AquariumBackgroundView: View {
 
 struct BubbleLayerView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquariumState: AquariumState
     let topY: CGFloat
     let bottomY: CGFloat
     @Binding var refreshID: UUID
 
     var body: some View {
-        ForEach(0..<Int(24 * aquariumState.bubbleAmount), id: \.self) { _ in
+        ForEach(0..<Int(24 * user.aquariumState.bubbleAmount), id: \.self) { _ in
             BubbleView(topY: topY, bottomY: bottomY)
                 .id(refreshID)
-                .environmentObject(aquariumState)
                 .environmentObject(user)
         }
     }
@@ -256,7 +248,5 @@ struct BubbleLayerView: View {
 
 #Preview {
     AquariumView()
-        .environmentObject(AquariumFishList())
-        .environmentObject(AquariumState())
         .environmentObject(User())
 }

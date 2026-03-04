@@ -2,8 +2,6 @@ import SwiftUI
 
 struct AquariumManageView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var aquariumState: AquariumState
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
     @State private var selectedFish: Int = -1
@@ -538,7 +536,7 @@ Spacer()
             user.aquariumState.markActive("manage")
         }
         .onDisappear {
-            user.aquariumState.updatePendingClean(to: aquariumState.clean)
+            user.aquariumState.updatePendingClean(to: user.aquariumState.clean)
 
             user.aquariumState.markInactive("manage")
             
@@ -559,8 +557,6 @@ extension Array {
 
 #Preview {
     AquariumManageView()
-        .environmentObject(AquariumFishList())
-        .environmentObject(AquariumState())
         .environmentObject(User())
 
 }

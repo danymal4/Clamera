@@ -20,9 +20,6 @@ struct FishData: Codable, Identifiable {
 struct AlbumView: View {
     
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var speciesStore: SpeciesStore
-
     @State private var searchText: String = ""
     @State private var showSuggestions: Bool = false
     @State private var showSearch: Bool = false
@@ -277,7 +274,5 @@ struct SpeciesGridItem: View {
 // MARK: - Preview
 #Preview {
     AlbumView()
-        .environmentObject(AquariumFishList())
-        .environmentObject(SpeciesStore())
         .environmentObject(User())
 }

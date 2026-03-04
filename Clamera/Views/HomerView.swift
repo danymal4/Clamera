@@ -23,9 +23,6 @@ import SwiftUI
 
 struct HomerView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var speciesStore: SpeciesStore
-    @EnvironmentObject var aquariumState: AquariumState
 
     @StateObject private var tabRouter = TabRouter()
     @State private var cleanTimer: Timer?
@@ -58,13 +55,13 @@ struct HomerView: View {
             NavigationStack {
                 AquariumView()
                     .onAppear {
-                        aquariumState.markActive("aquarium")
+                        user.aquariumState.markActive("aquarium")
                         lastUpdate = Date()
-                        aquariumState.commitPendingClean()
+                        user.aquariumState.commitPendingClean()
                       
                     }
                     .onDisappear {
-                        aquariumState.markInactive("aquarium")
+                        user.aquariumState.markInactive("aquarium")
                     }
             }
             .tag(ViewState.aquarium)
@@ -80,9 +77,6 @@ struct HomerView: View {
 
         }
         .environmentObject(tabRouter)
-        .environmentObject(aquarium)
-        .environmentObject(aquariumState)
-        .environmentObject(speciesStore)
         .environmentObject(user)
         .onAppear { startCleanTimer() }
         .onDisappear {
@@ -93,7 +87,7 @@ struct HomerView: View {
             // Commit pending clean when switching back to Aquarium
             if newState == .aquarium {
                 lastUpdate = Date()
-                aquariumState.commitPendingClean()
+                user.aquariumState.commitPendingClean()
             }
         }
     }
@@ -110,14 +104,14 @@ struct HomerView: View {
             self.lastUpdate = now
 
             // Only increment live clean if any active screen (Aquarium or Manage) is present
-            if aquariumState.isActiveScreen {
-                let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.updateClean(by: increment)
+            if user.aquariumState.isActiveScreen {
+                let increment = user.aquariumState.maxClean / totalDuration * delta
+                user.aquariumState.updateClean(by: increment)
             } else {
                 // Accumulate pending clean when no active screens
-                let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.updatePendingClean(
-                    to: min(aquariumState.pendingClean + increment, aquariumState.maxClean)
+                let increment = user.aquariumState.maxClean / totalDuration * delta
+                user.aquariumState.updatePendingClean(
+                    to: min(user.aquariumState.pendingClean + increment, user.aquariumState.maxClean)
                 )
             }
         }
@@ -126,8 +120,5 @@ struct HomerView: View {
 
 #Preview {
     HomerView()
-        .environmentObject(AquariumFishList())
-        .environmentObject(SpeciesStore())
-        .environmentObject(AquariumState())
         .environmentObject(User())
 }
