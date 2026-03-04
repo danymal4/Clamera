@@ -248,9 +248,13 @@ struct SpeciesGridItem: View {
             .opacity(clickable ? 1.0 : 0.6)
             .brightness(clickable ? -0.15 : 0)
             HStack(spacing: 4) {
+                let imageName = "\(species.name)Icon"
+                let imageExists = UIImage(named: imageName) != nil
+
+                    
                 Text(species.name)
                     .font(.system(size: 18, weight: .bold))   // base size
-                    .foregroundColor(.white)
+                    .foregroundColor(imageExists ? .blue : .white)
                     .minimumScaleFactor(0.5)                  // allows shrinking to 50%
                     .lineLimit(2)                             // keep it on one line
                     .allowsTightening(true)                   // slightly tighter spacing if needed
