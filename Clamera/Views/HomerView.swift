@@ -30,14 +30,7 @@ struct HomerView: View {
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
 
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
-        UITabBar.appearance().standardAppearance = appearance
-        if #available(iOS 15.0, *) {
-            UITabBar.appearance().scrollEdgeAppearance = appearance
-        }
-    }
+
 
     var body: some View {
         TabView(selection: $tabRouter.viewState) {

@@ -16,6 +16,12 @@ final class SpeciesStore: ObservableObject {
         loadFromJSON()
     }
     
+  
+    convenience init(previewSpecies: [Species]) {
+        self.init()
+        self.speciesList = previewSpecies
+    }
+    
     private func loadFromJSON() {
         guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
             print("❌ Could not find fish_data.json")
