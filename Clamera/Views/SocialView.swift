@@ -7,6 +7,8 @@
 
 import SwiftUI
 struct SocialView: View {
+    @EnvironmentObject var user: User
+    
     var body: some View {
         ZStack {
       
@@ -30,20 +32,20 @@ struct SocialView: View {
                     }
                     
                     label: {
-                   
+    
                         ZStack{
                        
                             socialCard()
                             
                             HStack{
-                            Image("friends").resizable()  .frame(
-                                width: min(UIScreen.main.bounds.width * 0.15, 180),
-                                height: min(UIScreen.main.bounds.width * 0.15, 180)
-                            ).colorMultiply(.black)
-                            
-                            Text("Friends").bold().foregroundStyle(.black).padding(.horizontal)
-                            Spacer()
-                        }.padding(.horizontal)
+                                Image("friends").resizable()  .frame(
+                                    width: min(UIScreen.main.bounds.width * 0.15, 180),
+                                    height: min(UIScreen.main.bounds.width * 0.15, 180)
+                                ).colorMultiply(.black)
+                                
+                                Text("Friends").bold().foregroundStyle(.black).padding(.horizontal)
+                                Spacer()
+                            }.padding(.horizontal)
                         
                        
                        
@@ -75,7 +77,7 @@ struct SocialView: View {
                             .padding(.horizontal)
                         }
                     }
-                   
+                    .environmentObject(user)
 
                     
                     Button {
@@ -119,4 +121,5 @@ struct SocialView: View {
 
 #Preview {
     SocialView()
+        .environmentObject(User())
 }
