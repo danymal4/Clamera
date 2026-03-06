@@ -10,6 +10,7 @@ struct SpeciesListView: View {
 
     @ObservedObject var aquarium: AquariumFishList
     @ObservedObject var speciesStore: SpeciesStore
+    @State private var refreshID = UUID()
     let speciesIndex: Int
 
     enum FilterOption: String, CaseIterable, Identifiable {
@@ -20,7 +21,7 @@ struct SpeciesListView: View {
 
     @State private var selectedFilter: FilterOption = .oldest
     @State private var showPinnedOnly: Bool = false
-    @State private var refreshID = false
+
 
     var species: Species {
         speciesStore.speciesList[speciesIndex]
@@ -28,18 +29,22 @@ struct SpeciesListView: View {
 
     // filter mechanic
     var filteredFish: [Fish] {
+        // Start from the species' fish list
         var fish = species.fishList
+
+        // Exclude deleted fish
+        fish = fish.filter { !$0.isDeleted }
 
         // Sort by filter
         if selectedFilter == .newest {
             fish.reverse()
         }
 
-        // Always show pinned fish; optionally hide unpinned fish if showPinnedOnly is true
+        // Filter pinned if requested
         if showPinnedOnly {
-            fish = fish.filter { !$0.isPinned }
+            fish = fish.filter { $0.isPinned }
         }
-        
+
         return fish
     }
 
@@ -225,95 +230,102 @@ struct SpeciesListView: View {
 
 // Updated FishGridItem with toggle closure
 struct FishGridItem: View {
-    var fish: Fish
+    @ObservedObject var fish: Fish
     let clickable: Bool
     var onTogglePinned: (() -> Void)? // <- new callback
+  
 
     private var cardWidth: CGFloat { UIScreen.main.bounds.width - 32 }
     private var cardHeight: CGFloat { cardWidth * 0.35 }
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 25)
-                .fill(Color.white)
-                .frame(width: cardWidth, height: cardWidth * 0.45)
-                .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
-                .shadow(color: .black.opacity(0.03), radius: 2, y: 1)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 25)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
-                )
-
-            HStack(spacing: 20) {
-                VStack {
-                  
-                    Image(fishPhoto: fish.photo)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: cardHeight, height: cardHeight)
-                        .cornerRadius(16)
-                        .clipped()
-                        .opacity(clickable ? 1.0 : 0.4)
-                        .shadow(color: .black.opacity(0.08), radius: 8, y: 4).padding(.top, 11)
-                       
-                    Spacer()
+        if !fish.isDeleted {
+            ZStack {
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.white)
+                    .frame(width: cardWidth, height: cardWidth * 0.45)
+                    .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+                    .shadow(color: .black.opacity(0.03), radius: 2, y: 1)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                    )
+                
+                HStack(spacing: 20) {
+                    VStack {
+                        
+                        Image(fishPhoto: fish.photo)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: cardHeight, height: cardHeight)
+                            .cornerRadius(16)
+                            .clipped()
+                            .opacity(clickable ? 1.0 : 0.4)
+                            .shadow(color: .black.opacity(0.08), radius: 8, y: 4).padding(.top, 11)
+                        
+                        Spacer()
+                        
+                    }
                     
-                }
-            
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        if let weight = fish.fishWeight {
-                            Text("\(weight) lbs")
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            if let weight = fish.fishWeight {
+                                Text("\(weight) lbs")
+                                    .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                                    .bold()
+                                    .foregroundColor(.black.opacity(0.85))
+                            }
+                            
+                            Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .bold()
-                                .foregroundColor(.black.opacity(0.85))
+                                .foregroundColor(.black.opacity(0.6))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .allowsTightening(true)
+                            
+                            Spacer()
+                            
+                            Button {
+                                onTogglePinned?()
+                                                      } label: {
+                                Image(fish.isPinned ? "anchorUnpinned" : "anchor")
+                                    .resizable()
+                                    .frame(
+                                        width: min(UIScreen.main.bounds.width * 0.08, 180),
+                                        height: min(UIScreen.main.bounds.width * 0.1, 180)
+                                    )
+                                    .scaleEffect(fish.isPinned ? 1.0 : 0.95)
+                                    .opacity(fish.isPinned ? 1.0 : 0.8)
+                            }
+                            .padding(.top)
                         }
-
-                        Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
-                            .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                            .bold()
-                            .foregroundColor(.black.opacity(0.6))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .allowsTightening(true)
-
+                        
+                        Text(fish.description)
+                            .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                            .foregroundColor(.black.opacity(0.65))
+                            .lineLimit(2)
+                        
                         Spacer()
-
-                        Button {
-                            onTogglePinned?() // <- toggles pin in parent
-                        } label: {
-                            Image(fish.isPinned ? "anchorUnpinned" : "anchor")
-                                .resizable()
-                                .frame(
-                                    width: min(UIScreen.main.bounds.width * 0.08, 180),
-                                    height: min(UIScreen.main.bounds.width * 0.1, 180)
-                                )
-                                .scaleEffect(fish.isPinned ? 1.0 : 0.95)
-                                .opacity(fish.isPinned ? 1.0 : 0.8)
+                        
+                        HStack {
+                            Spacer()
+                            Button {
+                                fish.isDeleted = true
+                                
+                            } label: {
+                                Image(systemName: "trash.fill")
+                                    .foregroundColor(.red.opacity(0.85))
+                            }
+                            .padding(.bottom)
                         }
-                        .padding(.top)
                     }
-
-                    Text(fish.description)
-                        .font(.system(size: UIScreen.main.bounds.width * 0.035))
-                        .foregroundColor(.black.opacity(0.65))
-                        .lineLimit(2)
-
-                    Spacer()
-
-                    HStack {
-                        Spacer()
-                        Button { } label: {
-                            Image(systemName: "trash.fill")
-                                .foregroundColor(.red.opacity(0.85))
-                        }
-                        .padding(.bottom)
-                    }
+                    
                 }
-
+                .padding(.horizontal, 12)
+                
             }
-            .padding(.horizontal, 12)
         }
     }
 }
