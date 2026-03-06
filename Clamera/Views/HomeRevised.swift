@@ -233,22 +233,13 @@ struct HomeRevised: View {
                     floatUpDown.toggle()
                 }
             }
-            
-            
-            // MARK: Bottom Tab Bar
-            Rectangle()
-                .fill(Color.white)
-                .overlay(Color.blue.opacity(0.06))
-                .frame(height: ui.height * 0.112)
-                .shadow(color: .black.opacity(0.1), radius: 10)
-                .ignoresSafeArea(edges: .bottom)
-                .padding(.bottom, -250)
+ 
         }
         .background(
             ZStack {
-                Color.blue.opacity(0.08).edgesIgnoringSafeArea(.top)
+                Color.blue.opacity(0.01).edgesIgnoringSafeArea(.top)
 
-                    WaterView().opacity(0.3)
+                WaterView().opacity(0.3).offset(y: -400)
             }
         )
     }

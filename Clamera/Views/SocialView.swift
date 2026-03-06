@@ -12,7 +12,7 @@ struct SocialView: View {
     var body: some View {
         ZStack {
       
-            WaterView().opacity(0.3)
+            
             IconView()
             
             VStack(spacing: 40) {
@@ -107,20 +107,13 @@ struct SocialView: View {
                 }
                 .padding(.horizontal)
             }
-        }.background(Color.blue.opacity(0.08))
-        .overlay(
-            VStack {
-                Spacer()
-                Rectangle()
-                    .fill(Color.white.opacity(0.6))
-                    .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
-            }.edgesIgnoringSafeArea(.bottom)
-        )
+        }.background(Color.blue.opacity(0.01))
+       
     }
     
     private func socialCard() -> some View {
         RoundedRectangle(cornerRadius: 30)
-            .fill(Color.white.opacity(0.6))
+            .fill(Color.white.opacity(0.9))
             .frame(height: UIScreen.main.bounds.width * 0.35)
             .shadow(color: .black.opacity(0.1), radius: 10)
     }

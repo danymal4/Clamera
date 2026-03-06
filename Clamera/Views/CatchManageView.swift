@@ -195,16 +195,8 @@ struct CatchManageView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(.cyan)
-            .padding(.horizontal)
-            
-            
-            VStack {
-                
-                Rectangle()
-                    .fill(Color.white).overlay(Color.blue.opacity(0.02))
-                    .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
-            }.padding(.bottom, -85)
-                .edgesIgnoringSafeArea(.bottom)
+            .padding(.horizontal).padding(.vertical)
+  
             
             
         }
