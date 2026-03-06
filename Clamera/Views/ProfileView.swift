@@ -30,8 +30,6 @@ struct ProfileView: View {
                                                                                                                                                             height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.bottom, -10)
                 
                 Text("Ellis").padding(.top, -38).font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold().padding(.top, 10).opacity(0.9)
-                
-                
              
                 ZStack {
                     
@@ -52,7 +50,7 @@ struct ProfileView: View {
                     HStack(){
                         
                         VStack{
-                            Text("email:     s019204@gmail.com ")
+                            Text("email:     s012345@​gmail.com ")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(

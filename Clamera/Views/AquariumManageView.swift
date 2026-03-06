@@ -94,7 +94,7 @@ struct AquariumManageView: View {
                                 .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15 - 5)
                             Spacer()
                         }
-                        .padding(.horizontal, 75).padding(.top, -115)
+                        .padding(.horizontal, 50).padding(.top, -115)
                         
                         
                         
@@ -261,7 +261,7 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Button {
                                             withAnimation(.easeInOut) {
-                                                aquarium.removeFish(with: fish.imageName)
+                                                user.aquarium.removeFish(with: fish.imageName)
                                                 swipedIndex = nil
                                             }
                                         } label: {

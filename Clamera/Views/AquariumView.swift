@@ -105,25 +105,29 @@ struct AquariumView: View {
 
     var body: some View {
        
-            ZStack {
-                
-               
-               
+        ZStack {
 
-           
-                AquariumBackgroundView()
-                    .environmentObject(user)
+            AquariumBackgroundView()
+                .environmentObject(user)
 
-                
-              
-                BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(user)
-                    .offset(y: 645)
+            BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
+                .environmentObject(user)
+                .offset(y: 645)
 
-             
-                FishMoveView(aquarium: user.aquarium).opacity(1 - user.aquariumState.clean).offset(y: -70).scaleEffect(1.6)
-                
-   
+            FishMoveView(aquarium: user.aquarium)
+                .opacity(1 - user.aquariumState.clean)
+                .offset(y: -70)
+                .scaleEffect(1.6)
+
+            Rectangle()
+                .cornerRadius(5)
+                .foregroundStyle(.blue)
+                .opacity(0.14)
+                .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                       height: min(UIScreen.main.bounds.height * 1, 2000))
+                .padding(.top, -58)
+
+            VStack {
                 Rectangle()
                     .fill(Color.white)
                     .frame(height: 83)
