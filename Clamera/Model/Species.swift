@@ -7,15 +7,24 @@
 
 import SwiftUI
 
-struct Species: Identifiable, Hashable {
+class Species: Identifiable, ObservableObject {
     let id: String   // stable ID = species name
     let name: String
     let imageName: String
     let icon: String
-    var fishList: [Fish]
+    @Published var fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
 
+    func update() {
+        for i in 1...fishList.count {
+            var index = fishList.count-i
+            if fishList[index].isDeleted {
+                fishList.remove(at:index)
+            }
+        }
+    }
+    
     func getFishPhotos() -> [String] {
         fishList.map { $0.photo }
     }

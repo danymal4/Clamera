@@ -9,10 +9,6 @@ import SwiftUI
 
 @main
 struct ClameraApp: App {
-    
-    @StateObject var aquarium = AquariumFishList()
-    @StateObject var speciesStore = SpeciesStore()
-    @StateObject var aquariumState = AquariumState()
     @StateObject var user = User()
     
     var body: some Scene {
@@ -20,9 +16,6 @@ struct ClameraApp: App {
             
               
                 HomerView()   // ← just reference it
-                    .environmentObject(aquarium)
-                    .environmentObject(speciesStore)
-                    .environmentObject(aquariumState)
                     .environmentObject(user)
         }
     }

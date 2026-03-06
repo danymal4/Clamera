@@ -118,7 +118,7 @@ struct AlbumView: View {
                                             destination: SpeciesListView(
                                                 aquarium: user.aquarium,
                                                 speciesStore: user.speciesStore,
-                                                speciesIndex: index
+                                                species: user.speciesStore.speciesList[index]
                                             )
                                         ) {
                                             SpeciesGridItem(species: item, clickable: true)

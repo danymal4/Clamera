@@ -10,8 +10,8 @@ struct SpeciesListView: View {
 
     @ObservedObject var aquarium: AquariumFishList
     @ObservedObject var speciesStore: SpeciesStore
+    @ObservedObject var species: Species
     @State private var refreshID = UUID()
-    let speciesIndex: Int
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
@@ -22,14 +22,10 @@ struct SpeciesListView: View {
     @State private var selectedFilter: FilterOption = .oldest
     @State private var showPinnedOnly: Bool = false
 
-
-    var species: Species {
-        speciesStore.speciesList[speciesIndex]
-    }
-
     // filter mechanic
     var filteredFish: [Fish] {
         // Start from the species' fish list
+        species.update()
         var fish = species.fishList
 
         // Exclude deleted fish
@@ -172,34 +168,16 @@ struct SpeciesListView: View {
                     .padding(.vertical, 6)
 
                     // Fish Cards
-                    VStack(spacing: 10) {
-                        ForEach(filteredFish) { fish in
-                            if let fishBinding = binding(for: fish) {
-                                NavigationLink(
-                                    destination: FishDetailsView(
-                                        speciesStore: speciesStore,
-                                        aquarium: aquarium,
-                                        fishID: fish.id
-                                    )
-                                ) {
-                                    FishGridItem(fish: fish, clickable: true) {
-                                        fishBinding.isPinned.wrappedValue.toggle() // <-- WORKING ANCHOR
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 15)
-                    .padding(.bottom, 120)
+                    GridListView(aquarium: aquarium, speciesStore: speciesStore, species: species, filteredFish: filteredFish)
                 }
             }
 
        
         }
         .background(Color.blue.opacity(0.01))
+        
     }
-
+        
     // MARK: - Binding Helper
     private func binding(for fish: Fish) -> Binding<Fish>? {
         guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
@@ -228,8 +206,51 @@ struct SpeciesListView: View {
     }
 }
 
+struct GridListView: View {
+    @ObservedObject var aquarium: AquariumFishList
+    @ObservedObject var speciesStore: SpeciesStore
+    @ObservedObject var species: Species
+    @State var filteredFish: [Fish]
+    
+    var body: some View {
+        VStack {
+            ForEach(filteredFish) { fish in
+                if let fishBinding = binding(for: fish) {
+                    NavigationLink(
+                        destination: FishDetailsView(
+                            speciesStore: speciesStore,
+                            aquarium: aquarium,
+                            fishID: fish.id
+                        )
+                    ) {
+                        FishGridItem(species: species, fish: fish, clickable: true) {
+                            fishBinding.isPinned.wrappedValue.toggle() // <-- WORKING ANCHOR
+                        }.onAppear {
+                            species.update()
+                        }
+            
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.horizontal, 15)
+        .padding(.bottom, 120)
+    }
+    
+    private func binding(for fish: Fish) -> Binding<Fish>? {
+        guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
+              let fishIdx = speciesStore.speciesList[speciesIdx]
+                .fishList.firstIndex(where: { $0.id == fish.id }) else {
+            return nil
+        }
+        return $speciesStore.speciesList[speciesIdx].fishList[fishIdx]
+    }
+}
+
 // Updated FishGridItem with toggle closure
 struct FishGridItem: View {
+    @ObservedObject var species: Species
     @ObservedObject var fish: Fish
     let clickable: Bool
     var onTogglePinned: (() -> Void)? // <- new callback
@@ -313,7 +334,6 @@ struct FishGridItem: View {
                             Spacer()
                             Button {
                                 fish.isDeleted = true
-                                
                             } label: {
                                 Image(systemName: "trash.fill")
                                     .foregroundColor(.red.opacity(0.85))
@@ -326,6 +346,7 @@ struct FishGridItem: View {
                 .padding(.horizontal, 12)
                 
             }
+            .padding(.bottom, 5)
         }
     }
 }
@@ -409,7 +430,7 @@ struct SmallRoundedCard: View {
         SpeciesListView(
             aquarium: aquarium,
             speciesStore: store,
-            speciesIndex: 0
+            species: store.speciesList[0]
         )
     }
 }
