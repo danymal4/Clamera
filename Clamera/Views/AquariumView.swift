@@ -108,14 +108,14 @@ struct AquariumView: View {
         ZStack {
 
             AquariumBackgroundView()
-                .environmentObject(aquariumState)
+                .environmentObject(user)
 
             BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                .environmentObject(aquariumState)
+                .environmentObject(user)
                 .offset(y: 645)
 
-            FishMoveView(aquarium: aquarium)
-                .opacity(1 - aquariumState.clean)
+            FishMoveView(aquarium: user.aquarium)
+                .opacity(1 - user.aquariumState.clean)
                 .offset(y: -70)
                 .scaleEffect(1.6)
 
