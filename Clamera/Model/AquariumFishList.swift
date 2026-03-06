@@ -50,6 +50,15 @@ final class AquariumFishList: ObservableObject {
         refreshID.toggle() // just flips true/false to trigger a redraw
     }
 
+    func checkAll() -> Bool {
+      var ifAllActive = true
+        for AquariumFish in fish {
+            if !AquariumFish.isActive {
+                ifAllActive = false
+            }
+        }
+   return ifAllActive
+    }
     
     
     func updateSpeed(for fish: AquariumFish, to newDuration: Double) {

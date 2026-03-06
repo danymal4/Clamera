@@ -84,19 +84,11 @@ struct AlbumView: View {
                     
                     IconView()
                     
-                    HStack {
-                        Spacer()
-                        Text("\(filteredSpecies.count) species")
-                            .padding(.top, 150)
-                            .font(.caption)
-                            .opacity(0.3)
-                            .padding(.horizontal, 110)
-                            .padding(.top, 5)
-                    }
+                  
                     
                     VStack(spacing: 20) {
                         Text("Album")
-                            .font(.custom("AkayaTelivigala-regular", size: 90))
+                            .font(.custom("AkayaTelivigala-regular", size: 50))
                             .foregroundStyle(.blue)
                             .padding(.top)
                             .opacity(0.8)
@@ -147,18 +139,41 @@ struct AlbumView: View {
                 Spacer()
                 
                 ZStack(alignment: .trailing) {
+                    ZStack{
                     HStack {
                         TextField("Search", text: $searchText)
                             .foregroundColor(.black)
                             .padding(.leading, 5)
                             .frame(height: 55)
-                            .background(Color.white.opacity(0.95).overlay(Color.blue.opacity(0.02))).shadow(color: .black.opacity(0.1), radius: 10)
+                            .background(Color.white.opacity(1)).shadow(color: .black.opacity(0.1), radius: 10)
                             .cornerRadius(40)
                             .opacity(showSearch ? 1 : 0)
                             .onChange(of: searchText) { newValue in
                                 showSuggestions = !newValue.isEmpty
+                                
+                            
+                                 
                             }
                         Spacer()
+                            }
+                           
+                        
+                        
+                        HStack{
+                         
+                            Text("\(filteredSpecies.count) species")
+                            
+                                .font(.caption)
+                                .opacity(0.3)     .opacity(showSearch ? 0 : 0)
+                                .onChange(of: searchText) { newValue in
+                                    showSuggestions = !newValue.isEmpty
+                                    
+                                    
+                                }
+                            Spacer()
+                        }.padding(.horizontal, 80)
+                  
+                       
                     }
                     .padding(.horizontal, 20)
                     .offset(y: showSearch ? -5 : 100)
@@ -185,16 +200,10 @@ struct AlbumView: View {
                     .padding(.bottom, 10)
                 }
                 
-                Rectangle()
-                    .fill(Color.white)
-                    .overlay(Color.blue.opacity(0.06))
-                    .frame(height: 83)
-                    .edgesIgnoringSafeArea(.bottom)
-                    .padding(.bottom, -300)
-                    .shadow(color: .black.opacity(0.1), radius: 10)
+            
             }
         }
-        .background(Color.blue.opacity(0.08))
+        .background(Color.blue.opacity(0.01))
     }
     
     @ViewBuilder

@@ -23,7 +23,7 @@ struct CatchView: View {
         if editState == .notEditing {
             ZStack {
                
-                WaterView().opacity(0.3)
+              
                 IconView().padding(.top, 10)
                 
                 VStack(spacing: 20 * vScale) {
@@ -142,14 +142,8 @@ struct CatchView: View {
                 }
                 .padding(.top, 30 * vScale)
                 
-                VStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.white.opacity(0.6))
-                        .frame(height: 83)
-                }
-                .edgesIgnoringSafeArea(.bottom)
-            }.background(Color.blue.opacity(0.08)) .foregroundStyle(
+          
+            }.background(Color.blue.opacity(0.01)) .foregroundStyle(
                 LinearGradient(
                     colors: [
                         Color.black.opacity(0.6),

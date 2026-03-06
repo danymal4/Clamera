@@ -80,7 +80,7 @@ struct AquariumManageView: View {
                             .cornerRadius(30)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.9, 2000),
-                                height: isDropdown ? collapsedHeight : expandedHeight
+                                height: isDropdown ? collapsedHeight : expandedHeight + 10
                             )
                             .animation(.easeInOut(duration: 0.3), value: isDropdown)
                             .shadow(color: .black.opacity(0.1), radius: 10)
@@ -91,7 +91,7 @@ struct AquariumManageView: View {
                                 .opacity(0.5)
                                 .font(.system(size: UIScreen.main.bounds.width * 0.045))
                                 .bold()
-                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15)
+                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15 - 5)
                             Spacer()
                         }
                         .padding(.horizontal, 50).padding(.top, -115)
@@ -268,7 +268,7 @@ struct AquariumManageView: View {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.white)
                                                 .frame(width: 70, height: 61)
-                                                .background(Color.red)
+                                                .background(Color.red).cornerRadius(5)
                                         }
                                         .padding(.top, -12.5)
                                         .offset(x: swipedIndex == i ? 90 : 90)

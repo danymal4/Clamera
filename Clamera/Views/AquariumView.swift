@@ -98,55 +98,71 @@ struct AquariumView: View {
 
     @State var editState: EditState = .notEditing
     @State private var bubbleRefreshID = UUID()
+    @State private var showAquariumManage = false
 
     var aquariumTop: CGFloat { UIScreen.main.bounds.height * 0.435 }
     var aquariumBottom: CGFloat { UIScreen.main.bounds.height * 0.58 }
 
     var body: some View {
        
-            ZStack {
-                
-               
-               
+        ZStack {
 
-           
-                AquariumBackgroundView()
-                    .environmentObject(user)
+            AquariumBackgroundView()
+                .environmentObject(aquariumState)
 
-                
-              
-                BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
-                    .environmentObject(user)
-                    .offset(y: 645)
+            BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
+                .environmentObject(aquariumState)
+                .offset(y: 645)
 
-             
-                FishMoveView(aquarium: user.aquarium).opacity(1 - user.aquariumState.clean).offset(y: -70).scaleEffect(1.6)
-                
-   
+            FishMoveView(aquarium: aquarium)
+                .opacity(1 - aquariumState.clean)
+                .offset(y: -70)
+                .scaleEffect(1.6)
+
+            Rectangle()
+                .cornerRadius(5)
+                .foregroundStyle(.blue)
+                .opacity(0.14)
+                .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
+                       height: min(UIScreen.main.bounds.height * 1, 2000))
+                .padding(.top, -58)
+
+            VStack {
                 Rectangle()
-                    .cornerRadius(5)
-                    .foregroundStyle(.blue)
-                    .opacity(0.14)
-                    .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
-                           height: min(UIScreen.main.bounds.height * 1, 2000))
-                    .padding(.top, -58)
-                
-              
-                
-         
-                    VStack {
-                     
-                        Rectangle()
-                            .fill(Color.white)
-                            .frame(height: 83).overlay(Color.blue.opacity(0.06)).shadow(color: .black.opacity(0.1), radius: 10)
+                    .fill(Color.white)
+                    .frame(height: 83)
+                    .shadow(color: .black.opacity(0.1), radius: 10)
+            }
+            .edgesIgnoringSafeArea(.bottom)
+            .padding(.top, 812)
+
+            
+            // SETTINGS BUTTON
+            VStack {
+             
+
+                HStack {
+             
+Spacer()
+                    Button {
+                        showAquariumManage = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(.white)
+                            .padding(14)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
                     }
-                    .edgesIgnoringSafeArea(.bottom).padding(.top, 812)
-                
-                
-                
-                
-              
-            }.background(Color.blue.opacity(0.08))
+                    .padding(.trailing, 400)
+                    .padding(.top, 640)
+                }
+            }
+
+        }
+        .sheet(isPresented: $showAquariumManage) {
+            AquariumManageView()
+        }.background(Color.blue.opacity(0.08))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
                     bubbleRefreshID = UUID()
