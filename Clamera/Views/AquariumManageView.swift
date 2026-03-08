@@ -241,7 +241,7 @@ struct AquariumManageView: View {
                                                             aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
                                                         }
                                                     ),
-                                                    in: 20...150
+                                                    in: 20...200
                                                 ).accentColor(.blue.opacity(0.6))
 
                                                 Image("big").resizable().frame(
