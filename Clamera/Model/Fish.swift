@@ -24,7 +24,7 @@ class Fish: Identifiable, ObservableObject, Hashable {
          speciesName: String,
          description: String = "cool fish I found with sam",
          dateCaught: Date = Date(),
-         isPinned: Bool = true,
+         isPinned: Bool = false,
          isAquarium: Bool = false,
          isDeleted: Bool = false,
          fishWeight: Int? = nil) {

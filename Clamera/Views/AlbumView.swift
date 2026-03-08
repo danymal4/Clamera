@@ -17,6 +17,7 @@ struct FishData: Codable, Identifiable {
 }
 
 // MARK: - Album View
+// MARK: - Album View
 struct AlbumView: View {
 
     @EnvironmentObject var aquarium: AquariumFishList
@@ -27,8 +28,6 @@ struct AlbumView: View {
     @State private var showSearch: Bool = false
     @State private var showHint: Bool = false
 
-
-    
     let columns = [
         GridItem(.flexible(), spacing: 4),
         GridItem(.flexible(), spacing: 4)
@@ -46,12 +45,10 @@ struct AlbumView: View {
     var filteredSpecies: [Species] {
         var filtered = speciesStore.speciesList
 
-        // Apply search text
         if !searchText.isEmpty {
             filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
         }
 
-        // Apply filter option
         switch selectedFilter {
         case .alphabetical:
             filtered.sort { $0.name < $1.name }
@@ -63,7 +60,6 @@ struct AlbumView: View {
             filtered.sort { $0.name < $1.name }
         }
 
-        // Remove duplicates (keep first occurrence)
         var seen = Set<String>()
         filtered = filtered.filter { species in
             if seen.contains(species.name) {
@@ -78,15 +74,11 @@ struct AlbumView: View {
     }
 
     var body: some View {
-       
         ZStack {
             ScrollView {
                 ZStack(alignment: .top) {
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-                    
                     IconView()
-                    
-                  
                     
                     VStack(spacing: 20) {
                         Text("Album")
@@ -95,7 +87,6 @@ struct AlbumView: View {
                             .padding(.top)
                             .opacity(0.8)
                         
-                        // Filter bar
                         ZStack {
                             HStack {}.background(
                                 RoundedRectangle(cornerRadius: 20)
@@ -119,16 +110,14 @@ struct AlbumView: View {
                                         NavigationLink(
                                             destination: SpeciesListView(
                                                 aquarium: aquarium,
-                                                speciesStore: speciesStore,
-                                                speciesIndex: index
+                                                species: speciesStore.speciesList[index]
                                             )
                                         ) {
-                                            SpeciesGridItem(species: item, clickable: true)
+                                            SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true) // ✅ pass ObservedObject
                                         }
                                     }
                                 } else {
-                                    SpeciesGridItem(species: item, clickable: false)
-                                 
+                                    SpeciesGridItem(species: item, clickable: false) // ✅ also observed
                                 }
                             }
                         }.padding(.horizontal, 15)
@@ -141,45 +130,22 @@ struct AlbumView: View {
                 Spacer()
                 
                 ZStack(alignment: .trailing) {
-                    ZStack{
                     HStack {
                         TextField("Search", text: $searchText)
                             .foregroundColor(.black)
                             .padding(.leading, 5)
                             .frame(height: 55)
-                            .background(Color.white.opacity(1)).shadow(color: .black.opacity(0.1), radius: 10)
+                            .background(Color.white.opacity(1))
+                            .shadow(color: .black.opacity(0.1), radius: 10)
                             .cornerRadius(40)
-                            .opacity(showSearch ? 1 : 0)
+                            .offset(y: showSearch ? 0 : 100) // ✅ Slide up from offscreen
+                            .animation(.easeInOut(duration: 0.3), value: showSearch)
                             .onChange(of: searchText) { newValue in
                                 showSuggestions = !newValue.isEmpty
-                                
-                            
-                                 
                             }
                         Spacer()
-                            }
-                           
-                        
-                        
-                        HStack{
-                         
-                            Text("\(filteredSpecies.count) species")
-                            
-                                .font(.caption)
-                                .opacity(0.3)     .opacity(showSearch ? 0 : 0)
-                                .onChange(of: searchText) { newValue in
-                                    showSuggestions = !newValue.isEmpty
-                                    
-                                    
-                                }
-                            Spacer()
-                        }.padding(.horizontal, 80)
+                    }.padding(.horizontal, 15)
                   
-                       
-                    }
-                    .padding(.horizontal, 20)
-                    .offset(y: showSearch ? -5 : 100)
-                    .animation(.easeInOut(duration: 0.3), value: showSearch)
                     
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -201,8 +167,6 @@ struct AlbumView: View {
                     .padding(.trailing, 35)
                     .padding(.bottom, 10)
                 }
-                
-            
             }
         }
         .background(Color.blue.opacity(0.01))
@@ -222,9 +186,9 @@ struct AlbumView: View {
     }
 }
 
-
+// MARK: - Species Grid Item
 struct SpeciesGridItem: View {
-    let species: Species
+    @ObservedObject var species: Species // ✅ change here
     let clickable: Bool
     
     private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
@@ -232,20 +196,15 @@ struct SpeciesGridItem: View {
     
     var body: some View {
         ZStack {
-            
-
             KFImage(
                 URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines))
             )
-            .placeholder { // optional placeholder while .placeholder {
-                // Show this while the image is loading or if the URL is invalid
+            .placeholder {
                 Image("stockPhoto")
                     .resizable()
                     .scaledToFill()
-            
-               
             }
-            .retry(maxCount: 3, interval: .seconds(5)) // retry a few times if needed
+            .retry(maxCount: 3, interval: .seconds(5))
             .resizable()
             .scaledToFill()
             .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
@@ -256,23 +215,22 @@ struct SpeciesGridItem: View {
             .cornerRadius(25)
             .opacity(clickable ? 1.0 : 0.6)
             .brightness(clickable ? -0.15 : 0)
+            
             HStack(spacing: 4) {
                 let imageName = "\(species.name)Icon"
                 let imageExists = UIImage(named: imageName) != nil
 
-                    
                 Text(species.name)
-                    .font(.system(size: 18, weight: .bold))   // base size
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(imageExists ? .blue : .white)
-                    .minimumScaleFactor(0.5)                  // allows shrinking to 50%
-                    .lineLimit(2)                             // keep it on one line
-                    .allowsTightening(true)                   // slightly tighter spacing if needed
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(2)
+                    .allowsTightening(true)
                 
                 if clickable {
-                    Text("(\(species.numberOfFish))")
+                    Text("(\(species.fishList.count))") // ✅ now updates live
                         .foregroundStyle(.white)
                         .font(.system(size: UIScreen.main.bounds.width * 0.035))
-                    
                 }
                 
                 Spacer()
@@ -280,9 +238,7 @@ struct SpeciesGridItem: View {
             .padding(.top, 135)
             .padding(.horizontal, 30)
         }
-      
         .shadow(color: .black.opacity(0.1), radius: 20)
-      
     }
 }
 

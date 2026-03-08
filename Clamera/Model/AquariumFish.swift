@@ -4,8 +4,8 @@
 //
 //  Created by Kaes van Dolder (student LM) on 3/2/26.
 //
-
 import SwiftUI
+
 
 final class AquariumFish: Identifiable, ObservableObject {
     let id = UUID()
@@ -15,9 +15,11 @@ final class AquariumFish: Identifiable, ObservableObject {
     let verticalRange: ClosedRange<CGFloat>
     @Published var swimDuration: Double
     let phaseOffset: Double
-    @Published var isActive : Bool
-    @Published var isShown : Bool
+    @Published var isActive: Bool
+    @Published var isShown: Bool
     
+    // Track which species this fish belongs to (String now)
+    var speciesID: String?
 
     init(
         imageName: String,
@@ -37,5 +39,6 @@ final class AquariumFish: Identifiable, ObservableObject {
         self.phaseOffset = phaseOffset
         self.isActive = isActive
         self.isShown = isShown
+        self.speciesID = nil
     }
 }

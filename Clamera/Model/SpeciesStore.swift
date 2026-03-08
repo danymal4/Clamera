@@ -84,6 +84,9 @@ final class SpeciesStore: ObservableObject {
     }
    
 
+    func refresh() {
+        objectWillChange.send()
+    }
         
     
 }
