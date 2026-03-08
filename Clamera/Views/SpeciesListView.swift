@@ -261,9 +261,16 @@ struct FishGridItem: View {
                     HStack(spacing: 8) {
 
                         if let weight = fish.fishWeight {
+                            let isHeaviest = fish == species.fishList.max(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) })
+
                             Text("\(weight) lbs")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .bold()
+                                .foregroundColor(isHeaviest ? .yellow : .primary)
+                                .shadow(color: isHeaviest ? .yellow.opacity(0.7) : .clear,
+                                        radius: isHeaviest ? 6 : 0,
+                                        x: 0, y: 0)
+                                .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isHeaviest)
                         }
 
                         Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
@@ -354,9 +361,9 @@ struct SmallRoundedCard: View {
     }
 }
 
-
 #Preview {
     let aquarium = AquariumFishList()
+    let speciesStore = SpeciesStore()
 
     let fish1 = Fish(
         photo: "clownfish1",
@@ -401,4 +408,5 @@ struct SmallRoundedCard: View {
             species: sampleSpecies
         )
     }
+    .environmentObject(speciesStore)
 }
