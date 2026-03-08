@@ -138,7 +138,7 @@ struct AlbumView: View {
                             .background(Color.white.opacity(1))
                             .shadow(color: .black.opacity(0.1), radius: 10)
                             .cornerRadius(40)
-                            .offset(y: showSearch ? 0 : 100) // ✅ Slide up from offscreen
+                            .offset(y: showSearch ? -6 : 100) // ✅ Slide up from offscreen
                             .animation(.easeInOut(duration: 0.3), value: showSearch)
                             .onChange(of: searchText) { newValue in
                                 showSuggestions = !newValue.isEmpty
@@ -165,7 +165,7 @@ struct AlbumView: View {
                             }
                     }
                     .padding(.trailing, 35)
-                    .padding(.bottom, 10)
+                    .padding(.bottom, 15)
                 }
             }
         }
