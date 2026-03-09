@@ -19,7 +19,7 @@ struct SpeciesListView: View {
         var id: String { rawValue }
     }
 
-    @State private var selectedFilter: FilterOption = .oldest
+    @State private var selectedFilter: FilterOption = .newest
     @State private var showPinnedOnly: Bool = false
 
     // MARK: - Filter mechanic
@@ -77,23 +77,18 @@ struct SpeciesListView: View {
 
                             // Add Fish
                             Button {
-                                if let heaviestAvailableFish = species.fishList
-                                     .filter({ !$0.isAquarium })       // only fish not added yet
-                                     .max(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) { // pick heaviest
+                                if let newestAvailableFish = species.fishList
+                                    .filter({ !$0.isAquarium })
+                                    .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                                     // 2. Add that fish to the aquarium
-                                     aquarium.addFish(
-                                         with: "\(species.name)Icon",
-                                         speciesID: species.id,
-                                         size: heaviestAvailableFish.getSize()
-                                     )
+                                    aquarium.addFish(
+                                        with: "\(species.name)Icon",
+                                        speciesID: species.id,
+                                        size: newestAvailableFish.getSize()
+                                    )
 
-                                     // 3. Mark it as added
-                                     heaviestAvailableFish.isAquarium = true
-                                 }
-
-                                 // 4. Refresh the aquarium display
-                                
+                                    newestAvailableFish.isAquarium = true
+                                }
 
                                 aquarium.refresh()
 
@@ -108,18 +103,25 @@ struct SpeciesListView: View {
 
                             // Remove Fish
                             Button {
-                                let activeAquariumFish = species.fishList.filter { $0.isAquarium }
-                                
-                                if let smallestFish = activeAquariumFish.min(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) {
+                                if let newestAquariumFish = species.fishList
+                                    .filter({ $0.isAquarium })
+                                    .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                                    aquarium.removeFish(
-                                        with: "\(species.name)Icon",
-                                        targetSize: smallestFish.getSize()
-                                    )
+                                    // deactivate matching aquarium fish manually
+                                    if let aquaFish = aquarium.fish.first(where: {
+                                        $0.isActive &&
+                                        $0.imageName == "\(species.name)Icon" &&
+                                        $0.size == newestAquariumFish.getSize()
+                                    }) {
+                                        aquaFish.isActive = false
+                                    }
 
-                                    smallestFish.isAquarium = false
+                                    // mark species fish as removed from aquarium
+                                    newestAquariumFish.isAquarium = false
+
                                     aquarium.refresh()
-                                }} label: {
+                                }
+                            } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
@@ -157,13 +159,15 @@ struct SpeciesListView: View {
 
                             HStack {
 
+                              
+                                filterButton(title: "Newest", selected: selectedFilter == .newest) {
+                                    selectedFilter = .newest
+                                }
+                                
                                 filterButton(title: "Oldest", selected: selectedFilter == .oldest) {
                                     selectedFilter = .oldest
                                 }
 
-                                filterButton(title: "Newest", selected: selectedFilter == .newest) {
-                                    selectedFilter = .newest
-                                }
 
                                 filterButton(title: "Pinned", selected: showPinnedOnly) {
                                     showPinnedOnly.toggle()
@@ -320,17 +324,22 @@ struct FishGridItem: View {
 
                                 let targetSize = fish.getSize()
 
-                                // Remove correct fish from aquarium
-                                aquarium.removeFish(
-                                    with: "\(species.name)Icon",
-                                    targetSize: targetSize
-                                )
+                                
+                                if fish.isAquarium {
+                                     aquarium.removeFish(
+                                         with: "\(species.name)Icon",
+                                         targetSize: targetSize
+                                     )
 
+                                     aquarium.refresh()
+                                 }
+                                
+                                
                                 // Remove from species list
                                 species.fishList.removeAll { $0.id == fish.id }
 
-                                // Refresh UI
-                                aquarium.refresh()
+                           
+                              
 
                             } label: {
                                 Image(systemName: "trash.fill")
