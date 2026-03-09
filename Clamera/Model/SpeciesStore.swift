@@ -11,7 +11,7 @@ final class SpeciesStore: ObservableObject {
     @Published var speciesList: [Species] = []
     @Published var totalClamPoints: Int = 0
     
-    // MARK: - Catch of the Week
+
     @Published var catchOfTheWeek: Species?
     @Published var catchOfTheWeekPoints: Int = Int.random(in: 30...40) * 5
     
@@ -28,7 +28,7 @@ final class SpeciesStore: ObservableObject {
     
     private func loadFromJSON() {
         guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
-            print("❌ Could not find fish_data.json")
+            print("Couldnt find fish_data.json")
             return
         }
         
@@ -36,7 +36,7 @@ final class SpeciesStore: ObservableObject {
             let data = try Data(contentsOf: url)
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
             
-            // Map FishData → Species
+        
             self.speciesList = decoded.map { fish in
                 Species(
                     name: fish.CommonName,
@@ -45,13 +45,13 @@ final class SpeciesStore: ObservableObject {
                 )
             }
             
-            print("✅ Loaded \(speciesList.count) species")
+            print("Loaded \(speciesList.count) species")
         } catch {
-            print("❌ JSON decode error:", error)
+            print("JSON error:", error)
         }
     }
     
-    // MARK: - Catch of the Week Assignment
+  
     func assignCatchOfTheWeek() {
         let validSpecies = speciesList.filter { species in
             let imageName = "\(species.name)Icon"
@@ -66,13 +66,13 @@ final class SpeciesStore: ObservableObject {
         catchOfTheWeek = validSpecies.randomElement()
     }
     
-    // Optional: get icon for Catch of the Week
+   
     func catchOfTheWeekIcon() -> String? {
         guard let species = catchOfTheWeek else { return nil }
         return "\(species.name)Icon"
     }
     
-    // MARK: - Clam Points Logic
+
     func calculateClamPoints(
         totalOfSpecies caughtFish: Int,
         totalOtherFish otherFish: Int,
@@ -99,7 +99,7 @@ final class SpeciesStore: ObservableObject {
         return Int((speciesPoints + timeBonus).rounded())
     }
     
-    // MARK: - Stats
+   
     func getSpecies() -> Int {
         speciesList.filter { !$0.fishList.isEmpty }.count
     }
@@ -112,9 +112,9 @@ final class SpeciesStore: ObservableObject {
         Int.random(in: 30...40) * 5
     }
 
-    // MARK: - Manual Refresh
+    
     func refresh() {
-        objectWillChange.send()   // triggers SwiftUI updates manually
+        objectWillChange.send()
     }
 }
     

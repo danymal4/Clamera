@@ -13,7 +13,6 @@ enum ViewState {
 
 
 
-
 final class TabRouter: ObservableObject {
     @Published var viewState: ViewState = .home
 }
@@ -81,7 +80,6 @@ struct HomerView: View {
             cleanTimer = nil
         }
         .onChange(of: tabRouter.viewState) { newState in
-            // Commit pending clean when switching back to Aquarium
             if newState == .aquarium {
                 lastUpdate = Date()
                 aquariumState.commitPendingClean()

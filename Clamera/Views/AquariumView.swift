@@ -17,7 +17,7 @@ final class AquariumState: ObservableObject {
     @Published var bubbleAmount: Double = 1.0
     @Published var lastUpdate: Date = Date()
     
-    // Track active screens
+    
     @Published var activeScreens: Set<String> = []
     
     let maxClean: Double = 0.3
@@ -55,10 +55,10 @@ final class AquariumState: ObservableObject {
     func commitPendingClean() {
         withAnimation(.easeInOut(duration: 0.3)) {
             if let target = targetClean, target == 0 {
-                // If brush is active, keep the smaller of pendingClean and current clean
+            
                 clean = min(pendingClean, clean)
             } else {
-                // Otherwise, take the larger to respect increments
+                
                 clean = max(pendingClean, clean)
             }
         }
@@ -211,7 +211,7 @@ struct AquariumView: View {
             .padding(.top, 812)
 
             
-            // SETTINGS BUTTON
+            // SETTINGS
             VStack {
              
 

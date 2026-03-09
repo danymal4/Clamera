@@ -22,7 +22,7 @@ struct SpeciesListView: View {
     @State private var selectedFilter: FilterOption = .newest
     @State private var showPinnedOnly: Bool = false
 
-    // MARK: - Filter mechanic
+    
     var filteredFish: [Fish] {
         species.fishList
             .filter { !showPinnedOnly || $0.isPinned }
@@ -38,7 +38,6 @@ struct SpeciesListView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    // Aquarium Header
                     HStack(spacing: 16) {
 
                         Image("\(species.name)Icon")
@@ -71,11 +70,11 @@ struct SpeciesListView: View {
 
                         HStack(spacing: 12) {
 
-                            // Computed inside body so it updates live
+                           
                             let hasAvailableToAdd = species.fishList.contains { !$0.isAquarium } && !aquarium.checkAll()
                             let hasAvailableToRemove = species.fishList.contains { $0.isAquarium }
 
-                            // Add Fish
+                            // add fish
                             Button {
                                 if let newestAvailableFish = species.fishList
                                     .filter({ !$0.isAquarium })
@@ -101,13 +100,13 @@ struct SpeciesListView: View {
                             }
                             .disabled(!hasAvailableToAdd)
 
-                            // Remove Fish
+                       // remove
                             Button {
                                 if let newestAquariumFish = species.fishList
                                     .filter({ $0.isAquarium })
                                     .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                                    // deactivate matching aquarium fish manually
+                            
                                     if let aquaFish = aquarium.fish.first(where: {
                                         $0.isActive &&
                                         $0.imageName == "\(species.name)Icon" &&
@@ -116,7 +115,7 @@ struct SpeciesListView: View {
                                         aquaFish.isActive = false
                                     }
 
-                                    // mark species fish as removed from aquarium
+                                  
                                     newestAquariumFish.isAquarium = false
 
                                     aquarium.refresh()
@@ -142,7 +141,7 @@ struct SpeciesListView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
 
-                    // Catch Log Header
+               
                     VStack(alignment: .leading, spacing: 12) {
 
                         Text("Catch Log")
@@ -179,7 +178,7 @@ struct SpeciesListView: View {
                     .padding(.top, 15)
                     .padding(.vertical, 6)
 
-                    // Fish Cards
+                
                     VStack(spacing: 10) {
 
                         ForEach(filteredFish) { fish in
@@ -203,7 +202,7 @@ struct SpeciesListView: View {
         .background(Color.blue.opacity(0.01))
     }
 
-    // MARK: - Filter Button
+    
     @ViewBuilder
     private func filterButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
 
@@ -224,7 +223,7 @@ struct SpeciesListView: View {
         }
     }
 }
-// Updated FishGridItem with toggle closure
+
 struct FishGridItem: View {
 
     @ObservedObject var fish: Fish
@@ -335,7 +334,7 @@ struct FishGridItem: View {
                                  }
                                 
                                 
-                                // Remove from species list
+                              
                                 species.fishList.removeAll { $0.id == fish.id }
 
                            

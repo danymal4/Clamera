@@ -7,8 +7,7 @@
 import SwiftUI
 import Kingfisher
 
-// MARK: - Fish JSON Structure
-// MARK: - Fish JSON Structure (Matches fish_data.json)
+
 struct FishData: Codable, Identifiable {
     let id = UUID()
     let Species: String        // Scientific name
@@ -16,8 +15,6 @@ struct FishData: Codable, Identifiable {
     let Image: String          // URL of image
 }
 
-// MARK: - Album View
-// MARK: - Album View
 struct AlbumView: View {
 
     @EnvironmentObject var aquarium: AquariumFishList
@@ -113,11 +110,11 @@ struct AlbumView: View {
                                                 species: speciesStore.speciesList[index]
                                             )
                                         ) {
-                                            SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true) // ✅ pass ObservedObject
+                                            SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true)
                                         }
                                     }
                                 } else {
-                                    SpeciesGridItem(species: item, clickable: false) // ✅ also observed
+                                    SpeciesGridItem(species: item, clickable: false)
                                 }
                             }
                         }.padding(.horizontal, 15)
@@ -138,7 +135,7 @@ struct AlbumView: View {
                             .background(Color.white.opacity(1))
                             .shadow(color: .black.opacity(0.1), radius: 10)
                             .cornerRadius(40)
-                            .offset(y: showSearch ? -6 : 100) // ✅ Slide up from offscreen
+                            .offset(y: showSearch ? -6 : 100)
                             .animation(.easeInOut(duration: 0.3), value: showSearch)
                             .onChange(of: searchText) { newValue in
                                 showSuggestions = !newValue.isEmpty
@@ -186,9 +183,9 @@ struct AlbumView: View {
     }
 }
 
-// MARK: - Species Grid Item
+
 struct SpeciesGridItem: View {
-    @ObservedObject var species: Species // ✅ change here
+    @ObservedObject var species: Species
     let clickable: Bool
     
     private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
@@ -228,7 +225,7 @@ struct SpeciesGridItem: View {
                     .allowsTightening(true)
                 
                 if clickable {
-                    Text("(\(species.fishList.count))") // ✅ now updates live
+                    Text("(\(species.fishList.count))")
                         .foregroundStyle(.white)
                         .font(.system(size: UIScreen.main.bounds.width * 0.035))
                 }
@@ -242,7 +239,7 @@ struct SpeciesGridItem: View {
     }
 }
 
-// MARK: - Preview
+
 #Preview {
     AlbumView()
         .environmentObject(AquariumFishList())
