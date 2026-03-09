@@ -77,23 +77,23 @@ struct SpeciesListView: View {
 
                             // Add Fish
                             Button {
-                                var activeNum = 0
+                                if let heaviestAvailableFish = species.fishList
+                                     .filter({ !$0.isAquarium })       // only fish not added yet
+                                     .max(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) { // pick heaviest
 
-                                for fish in species.fishList {
-                                    guard activeNum < 3 else { break }
+                                     // 2. Add that fish to the aquarium
+                                     aquarium.addFish(
+                                         with: "\(species.name)Icon",
+                                         speciesID: species.id,
+                                         size: heaviestAvailableFish.getSize()
+                                     )
 
-                                    if !fish.isAquarium {
-                                        aquarium.addFish(
-                                            with: "\(species.name)Icon",
-                                            speciesID: species.id
-                                        )
-                                        fish.isAquarium = true
-                                        activeNum = 3
-                                        
-                                    }
+                                     // 3. Mark it as added
+                                     heaviestAvailableFish.isAquarium = true
+                                 }
 
-                                    activeNum += 1
-                                }
+                                 // 4. Refresh the aquarium display
+                                
 
                                 aquarium.refresh()
 
@@ -108,11 +108,35 @@ struct SpeciesListView: View {
 
                             // Remove Fish
                             Button {
-                                if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
-                                    aquarium.removeFish(with: "\(species.name)Icon")
-                                    fishToRemove.isAquarium = false
-                                    aquarium.refresh()
-                                }
+                                let activeAquariumFish = species.fishList.filter { $0.isAquarium }
+
+                                   // 2. Find the fish with the smallest weight
+                                   if let smallestFish = activeAquariumFish.min(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) {
+                                       let targetSize = smallestFish.getSize()
+                                       
+                                       // 3. Find the closest-size fish in the aquarium
+                                       if let closestIndex = aquarium.fish.enumerated()
+                                           .filter({ $0.element.isActive })
+                                           .min(by: { a, b in
+                                               let distanceA = hypot(a.element.size.width - targetSize.width,
+                                                                     a.element.size.height - targetSize.height)
+                                               let distanceB = hypot(b.element.size.width - targetSize.width,
+                                                                     b.element.size.height - targetSize.height)
+                                               return distanceA < distanceB
+                                           })?.offset {
+                                           
+                                           let aquaFish = aquarium.fish[closestIndex]
+                                           
+                                           // 4. Remove from aquarium
+                                           aquarium.removeFish(with: aquaFish.imageName)
+                                       }
+                                       
+                                       // 5. Mark as not in aquarium
+                                       smallestFish.isAquarium = false
+                                       
+                                       // 6. Refresh UI
+                                       aquarium.refresh()
+                                   }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
@@ -219,6 +243,8 @@ struct FishGridItem: View {
 
     @ObservedObject var fish: Fish
     @ObservedObject var species: Species
+    @EnvironmentObject var aquarium: AquariumFishList
+    
 
     let clickable: Bool
     var onTogglePinned: (() -> Void)?
@@ -270,9 +296,8 @@ struct FishGridItem: View {
                                 .shadow(color: isHeaviest ? .yellow.opacity(0.7) : .clear,
                                         radius: isHeaviest ? 6 : 0,
                                         x: 0, y: 0)
-                                .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isHeaviest)
                         }
-
+                        
                         Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
                             .font(.system(size: UIScreen.main.bounds.width * 0.04))
                             .bold()
@@ -309,22 +334,42 @@ struct FishGridItem: View {
                         Spacer()
                         if species.fishList.count > 1 {
                             Button {
+                                let targetSize = fish.getSize()
                                 
+                                // 1. Compute distances for all active aquarium fish
+                                let activeFish = aquarium.fish.enumerated().filter { $0.element.isActive }
+                                
+                                if let closestIndex = activeFish.min(by: { a, b in
+                                    let distanceA = hypot(a.element.size.width - targetSize.width,
+                                                          a.element.size.height - targetSize.height)
+                                    let distanceB = hypot(b.element.size.width - targetSize.width,
+                                                          b.element.size.height - targetSize.height)
+                                    // Tie-breaker: pick the larger width if distances are equal
+                                    if distanceA == distanceB {
+                                        return a.element.size.width < b.element.size.width
+                                    }
+                                    return distanceA < distanceB
+                                })?.offset {
+                                    let aquaFish = aquarium.fish[closestIndex]
+                                    
+                                    // 2. Remove from aquarium
+                                    aquarium.removeFish(with: aquaFish.imageName)
+                                }
+                                
+                                // 3. Remove from species list by id
                                 species.fishList.removeAll { $0.id == fish.id }
                                 
+                                // 4. Refresh UI
+                                aquarium.refresh()
                             } label: {
-                                
                                 Image(systemName: "trash.fill")
                                     .foregroundColor(.red.opacity(0.85))
                             }
                             .padding(.bottom)
-                        }
-                        
-                        else {
+                        } else {
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.gray.opacity(0.85))
-                        
-                        .padding(.bottom)
+                                .padding(.bottom)
                         }
                     }
                 }

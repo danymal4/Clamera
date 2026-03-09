@@ -85,7 +85,8 @@ final class AquariumFishList: ObservableObject {
     }
     
     // Add a fish and store its speciesID as String
-    func addFish(with imageName: String, speciesID: String, maxActive: Int = 3) {
+    // Add a fish, set its speciesID and size
+    func addFish(with imageName: String, speciesID: String, size: CGSize, maxActive: Int = 3) {
         let activeCount = fish.filter { $0.isActive }.count
         guard activeCount < maxActive else { return }
 
@@ -95,6 +96,7 @@ final class AquariumFishList: ObservableObject {
             oldFish.isActive = true
             oldFish.isShown = true
             oldFish.speciesID = speciesID
+            oldFish.size = size // Set the size here
         }
     }
     
