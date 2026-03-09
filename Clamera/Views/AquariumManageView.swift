@@ -101,8 +101,7 @@ struct AquariumManageView: View {
 
                         // Fish rows
                         VStack(spacing: 14.5) {
-                            ForEach(aquarium.fish.indices, id: \.self) { i in
-                                let fish = aquarium.fish[i]
+                            ForEach(Array(aquarium.fish.enumerated()), id: \.element.id) { i, fish in
 
                                 VStack(spacing: 5) {
                                     // Fish row: icon + toggle + divider
@@ -157,7 +156,7 @@ struct AquariumManageView: View {
                                                 .scaleEffect(x: -1, y: 1, anchor: .center)
                                                 .offset(x: swipedIndex == i ? 70 : 0)
                                         }
-                                       
+
                                         Spacer()
                                         Spacer()
                                         Spacer()
@@ -183,7 +182,7 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Spacer()
                                         Spacer()
-                                        
+
                                     }
                                     .padding(.horizontal, -210)
                                     .offset(y: isDropdown
@@ -260,24 +259,22 @@ struct AquariumManageView: View {
                                 .background(
                                     HStack {
                                         Spacer()
-                                     
+
                                         Button {
                                             if fish.isActive {
                                                 withAnimation(.easeInOut) {
                                                     if let speciesID = fish.speciesID,
                                                        let species = speciesStore.speciesList.first(where: { $0.id == speciesID }) {
-                                                        
+
                                                         if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
                                                             fishToRemove.isAquarium = false
                                                         }
                                                     }
                                                     aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
                                                     swipedIndex = nil
-                                                    
-                                                    
                                                 }
                                             }
-                                            } label: {
+                                        } label: {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.white)
                                                 .frame(width: 70, height: 61)

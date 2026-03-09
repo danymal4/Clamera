@@ -17,9 +17,6 @@ final class TabRouter: ObservableObject {
     @Published var viewState: ViewState = .home
 }
 
-
-import SwiftUI
-
 struct HomerView: View {
     @EnvironmentObject var aquarium: AquariumFishList
     @EnvironmentObject var speciesStore: SpeciesStore
@@ -29,46 +26,62 @@ struct HomerView: View {
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
 
+    // Controls the delayed aquarium animation
+    @State private var showAquariumBottomBar: Bool = false
+    @State private var tabsVisible: Bool = true
 
+    // Timer for resetting the bottom bar
+    @State private var bottomBarWorkItem: DispatchWorkItem?
 
     var body: some View {
-        TabView(selection: $tabRouter.viewState) {
+        ZStack(alignment: .bottom) {
+            TabView(selection: $tabRouter.viewState) {
 
-            NavigationStack { HomeRevised() }
-                .tag(ViewState.home)
-                .tabItem { Label("Home", systemImage: "house") }
+                NavigationStack { HomeRevised() }
+                    .tag(ViewState.home)
+                    .tabItem { Label("Home", systemImage: "house") }
 
-            NavigationStack { CatchView() }
-                .tag(ViewState.caught)
-                .tabItem { Label("Catch", systemImage: "fish") }
+                NavigationStack { CatchView() }
+                    .tag(ViewState.caught)
+                    .tabItem { Label("Catch", systemImage: "fish") }
 
-            NavigationStack { AlbumView() }
-                .tag(ViewState.album)
-                .tabItem { Label("Album", systemImage: "book") }
+                NavigationStack { AlbumView() }
+                    .tag(ViewState.album)
+                    .tabItem { Label("Album", systemImage: "book") }
 
-            NavigationStack {
-                AquariumView()
+                NavigationStack {
+                    AquariumView(
+                        showBottomBar: $showAquariumBottomBar,
+                        resetBottomBarTimer: resetBottomBarTimer
+                    )
                     .onAppear {
                         aquariumState.markActive("aquarium")
                         lastUpdate = Date()
                         aquariumState.commitPendingClean()
-                      
+
+                        resetBottomBarTimer()
                     }
                     .onDisappear {
                         aquariumState.markInactive("aquarium")
+                        showAquariumBottomBar = false
+                        bottomBarWorkItem?.cancel()
                     }
-            }
-            .tag(ViewState.aquarium)
-            .tabItem {
-                Image("aquariumIcon").renderingMode(.template)
-                    .foregroundColor(tabRouter.viewState == .aquarium ? .blue : .gray)
-                Text("Aquarium")
-            }
+                }
+                .toolbar(showAquariumBottomBar ? .hidden : .visible, for: .tabBar)
+                .tag(ViewState.aquarium)
+                .tabItem {
+                    Image("aquariumIcon")
+                        .renderingMode(.template)
+                        .foregroundColor(tabRouter.viewState == .aquarium ? .blue : .gray)
+                    Text("Aquarium")
+                }
 
-            NavigationStack { SocialView() }
-                .tag(ViewState.social)
-                .tabItem { Label("Social", systemImage: "person.2.fill") }
-
+                NavigationStack { SocialView() }
+                    .tag(ViewState.social)
+                    .tabItem { Label("Social", systemImage: "person.2.fill") }
+            }
+            .toolbar(tabRouter.viewState == .aquarium && showAquariumBottomBar ? .hidden : .visible, for: .tabBar)
+            
         }
         .environmentObject(tabRouter)
         .environmentObject(aquarium)
@@ -78,6 +91,7 @@ struct HomerView: View {
         .onDisappear {
             cleanTimer?.invalidate()
             cleanTimer = nil
+            bottomBarWorkItem?.cancel()
         }
         .onChange(of: tabRouter.viewState) { newState in
             if newState == .aquarium {
@@ -89,8 +103,8 @@ struct HomerView: View {
 
     private func startCleanTimer() {
         cleanTimer?.invalidate()
-        let totalDuration: TimeInterval = 60 * 60 // 1 hour to go from dirty -> clean
-         let tickInterval: TimeInterval = 5
+        let totalDuration: TimeInterval = 60 * 60
+        let tickInterval: TimeInterval = 5
         lastUpdate = Date()
 
         cleanTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { _ in
@@ -98,18 +112,34 @@ struct HomerView: View {
             let delta = now.timeIntervalSince(self.lastUpdate)
             self.lastUpdate = now
 
-            // Only increment live clean if any active screen (Aquarium or Manage) is present
             if aquariumState.isActiveScreen {
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.updateClean(by: increment)
             } else {
-                // Accumulate pending clean when no active screens
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.updatePendingClean(
                     to: min(aquariumState.pendingClean + increment, aquariumState.maxClean)
                 )
             }
         }
+    }
+
+    // MARK: - Reset bottom bar timer
+    func resetBottomBarTimer() {
+        bottomBarWorkItem?.cancel()
+
+        withAnimation(.easeOut(duration: 0.45)) {
+            showAquariumBottomBar = false
+        }
+
+        let workItem = DispatchWorkItem {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                showAquariumBottomBar = true
+            }
+        }
+
+        bottomBarWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 }
 

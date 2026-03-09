@@ -169,10 +169,11 @@ struct BubbleView: View {
 struct AquariumView: View {
     @EnvironmentObject var aquariumState: AquariumState
     @EnvironmentObject var aquarium: AquariumFishList
-
+    @Binding var showBottomBar: Bool
     @State var editState: EditState = .notEditing
     @State private var bubbleRefreshID = UUID()
     @State private var showAquariumManage = false
+    var resetBottomBarTimer: (() -> Void)? = nil
 
     var aquariumTop: CGFloat { UIScreen.main.bounds.height * 0.435 }
     var aquariumBottom: CGFloat { UIScreen.main.bounds.height * 0.58 }
@@ -180,44 +181,44 @@ struct AquariumView: View {
     var body: some View {
        
         ZStack {
-
+            
             AquariumBackgroundView()
-                .environmentObject(aquariumState)
-
+                .environmentObject(aquariumState).offset(y: showBottomBar ? -20 : 0)
+            
             BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
                 .environmentObject(aquariumState)
                 .offset(y: 645)
-
+            
             FishMoveView(aquarium: aquarium)
                 .opacity(1 - aquariumState.clean)
-                .offset(y: -70)
+                .offset(y: -100)
                 .scaleEffect(1.6)
-
+            
             Rectangle()
                 .cornerRadius(5)
                 .foregroundStyle(.blue)
                 .opacity(0.14)
                 .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
-                       height: min(UIScreen.main.bounds.height * 1, 2000))
-                .padding(.top, -58)
-
-            VStack {
-                Rectangle()
-                    .fill(Color.white)
-                    .frame(height: 83)
-                    .shadow(color: .black.opacity(0.1), radius: 10)
-            }
-            .edgesIgnoringSafeArea(.bottom)
-            .padding(.top, 812)
-
+                       height: min(UIScreen.main.bounds.height * 1.2, 2000))
+                .padding(.top, -30).edgesIgnoringSafeArea(.bottom)
+            
+            Rectangle()
+                .fill(Color.white)
+                .frame(height: 90)
+                .cornerRadius(20)
+                .shadow(radius: 5)
+                .offset(y: showBottomBar ? 100 : 0) // starts off screen
+                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
+                .padding(.top, 812)
+            
             
             // SETTINGS
             VStack {
-             
-
+                
+                
                 HStack {
-             
-Spacer()
+                    
+                    Spacer()
                     Button {
                         showAquariumManage = true
                     } label: {
@@ -229,10 +230,44 @@ Spacer()
                             .clipShape(Circle())
                     }
                     .padding(.trailing, 400)
-                    .padding(.top, 640)
+                    .padding(.top, 640).offset(y: showBottomBar ? 40 : 0)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
                 }
             }
-
+            
+            VStack {
+                Spacer()
+                
+                if showBottomBar {
+                    Button {
+                        // Hide the bottom bar with animation
+                        withAnimation(.easeOut(duration: 0.45)) {
+                            showBottomBar = false
+                        }
+                        
+                        // Reset the 5-second timer so it can reappear
+                        resetBottomBarTimer?()   // <-- call the closure here
+                    } label: {
+                        HStack {
+                            Spacer()
+                            
+                            Image(systemName: "chevron.up")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.gray)
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                        .frame(width: 180) // width of the arrow bar
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
+                    }
+                    .padding(.bottom, 675)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.easeOut(duration: 0.4), value: showBottomBar).ignoresSafeArea(edges: .bottom)
+            
         }
         .sheet(isPresented: $showAquariumManage) {
             AquariumManageView()
@@ -245,6 +280,7 @@ Spacer()
       
     }
 }
+
 
 
 struct AquariumBackgroundView: View {
@@ -283,14 +319,22 @@ struct AquariumBackgroundView: View {
                     .padding(.horizontal, 50)
                     .opacity(0.95 - (aquariumState.clean * 0.25))
 
+                Image("sandfloor")
+                    .resizable()
+                    .frame(width: min(UIScreen.main.bounds.width * 1.5, 2000),
+                           height: min(UIScreen.main.bounds.width * 0.5, 2000))
+                    .padding(.top, 695 + ((UIScreen.main.bounds.width - 302) * 0.3))
+                    .padding(.horizontal, 50)
+                    .opacity(0.95 - (aquariumState.clean * 0.25))
+
                
                 Rectangle()
                     .cornerRadius(5)
                     .foregroundStyle(.green)
                     .opacity(aquariumState.clean)
                     .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
-                           height: min(UIScreen.main.bounds.height * 1, 2000))
-                    .padding(.top, -58)
+                           height: min(UIScreen.main.bounds.height * 1.2, 2000))
+                    .padding(.top, -25).edgesIgnoringSafeArea(.bottom)
 
    
 
@@ -337,6 +381,6 @@ struct BubbleLayerView: View {
 
 
 #Preview {
-    AquariumView()
+    AquariumView(showBottomBar: .constant(true))
         .environmentObject(AquariumFishList())  .environmentObject(AquariumState())
 }
