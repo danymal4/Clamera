@@ -47,19 +47,15 @@ final class AquariumFishList: ObservableObject {
     }
     
     func refresh() {
-        refreshID.toggle() // just flips true/false to trigger a redraw
+        refreshID.toggle() // flips true/false to trigger a redraw
     }
 
     func checkAll() -> Bool {
-      var ifAllActive = true
-        for AquariumFish in fish {
-            if !AquariumFish.isActive {
-                ifAllActive = false
-            }
+        for fish in fish {
+            if !fish.isActive { return false }
         }
-   return ifAllActive
+        return true
     }
-    
     
     func updateSpeed(for fish: AquariumFish, to newDuration: Double) {
         fish.swimDuration = newDuration
@@ -72,7 +68,6 @@ final class AquariumFishList: ObservableObject {
     func toggleActive(for fish: AquariumFish) {
         fish.isActive.toggle()
     }
-
     
     func toggleShown(for fish: AquariumFish) {
         fish.isShown.toggle()
@@ -82,32 +77,39 @@ final class AquariumFishList: ObservableObject {
         fish.count
     }
     
-    func removeFish(with imageName: String) {
-        if let index = fish.firstIndex(where: { $0.imageName == imageName && $0.isActive }) {
-            fish[index].isActive = false
+    // Remove a fish by imageName
+    func removeFish(with imageName: String, targetSize: CGSize) {
+        // Filter only active fish with matching imageName
+        let candidates = fish.enumerated().filter { $0.element.isActive && $0.element.imageName == imageName }
+
+        // Find the closest fish by size
+        if let closest = candidates.min(by: { (a: (offset: Int, element: AquariumFish), b: (offset: Int, element: AquariumFish)) -> Bool in
+            let distanceA = hypot(a.element.size.width - targetSize.width,
+                                  a.element.size.height - targetSize.height)
+            let distanceB = hypot(b.element.size.width - targetSize.width,
+                                  b.element.size.height - targetSize.height)
+            return distanceA < distanceB
+        }) {
+            // Deactivate that fish
+            fish[closest.offset].isActive = false
         }
     }
     
-    func addFish(with imageName: String, maxActive: Int = 3) {
-        // Count currently active fish
+    // Add a fish and store its speciesID as String
+    // Add a fish, set its speciesID and size
+    func addFish(with imageName: String, speciesID: String, size: CGSize, maxActive: Int = 3) {
         let activeCount = fish.filter { $0.isActive }.count
-
-
         guard activeCount < maxActive else { return }
 
-        // Find the first inactive fish
         if let index = fish.firstIndex(where: { !$0.isActive }) {
             let oldFish = fish[index]
-            oldFish.imageName = imageName   
+            oldFish.imageName = imageName
             oldFish.isActive = true
             oldFish.isShown = true
-           
+            oldFish.speciesID = speciesID
+            oldFish.size = size // Set the size here
         }
     }
-
-    
-    
-
     
     func toggleAll() {
         withAnimation(.easeInOut(duration: 0.3)) {
@@ -116,6 +118,4 @@ final class AquariumFishList: ObservableObject {
             }
         }
     }
-
-    
 }

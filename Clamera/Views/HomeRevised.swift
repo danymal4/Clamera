@@ -10,6 +10,7 @@ struct HomeRevised: View {
     
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
+    @EnvironmentObject var speciesStore: SpeciesStore
     
     var body: some View {
         
@@ -81,16 +82,28 @@ struct HomeRevised: View {
                             )
                             .frame(width: ui.width * 0.9, height: ui.width * 0.9)
                         
-                        Image("pufferIcon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: ui.width * 0.45, height: ui.width * 0.45)
-                            .offset(y: floatUpDown ? -6 : 6)
-                            .animation(
-                                .easeInOut(duration: 1.6)
-                                    .repeatForever(autoreverses: true),
-                                value: floatUpDown
-                            )
+                        
+                        if let catchOfTheWeek = speciesStore.catchOfTheWeek {
+                            Image("\(catchOfTheWeek.name)Icon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: ui.width * 0.55, height: ui.width * 0.55)
+                                .shadow(color: .yellow.opacity(0.6), radius: 20)
+                                .shadow(color: .yellow.opacity(0.4), radius: 40)
+                                .shadow(color: .yellow.opacity(0.2), radius: 60)
+                                .offset(y: floatUpDown ? -6 : 6)
+                                .animation(
+                                    .easeInOut(duration: 1.6)
+                                        .repeatForever(autoreverses: true),
+                                    value: floatUpDown
+                                )
+                        } else {
+                            Image("") // fallback if no catch yet
+                                .resizable()
+                                .frame(width: 60, height: 60)
+                        }
+                        
+                      
                         
                         VStack {
                             Spacer()
@@ -102,7 +115,7 @@ struct HomeRevised: View {
                                 
                                 Spacer()
                                 
-                                Text("200 pts")
+                                Text("\(speciesStore.catchOfTheWeekPoints) Points")
                                     .bold()
                                     .foregroundColor(.white)
                                     .padding(6)
@@ -239,12 +252,12 @@ struct HomeRevised: View {
             ZStack {
                 Color.blue.opacity(0.01).edgesIgnoringSafeArea(.top)
 
-                WaterView().opacity(0.3).offset(y: -400)
+                WaterView().opacity(0.15).offset(y: -300)
             }
         )
     }
 }
 
 #Preview {
-    HomeRevised()
+    HomeRevised().environmentObject(SpeciesStore())
 }

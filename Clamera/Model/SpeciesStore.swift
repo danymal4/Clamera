@@ -8,18 +8,22 @@
 import SwiftUI
 
 final class SpeciesStore: ObservableObject {
-    
     @Published var speciesList: [Species] = []
     @Published var totalClamPoints: Int = 0
     
+    // MARK: - Catch of the Week
+    @Published var catchOfTheWeek: Species?
+    @Published var catchOfTheWeekPoints: Int = Int.random(in: 30...40) * 5
+    
     init() {
         loadFromJSON()
+        assignCatchOfTheWeek()
     }
-    
     
     convenience init(previewSpecies: [Species]) {
         self.init()
         self.speciesList = previewSpecies
+        assignCatchOfTheWeek()
     }
     
     private func loadFromJSON() {
@@ -35,9 +39,9 @@ final class SpeciesStore: ObservableObject {
             // Map FishData → Species
             self.speciesList = decoded.map { fish in
                 Species(
-                    name: fish.CommonName,      // Use CommonName for display
-                    imageName: fish.Image,      // Image URL
-                    fishList: []                // Empty unless user caught one
+                    name: fish.CommonName,
+                    imageName: fish.Image,
+                    fishList: []
                 )
             }
             
@@ -45,6 +49,27 @@ final class SpeciesStore: ObservableObject {
         } catch {
             print("❌ JSON decode error:", error)
         }
+    }
+    
+    // MARK: - Catch of the Week Assignment
+    func assignCatchOfTheWeek() {
+        let validSpecies = speciesList.filter { species in
+            let imageName = "\(species.name)Icon"
+            return UIImage(named: imageName) != nil
+        }
+        
+        guard !validSpecies.isEmpty else {
+            catchOfTheWeek = nil
+            return
+        }
+        
+        catchOfTheWeek = validSpecies.randomElement()
+    }
+    
+    // Optional: get icon for Catch of the Week
+    func catchOfTheWeekIcon() -> String? {
+        guard let species = catchOfTheWeek else { return nil }
+        return "\(species.name)Icon"
     }
     
     // MARK: - Clam Points Logic
@@ -82,8 +107,16 @@ final class SpeciesStore: ObservableObject {
     func getFish() -> Int {
         speciesList.reduce(0) { $0 + $1.fishList.count }
     }
-   
-
-        
     
+    func randomPoints() -> Int {
+        Int.random(in: 30...40) * 5
+    }
+
+    // MARK: - Manual Refresh
+    func refresh() {
+        objectWillChange.send()   // triggers SwiftUI updates manually
+    }
 }
+    
+    
+

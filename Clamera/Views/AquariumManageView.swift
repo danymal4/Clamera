@@ -240,7 +240,7 @@ struct AquariumManageView: View {
                                                             user.aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
                                                         }
                                                     ),
-                                                    in: 20...150
+                                                    in: 20...200
                                                 ).accentColor(.blue.opacity(0.6))
 
                                                 Image("big").resizable().frame(
@@ -259,16 +259,29 @@ struct AquariumManageView: View {
                                 .background(
                                     HStack {
                                         Spacer()
+                                     
                                         Button {
-                                            withAnimation(.easeInOut) {
-                                                user.aquarium.removeFish(with: fish.imageName)
-                                                swipedIndex = nil
+                                            if fish.isActive {
+                                                withAnimation(.easeInOut) {
+                                                    if let speciesID = fish.speciesID,
+                                                       let species = speciesStore.speciesList.first(where: { $0.id == speciesID }) {
+                                                        
+                                                        if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
+                                                            fishToRemove.isAquarium = false
+                                                        }
+                                                    }
+                                                    aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
+                                                    swipedIndex = nil
+                                                    
+                                                    
+                                                }
                                             }
-                                        } label: {
+                                            } label: {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.white)
                                                 .frame(width: 70, height: 61)
-                                                .background(Color.red).cornerRadius(5)
+                                                .background(Color.red)
+                                                .cornerRadius(5).opacity(fish.isActive ? 1 : 0)
                                         }
                                         .padding(.top, -12.5)
                                         .offset(x: swipedIndex == i ? 90 : 90)
@@ -525,13 +538,7 @@ struct AquariumManageView: View {
                 }
             }
 
-            VStack {
-                Spacer()
-                Rectangle()
-                    .fill(Color.white.opacity(0.9))
-                    .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
-            }
-            .edgesIgnoringSafeArea(.bottom)
+    
         }
         .background(Color.gray.opacity(0.1)) .onAppear {
             user.aquariumState.markActive("manage")

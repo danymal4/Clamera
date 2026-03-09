@@ -107,17 +107,21 @@ struct CatchManageView: View {
                             let totalOfSpecies = fishCount + 1   // the fish being added
                             let totalOtherFish = max(user.speciesStore.getFish() - fishCount, 0)
                             
-                            previewPoints = user.speciesStore.calculateClamPoints(
-                                totalOfSpecies: totalOfSpecies,
-                                totalOtherFish: totalOtherFish,
-                                previousFishDate: previousFishDate
-                            )
+                           // edit this
+                            previewPoints =
+                                speciesStore.catchOfTheWeek?.name == species
+                                ? speciesStore.catchOfTheWeekPoints
+                                : speciesStore.calculateClamPoints(
+                                    totalOfSpecies: totalOfSpecies,
+                                    totalOtherFish: totalOtherFish,
+                                    previousFishDate: previousFishDate
+                                  )
                         }
                     
                     // Dropdown (UNCHANGED)
                     if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
                         VStack(spacing: 0) {
-                            ForEach(speciesSuggestions.prefix(4)) { suggestion in
+                            ForEach(speciesSuggestions.prefix(3)) { suggestion in
                                 Button(action: {
                                     species = suggestion.name
                                     showSpeciesSuggestions = false

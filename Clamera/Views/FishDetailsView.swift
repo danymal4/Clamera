@@ -43,12 +43,7 @@ struct FishDetailsView: View {
                     Spacer()
 
                     Button {
-                        if !fish.isAquarium {
-                            aquarium.addFish(with: "\(fish.speciesName)Icon")
-                            binding.isAquarium.wrappedValue.toggle()
-                         
-                            aquarium.refresh()
-                        }
+                     
                     } label: {
                         Image("\(fish.speciesName)Icon")
                             .resizable()
@@ -67,9 +62,7 @@ struct FishDetailsView: View {
                     Spacer()
 
                     Button {
-                        aquarium.removeFish(with: "\(fish.speciesName)Icon")
-                        binding.isAquarium.wrappedValue = false
-                        aquarium.refresh()
+                     
                     } label: {
                         Image("\(fish.speciesName)Icon")
                             .resizable()

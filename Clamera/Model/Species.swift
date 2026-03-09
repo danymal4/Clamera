@@ -7,12 +7,14 @@
 
 import SwiftUI
 
-struct Species: Identifiable, Hashable {
+class Species: ObservableObject, Identifiable, Hashable {
+
     let id: String   // stable ID = species name
     let name: String
     let imageName: String
     let icon: String
-    var fishList: [Fish]
+
+    @Published var fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
 
@@ -27,4 +29,15 @@ struct Species: Identifiable, Hashable {
         self.icon = icon
         self.fishList = fishList
     }
+
+    // MARK: - Hashable
+    static func == (lhs: Species, rhs: Species) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
+
