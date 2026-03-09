@@ -271,7 +271,7 @@ struct AquariumManageView: View {
                                                             fishToRemove.isAquarium = false
                                                         }
                                                     }
-                                                    aquarium.removeFish(with: fish.imageName)
+                                                    aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
                                                     swipedIndex = nil
                                                     
                                                     

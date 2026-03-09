@@ -78,9 +78,20 @@ final class AquariumFishList: ObservableObject {
     }
     
     // Remove a fish by imageName
-    func removeFish(with imageName: String) {
-        if let index = fish.firstIndex(where: { $0.imageName == imageName && $0.isActive }) {
-            fish[index].isActive = false
+    func removeFish(with imageName: String, targetSize: CGSize) {
+        // Filter only active fish with matching imageName
+        let candidates = fish.enumerated().filter { $0.element.isActive && $0.element.imageName == imageName }
+
+        // Find the closest fish by size
+        if let closest = candidates.min(by: { (a: (offset: Int, element: AquariumFish), b: (offset: Int, element: AquariumFish)) -> Bool in
+            let distanceA = hypot(a.element.size.width - targetSize.width,
+                                  a.element.size.height - targetSize.height)
+            let distanceB = hypot(b.element.size.width - targetSize.width,
+                                  b.element.size.height - targetSize.height)
+            return distanceA < distanceB
+        }) {
+            // Deactivate that fish
+            fish[closest.offset].isActive = false
         }
     }
     

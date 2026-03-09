@@ -109,35 +109,17 @@ struct SpeciesListView: View {
                             // Remove Fish
                             Button {
                                 let activeAquariumFish = species.fishList.filter { $0.isAquarium }
+                                
+                                if let smallestFish = activeAquariumFish.min(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) {
 
-                                   // 2. Find the fish with the smallest weight
-                                   if let smallestFish = activeAquariumFish.min(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) {
-                                       let targetSize = smallestFish.getSize()
-                                       
-                                       // 3. Find the closest-size fish in the aquarium
-                                       if let closestIndex = aquarium.fish.enumerated()
-                                           .filter({ $0.element.isActive })
-                                           .min(by: { a, b in
-                                               let distanceA = hypot(a.element.size.width - targetSize.width,
-                                                                     a.element.size.height - targetSize.height)
-                                               let distanceB = hypot(b.element.size.width - targetSize.width,
-                                                                     b.element.size.height - targetSize.height)
-                                               return distanceA < distanceB
-                                           })?.offset {
-                                           
-                                           let aquaFish = aquarium.fish[closestIndex]
-                                           
-                                           // 4. Remove from aquarium
-                                           aquarium.removeFish(with: aquaFish.imageName)
-                                       }
-                                       
-                                       // 5. Mark as not in aquarium
-                                       smallestFish.isAquarium = false
-                                       
-                                       // 6. Refresh UI
-                                       aquarium.refresh()
-                                   }
-                            } label: {
+                                    aquarium.removeFish(
+                                        with: "\(species.name)Icon",
+                                        targetSize: smallestFish.getSize()
+                                    )
+
+                                    smallestFish.isAquarium = false
+                                    aquarium.refresh()
+                                }} label: {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
@@ -332,41 +314,32 @@ struct FishGridItem: View {
                     HStack {
 
                         Spacer()
+
                         if species.fishList.count > 1 {
                             Button {
+
                                 let targetSize = fish.getSize()
-                                
-                                // 1. Compute distances for all active aquarium fish
-                                let activeFish = aquarium.fish.enumerated().filter { $0.element.isActive }
-                                
-                                if let closestIndex = activeFish.min(by: { a, b in
-                                    let distanceA = hypot(a.element.size.width - targetSize.width,
-                                                          a.element.size.height - targetSize.height)
-                                    let distanceB = hypot(b.element.size.width - targetSize.width,
-                                                          b.element.size.height - targetSize.height)
-                                    // Tie-breaker: pick the larger width if distances are equal
-                                    if distanceA == distanceB {
-                                        return a.element.size.width < b.element.size.width
-                                    }
-                                    return distanceA < distanceB
-                                })?.offset {
-                                    let aquaFish = aquarium.fish[closestIndex]
-                                    
-                                    // 2. Remove from aquarium
-                                    aquarium.removeFish(with: aquaFish.imageName)
-                                }
-                                
-                                // 3. Remove from species list by id
+
+                                // Remove correct fish from aquarium
+                                aquarium.removeFish(
+                                    with: "\(species.name)Icon",
+                                    targetSize: targetSize
+                                )
+
+                                // Remove from species list
                                 species.fishList.removeAll { $0.id == fish.id }
-                                
-                                // 4. Refresh UI
+
+                                // Refresh UI
                                 aquarium.refresh()
+
                             } label: {
                                 Image(systemName: "trash.fill")
                                     .foregroundColor(.red.opacity(0.85))
                             }
                             .padding(.bottom)
+
                         } else {
+
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.gray.opacity(0.85))
                                 .padding(.bottom)
