@@ -28,11 +28,13 @@ struct FishMoveView: View {
 
                 ZStack {
 
-                    // --- Ripples ---
                     ForEach(ripples) { ripple in
-                        let fishSizeMultiplier = ripple.size / 120
+                        let fishSizeMultiplier = ripple.size / 30
+                        // Use a power/exponential factor to scale lineWidth
+                        let lineWidth = 1.7 * pow(fishSizeMultiplier, 0.6)  // tweak 0.6 to adjust scaling
+                                            
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.7 * (1 + 0.2 * (1.8 * fishSizeMultiplier)))
+                            .stroke(Color.white, lineWidth: max(lineWidth, 0.3)) // min width to avoid disappearing
                             .frame(width: ripple.size, height: ripple.size)
                             .position(ripple.position)
                             .opacity(ripple.opacity)
@@ -129,7 +131,7 @@ struct FishMoveView: View {
         withAnimation(.easeOut(duration: 1.1)) {
             if fish.isActive {
                 let averageFishSize = (fish.size.width + fish.size.height) / 2
-                ripples[index].size = 120 * (averageFishSize / 50)
+                ripples[index].size = 80 * (averageFishSize / 50)
                 ripples[index].opacity = 0.0
             }
         }
