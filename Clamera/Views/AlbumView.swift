@@ -7,7 +7,7 @@
 import SwiftUI
 import Kingfisher
 
-
+// codable since it absorbs data directly from fish data json
 struct FishData: Codable, Identifiable {
     let id = UUID()
     let Species: String        // Scientific name
@@ -183,7 +183,7 @@ struct AlbumView: View {
     }
 }
 
-
+// grid that's passed a species for each item 
 struct SpeciesGridItem: View {
     @ObservedObject var species: Species
     let clickable: Bool
@@ -193,6 +193,8 @@ struct SpeciesGridItem: View {
     
     var body: some View {
         ZStack {
+          
+            // special package I added from chat since I couldnt get the data to load consistently well (KF caches image data so it only has to load once per usage of the app)
             KFImage(
                 URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines))
             )

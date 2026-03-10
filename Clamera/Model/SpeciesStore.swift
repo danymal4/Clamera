@@ -16,6 +16,8 @@ final class SpeciesStore: ObservableObject {
     @Published var catchOfTheWeekPoints: Int = Int.random(in: 30...40) * 5
     
     init() {
+       
+        // calls all the json logic upon loading
         loadFromJSON()
         assignCatchOfTheWeek()
     }
@@ -26,17 +28,27 @@ final class SpeciesStore: ObservableObject {
         assignCatchOfTheWeek()
     }
     
+    
+    // declares url from fish data json
+    
     private func loadFromJSON() {
         guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
-            print("Couldnt find fish_data.json")
+            print("Cant find fish data")
             return
         }
         
         do {
+        
+           // if successful then trys to get data from the url
+            
             let data = try Data(contentsOf: url)
+            
+            // attempts to convert json into an array of fishdata objects (try throws error if neccesary)
+            // fish data neeeded to match the json's organization
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
             
         
+            // takes the decoded fish data and adds it into speciesList class with the correct format
             self.speciesList = decoded.map { fish in
                 Species(
                     name: fish.CommonName,
@@ -47,6 +59,8 @@ final class SpeciesStore: ObservableObject {
             
             print("Loaded \(speciesList.count) species")
         } catch {
+            
+            // do/catch is here to see precise errors
             print("JSON error:", error)
         }
     }

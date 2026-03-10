@@ -224,6 +224,7 @@ struct SpeciesListView: View {
     }
 }
 
+// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed 
 struct FishGridItem: View {
 
     @ObservedObject var fish: Fish
@@ -359,7 +360,7 @@ struct FishGridItem: View {
         }
     }
 }
-// MARK: - Image Loader Extension
+// helper I got from chat so that fish photos can actually compile and be displayed once uploaded to documents from catch view
 extension Image {
     init(fishPhoto name: String) {
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]

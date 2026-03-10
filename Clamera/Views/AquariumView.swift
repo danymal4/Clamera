@@ -12,7 +12,7 @@ enum EditState {
 
 
 final class AquariumState: ObservableObject {
-    @Published var clean: Double = 0.3
+    @Published var clean: Double = 0.0
     @Published var bubbleVisibility: Double = 1.0
     @Published var bubbleAmount: Double = 1.0
     @Published var lastUpdate: Date = Date()
@@ -21,7 +21,7 @@ final class AquariumState: ObservableObject {
     @Published var activeScreens: Set<String> = []
     
     let maxClean: Double = 0.3
-    private(set) var pendingClean: Double = 0.3
+    private(set) var pendingClean: Double = 0.0
     private var targetClean: Double? = nil
     
     func markActive(_ screen: String) {
