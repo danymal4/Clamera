@@ -35,7 +35,7 @@ struct CatchView: View {
                             .resizable()
                             .frame(width: UIScreen.main.bounds.width * 0.18,
                                    height: UIScreen.main.bounds.width * 0.18)
-                            .opacity(0.9).padding(.top, -16)
+                            .opacity(0.9).padding(.top, -17)
                         
                         Text("Catch")
                             .font(.custom("AkayaTelivigala-regular", size: UIScreen.main.bounds.width * 0.22))
@@ -163,15 +163,3 @@ struct CatchView: View {
     CatchView()
 }
 
-#Preview {
-    CatchView()
-}
-
-#Preview {
-    CatchView()
-}
-
-
-#Preview {
-    CatchView()
-}
