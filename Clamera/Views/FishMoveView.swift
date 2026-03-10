@@ -80,7 +80,7 @@ struct FishMoveView: View {
                         )
 
                         ZStack {
-                            if fish.isShown {
+                           
                                 Image(fish.imageName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
@@ -91,7 +91,7 @@ struct FishMoveView: View {
                                     )
                                     .rotationEffect(.degrees(tailAngle))
                                     .offset(x: xOffset, y: yOffset)
-                                    .opacity(fish.isActive ? 0.95 : 0)
+                                    .opacity(fish.isShown ? (fish.isActive ? 0.95 : 0) : 0)
                                     .animation(.easeInOut(duration: 0.3), value: facingRight)
                                     .onTapGesture {
                                         if canBoost {
@@ -107,7 +107,7 @@ struct FishMoveView: View {
                                             addRipple(for: fish, at: fishCenter)
                                         }
                                     }
-                            }
+                            
                         }
                         .zIndex(Double(yOffset))
                     }
@@ -129,7 +129,7 @@ struct FishMoveView: View {
         let index = ripples.count - 1
 
         withAnimation(.easeOut(duration: 1.1)) {
-            if fish.isActive {
+            if fish.isActive && fish.isShown {
                 let averageFishSize = (fish.size.width + fish.size.height) / 2
                 ripples[index].size = 80 * (averageFishSize / 50)
                 ripples[index].opacity = 0.0
