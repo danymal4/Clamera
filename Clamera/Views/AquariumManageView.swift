@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AquariumManageView: View {
     @EnvironmentObject var user: User
+    
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
     @State private var selectedFish: Int = -1
@@ -264,13 +265,13 @@ struct AquariumManageView: View {
                                             if fish.isActive {
                                                 withAnimation(.easeInOut) {
                                                     if let speciesID = fish.speciesID,
-                                                       let species = speciesStore.speciesList.first(where: { $0.id == speciesID }) {
+                                                       let species = user.speciesStore.speciesList.first(where: { $0.id == speciesID }) {
                                                         
                                                         if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
                                                             fishToRemove.isAquarium = false
                                                         }
                                                     }
-                                                    aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
+                                                    user.aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
                                                     swipedIndex = nil
                                                     
                                                     

@@ -109,9 +109,9 @@ struct CatchManageView: View {
                             
                            // edit this
                             previewPoints =
-                                speciesStore.catchOfTheWeek?.name == species
-                                ? speciesStore.catchOfTheWeekPoints
-                                : speciesStore.calculateClamPoints(
+                            user.speciesStore.catchOfTheWeek?.name == species
+                            ? user.speciesStore.catchOfTheWeekPoints
+                            : user.speciesStore.calculateClamPoints(
                                     totalOfSpecies: totalOfSpecies,
                                     totalOtherFish: totalOtherFish,
                                     previousFishDate: previousFishDate
