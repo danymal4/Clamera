@@ -70,7 +70,7 @@ struct AquariumManageView: View {
                     
                     
                     
-                    let collapsedHeight = min(UIScreen.main.bounds.width * 0.45, 2000)
+                    let collapsedHeight = min(UIScreen.main.bounds.width * 0.43, 2000)
                     let expandedHeight = min(UIScreen.main.bounds.width * 0.6, 2000)
 
                     ZStack {
@@ -93,11 +93,11 @@ struct AquariumManageView: View {
                                 .opacity(0.5)
                                 .font(.system(size: UIScreen.main.bounds.width * 0.045))
                                 .bold()
-                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15 - 5)
+                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15 - 9.5)
                             Spacer()
                         }
                         .padding(.horizontal, 50)
-                        .padding(.top, -115)
+                        .padding(.top, -110)
 
                         // Fish rows
                         VStack(spacing: 14.5) {
@@ -281,7 +281,7 @@ struct AquariumManageView: View {
                                                 .background(Color.red)
                                                 .cornerRadius(5).opacity(fish.isActive ? 1 : 0)
                                         }
-                                        .padding(.top, -12.5)
+                                        .padding(.top, -13.5)
                                         .offset(x: swipedIndex == i ? 90 : 90)
                                         .animation(.easeInOut(duration: 0.25), value: swipedIndex)
                                     }
