@@ -151,7 +151,7 @@ struct CatchView: View {
                         
                         // Visual filler section
                         VStack(spacing: 12) {
-                            Text("Tap a photo or add one to log your catch")
+                            Text("Take a photo and upload to log your catch")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
