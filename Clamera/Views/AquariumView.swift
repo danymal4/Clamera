@@ -224,7 +224,7 @@ struct AquariumView: View {
                             .foregroundStyle(.white)
                             .padding(14)
                             .background(.ultraThinMaterial)
-                            .clipShape(Circle())
+                            .clipShape(Circle()) .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2)
                     }
                     .padding(.trailing, 400)
                     .padding(.top, 585)
@@ -249,7 +249,7 @@ struct AquariumView: View {
                             Spacer()
                             Image(systemName: "chevron.up")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.gray) .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2) 
                             Spacer()
                         }
                         .padding(.vertical, 8)
@@ -336,6 +336,7 @@ struct AquariumBackgroundView: View {
                             .frame(width: min(UIScreen.main.bounds.width * 0.22, 2000),
                                    height: min(UIScreen.main.bounds.width * 0.22, 700))
                             .opacity(aquariumState.clean > 0 ? min(aquariumState.clean * 2.5, 1) : 0)
+                            .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2) // subtle shadow
                             .animation(.easeInOut(duration: 0.7), value: aquariumState.clean)
                     }
                     .padding(.top, -385)
