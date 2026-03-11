@@ -7,7 +7,6 @@ import SwiftUI
 import PhotosUI
 
 
-
 struct CatchView: View {
     
     @State private var selectedItem: PhotosPickerItem?
@@ -23,126 +22,165 @@ struct CatchView: View {
     var body: some View {
         if editState == .notEditing {
             ZStack {
-                // Main background white
                 Color.white
                     .ignoresSafeArea()
                 
-                VStack(spacing: 20 * vScale) {
-                    
-                    // Header with fishing rod and title
-                    HStack(alignment: .top, spacing: -35) {
-                        Image("Rod")
-                            .resizable()
-                            .frame(width: UIScreen.main.bounds.width * 0.18,
-                                   height: UIScreen.main.bounds.width * 0.18)
-                            .opacity(0.9).padding(.top, -17)
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 20 * vScale) {
                         
-                        Text("Catch")
-                            .font(.custom("AkayaTelivigala-regular", size: UIScreen.main.bounds.width * 0.22))
-                            .foregroundColor(.blue)
-                            .shadow(color: .black.opacity(0.15), radius: 4, x: 1, y: 2)
-                            .rotationEffect(.degrees(3))
-                    }
-                    .padding(.top, 10)
-                    
-                    // Image container
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 40)
-                            .fill(selectedImage == nil ? Color(.systemGray4) : Color.white.opacity(0.3))
-                            .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
-                                   height: min(UIScreen.main.bounds.width * 0.8, 750))
-                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                        
-                        if let image = selectedImage {
-                            Image(uiImage: image)
+                        // Header with fishing rod and title
+                        HStack(alignment: .top, spacing: -20) {
+                            Image("Rod")
                                 .resizable()
-                                .scaledToFill()
-                                .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
-                                       height: min(UIScreen.main.bounds.width * 0.8, 750))
-                                .clipped()
-                                .cornerRadius(40)
-                        } else {
-                            HStack(spacing: 20 * hScale) {
-                                Text("Fish image")
-                                    .font(.custom("HelveticaNeue-Thin", size: 18))
-                                    .bold()
-                                    .foregroundColor(.gray)
-                                Image("FishIcon")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .clipShape(Circle())
-                                    .frame(width: min(UIScreen.main.bounds.width * 0.25, 120),
-                                           height: min(UIScreen.main.bounds.width * 0.25, 120))
-                            }
+                                .frame(width: UIScreen.main.bounds.width * 0.14,
+                                       height: UIScreen.main.bounds.width * 0.14)
+                                .opacity(0.45)
+                                .padding(.top, -33)
+                            
+                            Text("Catch")
+                                .font(.system(size: 42, weight: .bold))
+                                .foregroundColor(.black)
+                                .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1)
+                               
                         }
-                    }
-                    
-                    // Buttons – original positions, slightly smaller
-                    HStack(alignment: .center, spacing: 20 * hScale) {
-                        PhotosPicker(
-                            selection: $selectedItem,
-                            matching: .images,
-                            photoLibrary: .shared()
-                        ) {
-                            VStack(spacing: 4) {
-                                Image("CameraIcon")
+                        .padding(.top, 10)
+                        .padding(.trailing, 30)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        
+                        // Image container
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 40)
+                                .fill(
+                                    selectedImage == nil
+                                    ? AnyShapeStyle(
+                                        LinearGradient(
+                                            colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.18)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                      )
+                                    : AnyShapeStyle(Color.white.opacity(0.3))
+                                )
+                                .frame(
+                                    width: min(UIScreen.main.bounds.width * 0.85, 750),
+                                    height: min(UIScreen.main.bounds.width * 0.85, 750)
+                                )
+                                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                            if let image = selectedImage {
+                                Image(uiImage: image)
                                     .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .clipShape(Circle())
-                                    .frame(width: min(UIScreen.main.bounds.width * 0.25, 160),
-                                           height: min(UIScreen.main.bounds.width * 0.28, 140))
-                                    .opacity(0.85)
-                                    .shadow(color: .black.opacity(0.1), radius: 5)
-                                Text("Add Photo")
-                                    .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                    .foregroundColor(.black.opacity(0.9))
-                                    .bold()
-                            }
-                        }
-                        .onChange(of: selectedItem) { newItem in
-                            guard let newItem else { return }
-                            Task {
-                                if let data = try? await newItem.loadTransferable(type: Data.self),
-                                   let uiImage = UIImage(data: data) {
-                                    selectedImage = uiImage
+                                    .scaledToFill()
+                                    .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
+                                           height: min(UIScreen.main.bounds.width * 0.85, 750))
+                                    .clipped()
+                                    .cornerRadius(40) .shadow(color: .cyan.opacity(0.15), radius: 15, x: 0, y: 0)
+                            } else {
+                                HStack(spacing: 20 * hScale) {
+                                    Text("Fish image")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.gray)
+                                    Image("FishIcon")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .clipShape(Circle())
+                                        .frame(width: min(UIScreen.main.bounds.width * 0.25, 120),
+                                               height: min(UIScreen.main.bounds.width * 0.25, 120))
                                 }
                             }
                         }
-                        .offset(y: -10 * vScale)
                         
-                        Button {
-                            if selectedImage != nil {
-                                editState = .editing
+                        // Buttons – original positions
+                        HStack(alignment: .center, spacing: 20 * hScale) {
+                            PhotosPicker(
+                                selection: $selectedItem,
+                                matching: .images,
+                                photoLibrary: .shared()
+                            ) {
+                                VStack(spacing: 4) {
+                                    Image("CameraIcon")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .clipShape(Circle())
+                                        .frame(width: min(UIScreen.main.bounds.width * 0.25, 160),
+                                               height: min(UIScreen.main.bounds.width * 0.28, 140))
+                                        .opacity(0.85)
+                                        .shadow(color: .black.opacity(0.1), radius: 5)
+                                    Text("Add Photo")
+                                        .font(.system(size: UIScreen.main.bounds.width * 0.04, weight: .semibold))
+                                        .foregroundColor(.cyan)
+                                        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
+                                }
                             }
-                        } label: {
-                            VStack(spacing: 4) {
-                                Image("uploadIcon")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: min(UIScreen.main.bounds.width * 0.35, 180),
-                                           height: min(UIScreen.main.bounds.width * 0.35, 180))
-                                    .opacity(selectedImage == nil ? 0.7 : 0.9)
-                                    .shadow(color: .black.opacity(selectedImage == nil ? 0.0 : 0.1), radius: 5)
-                                
-                                Text("Upload")
-                                    .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                    .foregroundColor(.black.opacity(selectedImage == nil ? 0.5 : 0.9))
-                                    .bold()
-                                    .offset(y: -33 * vScale)
+                            .onChange(of: selectedItem) { newItem in
+                                guard let newItem else { return }
+                                Task {
+                                    if let data = try? await newItem.loadTransferable(type: Data.self),
+                                       let uiImage = UIImage(data: data) {
+                                        selectedImage = uiImage
+                                    }
+                                }
+                            }
+                            .offset(y: -10 * vScale)
+                            
+                            Button {
+                                if selectedImage != nil {
+                                    editState = .editing
+                                }
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Image("uploadIcon")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: min(UIScreen.main.bounds.width * 0.35, 180),
+                                               height: min(UIScreen.main.bounds.width * 0.35, 180))
+                                        .opacity(selectedImage == nil ? 0.7 : 0.9)
+                                        .shadow(color: .black.opacity(selectedImage == nil ? 0.0 : 0.1), radius: 5)
+                                    
+                                    Text("Upload")
+                                        .font(.system(size: UIScreen.main.bounds.width * 0.04, weight: .semibold))
+                                        .foregroundColor(selectedImage == nil ? .gray.opacity(0.7) : .cyan)
+                                        .offset(y: -33 * vScale)
+                                        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
+                                }
+                            }
+                            .offset(y: 10 * vScale)
+                            .disabled(selectedImage == nil)
+                        }
+                        .offset(y: -20 * vScale)
+                        .offset(x: 10 * vScale)
+                        
+                        // Visual filler section
+                        VStack(spacing: 12) {
+                            Text("Tap a photo or add one to log your catch")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                            
+                            HStack(spacing: 12) {
+                                ForEach(0..<5) { _ in
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(LinearGradient(
+                                            colors: [Color.gray.opacity(0.05), Color.gray.opacity(0.15)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing))
+                                        .frame(width: 60, height: 60)
+                                        .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
+                                }
                             }
                         }
-                        .offset(y: 10 * vScale)
-                        .disabled(selectedImage == nil)
+                        .padding(.top, -20)
+                        .frame(maxWidth: .infinity)
+                        
+                        Spacer(minLength: 50)
                     }
-                    .offset(y: -20 * vScale)
-                    .offset(x: 10 * vScale)
-                    
-                } // VStack
-                .padding(.top, 30 * vScale)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 50 * vScale)
+                    .padding(.bottom, 50) // extra padding so scroll doesn't cut off content
+                } .background(Color.blue.opacity(0.01))
                 
                 // Optional accent gradient behind header
                 LinearGradient(
-                    colors: [Color.blue.opacity(0.1), Color.blue.opacity(0.2)],
+                    colors: [Color.black.opacity(0.03), Color.black.opacity(0.05)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -152,14 +190,12 @@ struct CatchView: View {
                 .offset(y: -100)
                 .blendMode(.overlay)
                 
-            } // ZStack
+            }
         } else {
             CatchManageView(editState: $editState, selectedUIImage: selectedImage)
         }
     }
 }
-
 #Preview {
     CatchView()
 }
-

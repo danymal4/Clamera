@@ -95,8 +95,13 @@ struct SpeciesListView: View {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToAdd ? .blue : .gray)
-                                    .opacity(hasAvailableToAdd ? 1 : 0.6)
+                                    .foregroundColor(hasAvailableToAdd ? .cyan : .gray)
+                                    .opacity(hasAvailableToAdd ? 1 : 0.5).shadow(
+                                        color: hasAvailableToAdd ? Color.cyan.opacity(0.3) : .clear,
+                                        radius: 3,
+                                        x: 0,
+                                        y: 2
+                                    )
                             }
                             .disabled(!hasAvailableToAdd)
 
@@ -124,8 +129,13 @@ struct SpeciesListView: View {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToRemove ? .red : .gray)
-                                    .opacity(hasAvailableToRemove ? 1 : 0.6)
+                                    .opacity(hasAvailableToRemove ? 1 : 0.5).foregroundColor(hasAvailableToRemove ? Color(red: 0.9, green: 0.3, blue: 0.3) : .gray)
+                                    .shadow(
+                                        color: hasAvailableToRemove ? Color(red: 0.9, green: 0.3, blue: 0.3).opacity(0.3) : .clear,
+                                        radius: 3,
+                                        x: 0,
+                                        y: 2
+                                    )
                             }
                             .disabled(!hasAvailableToRemove)
                         }
@@ -135,7 +145,7 @@ struct SpeciesListView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 25)
                             .fill(Color.white)
-                            .overlay(Color.blue.opacity(0.075).cornerRadius(25))
+                            .overlay(Color.cyan.opacity(0.2).cornerRadius(25))
                             .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                     )
                     .padding(.horizontal, 16)
@@ -145,7 +155,8 @@ struct SpeciesListView: View {
                     VStack(alignment: .leading, spacing: 12) {
 
                         Text("Catch Log")
-                            .font(.system(size: 26, weight: .bold))
+                            .font(.title2)
+                            .fontWeight(.bold)
 
                         ZStack {
 
@@ -217,10 +228,12 @@ struct SpeciesListView: View {
                 }
 
                 Text(title)
-                    .foregroundStyle(Color.black)
-                    .opacity(0.7)
+                               .foregroundStyle(selected ? .cyan : .secondary) // cyan if active, gray otherwise
+                               .fontWeight(selected ? .semibold : .regular)
+                               .padding(.horizontal, 12)
+                               .frame(height: 35)
             }
-        }
+        } .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -382,7 +395,10 @@ struct SmallRoundedCard: View {
                 width: UIScreen.main.bounds.width * 0.265,
                 height: UIScreen.main.bounds.width * 0.105
             )
-            .foregroundStyle(Color.gray)
+            .foregroundStyle(Color.cyan.opacity(0.5))   .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.cyan.opacity(0.65), lineWidth: 1)
+            )
             .opacity(0.1)
         
     }

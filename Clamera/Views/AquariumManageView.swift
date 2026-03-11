@@ -49,7 +49,7 @@ struct AquariumManageView: View {
                             Image("aquariumSetting").resizable() .frame(
                                 width: min(UIScreen.main.bounds.width * 0.2, 2000),
                                 height: min(UIScreen.main.bounds.width * 0.2, 2000)
-                            ).overlay(Color.blue.opacity(0.1)).cornerRadius(15).padding(.horizontal, -160)           .shadow(color: .black.opacity(0.08), radius: 5)
+                            ).overlay(Color.cyan.opacity(0.15)).cornerRadius(15).padding(.horizontal, -160)           .shadow(color: .black.opacity(0.08), radius: 5)
                             
                             Text("Aquarium").bold() .font(.system(size: UIScreen.main.bounds.width * 0.06)).frame(
                                 width: min(UIScreen.main.bounds.width * 0.8, 2000),
@@ -176,7 +176,7 @@ struct AquariumManageView: View {
                                                     }
                                                 }
                                             ))
-                                            .labelsHidden()
+                                            .labelsHidden()   .tint(.green)
                                         }
                                         Spacer()
                                         Spacer()
@@ -219,7 +219,7 @@ struct AquariumManageView: View {
                                                         }
                                                     ),
                                                     in: 1...15
-                                                ).accentColor(.blue.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6))
 
                                                 Image("fast").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.06, 2000),
@@ -241,7 +241,7 @@ struct AquariumManageView: View {
                                                         }
                                                     ),
                                                     in: 20...200
-                                                ).accentColor(.blue.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6))
 
                                                 Image("big").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.08, 2000),
@@ -450,7 +450,7 @@ struct AquariumManageView: View {
                                         aquariumState.bubbleVisibility = newValue ? 1 : 0
                                     }
                                 ))
-                                .labelsHidden()
+                                .labelsHidden().tint(.green)
                                 
                             }.padding(.horizontal, 45)
                             

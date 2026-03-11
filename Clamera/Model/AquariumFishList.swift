@@ -14,8 +14,8 @@ final class AquariumFishList: ObservableObject {
     init() {
         self.fish = [
             AquariumFish(
-                imageName: "clownfishIcon",
-                size: CGSize(width: 80, height: 50),
+                imageName: "Summer FlounderIcon",
+                size: CGSize(width: 180, height: 150),
                 horizontalRange: -137...137,
                 verticalRange: -130...130,
                 swimDuration: 8,
@@ -24,8 +24,8 @@ final class AquariumFishList: ObservableObject {
                 isShown: true
             ),
             AquariumFish(
-                imageName: "pufferIcon",
-                size: CGSize(width: 70, height: 45),
+                imageName: "Atlantic Bluefin TunaIcon",
+                size: CGSize(width: 170, height: 145),
                 horizontalRange: -140...120,
                 verticalRange: -140...140,
                 swimDuration: 10,
@@ -34,7 +34,7 @@ final class AquariumFishList: ObservableObject {
                 isShown: true
             ),
             AquariumFish(
-                imageName: "grouperIcon",
+                imageName: "OpahIcon",
                 size: CGSize(width: 90, height: 55),
                 horizontalRange: -120...148,
                 verticalRange: -120...120,

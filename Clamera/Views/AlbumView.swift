@@ -75,20 +75,18 @@ struct AlbumView: View {
             ScrollView {
                 ZStack(alignment: .top) {
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-                    IconView()
+                 
                     
                     VStack(spacing: 20) {
                         Text("Album")
-                            .font(.custom("AkayaTelivigala-regular", size: 50))
-                            .foregroundStyle(.blue)
-                            .padding(.top)
-                            .opacity(0.8)
+                            .font(.system(size: 34, weight: .bold))
+                            .padding(.top, 20)
                         
                         ZStack {
                             HStack {}.background(
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 25)
                                     .colorInvert()
-                                    .frame(width: UIScreen.main.bounds.width * 0.85, height: UIScreen.main.bounds.width * 0.13)
+                                    .frame(width: UIScreen.main.bounds.width * 0.8575, height: UIScreen.main.bounds.width * 0.13)
                                     .shadow(color: .black.opacity(0.1), radius: 10)
                             )
                             HStack {
@@ -108,8 +106,9 @@ struct AlbumView: View {
                                             destination: SpeciesListView(
                                                 aquarium: aquarium,
                                                 species: speciesStore.speciesList[index]
-                                            )
-                                        ) {
+                                            ).navigationBarTitleDisplayMode(.inline)
+                                                .tint(.black)
+                                        )   {
                                             SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true)
                                         }
                                     }
@@ -150,16 +149,23 @@ struct AlbumView: View {
                             searchText = ""
                         }
                     } label: {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 28))
-                            .foregroundColor(.blue)
-                            .scaleEffect(showHint ? 1.06 : 1.0)
-                            .shadow(color: Color.blue.opacity(0.2), radius: 3, x: 0, y: 1)
-                            .onAppear {
-                                withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                                    showHint.toggle()
-                                }
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 55, height: 55) // adjust size to your liking
+                                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+                            
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 28))
+                                .foregroundColor(.cyan)
+                               
+                                .shadow(color: Color.cyan.opacity(0.2), radius: 3, x: 0, y: 1)
+                                
+                        }.onAppear {
+                            withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
+                                showHint.toggle()
                             }
+                        } .scaleEffect(showHint ? 1.06 : 1.0)
                     }
                     .padding(.trailing, 35)
                     .padding(.bottom, 15)
@@ -177,7 +183,9 @@ struct AlbumView: View {
             ZStack {
                 if selectedFilter == filter { SmallRoundedCard() }
                 else { SmallRoundedCard().opacity(0.0) }
-                Text(title).foregroundStyle(Color.black).opacity(0.7)
+                Text(title)
+                    .foregroundStyle(selectedFilter == filter ? .cyan : .secondary) // active = cyan, inactive = subtle gray
+                    .fontWeight(selectedFilter == filter ? .semibold : .regular)
             }
         }
     }
@@ -221,7 +229,7 @@ struct SpeciesGridItem: View {
 
                 Text(species.name)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(imageExists ? .blue : .white)
+                    .foregroundColor(imageExists ? .cyan : .white)
                     .minimumScaleFactor(0.5)
                     .lineLimit(2)
                     .allowsTightening(true)

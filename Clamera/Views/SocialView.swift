@@ -6,114 +6,76 @@
 //
 
 import SwiftUI
+
 struct SocialView: View {
     var body: some View {
         ZStack {
-      
-            
             IconView()
             
-            VStack(spacing: 40) {
+            VStack(spacing: 35) {
                 
+                // Section Title
                 Text("Social")
-                    .font(.custom("AkayaTelivigala-regular",
-                                  size: UIScreen.main.bounds.width * 0.22))
-                    .opacity(0.8)
-                    .foregroundStyle(.blue)
-                    .padding(.top, 60).padding(.bottom, 10)
+                    .font(.system(size: 42, weight: .bold)) // matches other titles
+                    .foregroundColor(.black)
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 1, y: 1)
+                    .padding(.top, 60)
                 
-                VStack(spacing: 30) {
+                VStack(spacing: 25) {
                     
+                    // Friends Button
                     Button {
-                        
-                        
+                        // action
+                    } label: {
+                        socialRow(imageName: "friends", title: "Friends")
                     }
                     
-                    label: {
-                   
-                        ZStack{
-                       
-                            socialCard()
-                            
-                            HStack{
-                            Image("friends").resizable()  .frame(
-                                width: min(UIScreen.main.bounds.width * 0.15, 180),
-                                height: min(UIScreen.main.bounds.width * 0.15, 180)
-                            ).colorMultiply(.black)
-                            
-                            Text("Friends").bold().foregroundStyle(.black).padding(.horizontal)
-                            Spacer()
-                        }.padding(.horizontal)
-                        
-                       
-                       
-                        }
-                      
+                    // Leaderboard Navigation
+                    NavigationLink(destination: LeaderboardView()) {
+                        socialRow(imageName: "Trophy", title: "Leaderboard")
                     }
-                    NavigationLink(
-                        destination: LeaderboardView()
-                    ) {
-                        ZStack {
-                            socialCard()
-                            
-                            HStack {
-                                Image("Trophy")
-                                    .resizable()
-                                    .frame(
-                                        width: min(UIScreen.main.bounds.width * 0.15, 180),
-                                        height: min(UIScreen.main.bounds.width * 0.15, 180)
-                                    )
-                                    .opacity(0.9)
-                                
-                                Text("Leaderboard")
-                                    .bold()
-                                    .foregroundStyle(.black)
-                                    .padding(.horizontal)
-                                
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-                   
-
                     
+                    // Shop Button
                     Button {
-                        
+                        // action
+                    } label: {
+                        socialRow(imageName: "Shop", title: "Shop")
                     }
                     
-                    label: {
-                    
-                        ZStack {
-                      
-                            socialCard()
-
-                        HStack{
-                            Image("Shop").resizable()  .frame(
-                                width: min(UIScreen.main.bounds.width * 0.15, 180),
-                                height: min(UIScreen.main.bounds.width * 0.15, 180)
-                            )
-                            Text("Shop").bold().foregroundStyle(.black).padding(.horizontal)
-                            Spacer()
-                        }.padding(.horizontal)
-                        
-                     
-                        }
-                        
-                    }
                     Spacer()
                 }
                 .padding(.horizontal)
             }
-        }.background(Color.blue.opacity(0.01))
-       
+        }
+        .background(Color.blue.opacity(0.01))
     }
     
-    private func socialCard() -> some View {
-        RoundedRectangle(cornerRadius: 30)
-            .fill(Color.white.opacity(0.9))
-            .frame(height: UIScreen.main.bounds.width * 0.35)
-            .shadow(color: .black.opacity(0.1), radius: 10)
+    // MARK: - Social Row
+    private func socialRow(imageName: String, title: String) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 30)
+                .fill(Color.cyan.opacity(0.15)) // light cyan
+                .frame(height: UIScreen.main.bounds.width * 0.35)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+            
+            HStack {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(
+                        width: min(UIScreen.main.bounds.width * 0.15, 120),
+                        height: min(UIScreen.main.bounds.width * 0.15, 120)
+                    )
+                
+                Text(title)
+                    .font(.system(size: 22, weight: .semibold)) // semi-bold
+                    .foregroundColor(.black.opacity(0.85)) // slightly softer
+                    .padding(.horizontal)
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+        }
     }
 }
 

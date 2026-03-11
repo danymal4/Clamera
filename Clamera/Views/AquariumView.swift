@@ -166,6 +166,7 @@ struct BubbleView: View {
 
 
 
+
 struct AquariumView: View {
     @EnvironmentObject var aquariumState: AquariumState
     @EnvironmentObject var aquarium: AquariumFishList
@@ -179,45 +180,41 @@ struct AquariumView: View {
     var aquariumBottom: CGFloat { UIScreen.main.bounds.height * 0.58 }
 
     var body: some View {
-       
         ZStack {
-            
             AquariumBackgroundView()
-                .environmentObject(aquariumState).offset(y: showBottomBar ? -20 : 0)
-            
+                .environmentObject(aquariumState)
+                .offset(y: showBottomBar ? 0 : -20) // invert
+
             BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
                 .environmentObject(aquariumState)
                 .offset(y: 645)
-            
+
             FishMoveView(aquarium: aquarium)
                 .opacity(1 - aquariumState.clean)
                 .offset(y: -100)
                 .scaleEffect(1.6)
-            
+
             Rectangle()
                 .cornerRadius(5)
-                .foregroundStyle(.blue)
+                .foregroundStyle(.cyan)
                 .opacity(0.14)
                 .frame(width: min(UIScreen.main.bounds.width * 2, 2000),
                        height: min(UIScreen.main.bounds.height * 1.2, 2000))
-                .padding(.top, -30).edgesIgnoringSafeArea(.bottom)
-            
+                .padding(.top, -30)
+                .edgesIgnoringSafeArea(.bottom)
+
             Rectangle()
                 .fill(Color.white)
                 .frame(height: 90)
                 .cornerRadius(20)
                 .shadow(radius: 5)
-                .offset(y: showBottomBar ? 100 : 0) // starts off screen
+                .offset(y: showBottomBar ? 0 : 100) // invert
                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
                 .padding(.top, 812)
-            
-            
-            // SETTINGS
+
+            // SETTINGS (gear button)
             VStack {
-                
-                
                 HStack {
-                    
                     Spacer()
                     Button {
                         showAquariumManage = true
@@ -230,35 +227,33 @@ struct AquariumView: View {
                             .clipShape(Circle())
                     }
                     .padding(.trailing, 400)
-                    .padding(.top, 640).offset(y: showBottomBar ? 40 : 0)
+                    .padding(.top, 585)
+                    .offset(y: showBottomBar ? 0 : 75) // invert
                     .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
                 }
             }
-            
+
+            // CHEVRON BUTTON
             VStack {
                 Spacer()
-                
-                if showBottomBar {
+                if !showBottomBar {
                     Button {
-                        // Hide the bottom bar with animation
+                        // Hide the bottom bar manually
                         withAnimation(.easeOut(duration: 0.45)) {
-                            showBottomBar = false
+                            showBottomBar = true
                         }
-                        
-                        // Reset the 5-second timer so it can reappear
-                        resetBottomBarTimer?()   // <-- call the closure here
+                        // Reset the 5-second timer
+                        resetBottomBarTimer?()
                     } label: {
                         HStack {
                             Spacer()
-                            
                             Image(systemName: "chevron.up")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(.gray)
-                            
                             Spacer()
                         }
                         .padding(.vertical, 8)
-                        .frame(width: 180) // width of the arrow bar
+                        .frame(width: 180)
                         .background(.ultraThinMaterial)
                         .clipShape(Capsule())
                     }
@@ -266,18 +261,17 @@ struct AquariumView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.easeOut(duration: 0.4), value: showBottomBar).ignoresSafeArea(edges: .bottom)
-            
+            .animation(.easeOut(duration: 0.4), value: showBottomBar)
+            .ignoresSafeArea(edges: .bottom)
         }
         .sheet(isPresented: $showAquariumManage) {
             AquariumManageView()
-        }.background(Color.blue.opacity(0.08))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .onAppear {
-                    bubbleRefreshID = UUID()
-                   
-                }
-      
+        }
+        .background(Color.blue.opacity(0.08))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            bubbleRefreshID = UUID()
+        }
     }
 }
 
