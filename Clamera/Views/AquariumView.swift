@@ -305,22 +305,15 @@ struct AquariumBackgroundView: View {
                 
                 .padding(.top, 180 + ((UIScreen.main.bounds.width - 402) * 0.3)).opacity(0.15)
           
-                Image("sandfloor")
+                Image("sandFloor2")
                     .resizable()
                     .frame(width: min(UIScreen.main.bounds.width * 1.5, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.5, 2000))
-                    .padding(.top, 520 + ((UIScreen.main.bounds.width - 302) * 0.3))
+                           height: min(UIScreen.main.bounds.width * 0.9, 2000))
+                    .padding(.top, 540 + ((UIScreen.main.bounds.width - 302) * 0.3))
                     .padding(.horizontal, 50)
                     .opacity(0.95 - (aquariumState.clean * 0.25))
 
-                Image("sandfloor")
-                    .resizable()
-                    .frame(width: min(UIScreen.main.bounds.width * 1.5, 2000),
-                           height: min(UIScreen.main.bounds.width * 0.5, 2000))
-                    .padding(.top, 695 + ((UIScreen.main.bounds.width - 302) * 0.3))
-                    .padding(.horizontal, 50)
-                    .opacity(0.95 - (aquariumState.clean * 0.25))
-
+           
                
                 Rectangle()
                     .cornerRadius(5)

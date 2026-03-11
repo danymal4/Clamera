@@ -96,7 +96,8 @@ struct SpeciesListView: View {
                                     .resizable()
                                     .frame(width: 30, height: 30)
                                     .foregroundColor(hasAvailableToAdd ? .cyan : .gray)
-                                    .opacity(hasAvailableToAdd ? 1 : 0.5).shadow(
+                                    .opacity(hasAvailableToAdd ? 1 : 0.5)
+                                    .shadow(
                                         color: hasAvailableToAdd ? Color.cyan.opacity(0.3) : .clear,
                                         radius: 3,
                                         x: 0,
@@ -105,13 +106,13 @@ struct SpeciesListView: View {
                             }
                             .disabled(!hasAvailableToAdd)
 
-                       // remove
+
+                            // remove fish
                             Button {
                                 if let newestAquariumFish = species.fishList
                                     .filter({ $0.isAquarium })
                                     .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                            
                                     if let aquaFish = aquarium.fish.first(where: {
                                         $0.isActive &&
                                         $0.imageName == "\(species.name)Icon" &&
@@ -120,18 +121,17 @@ struct SpeciesListView: View {
                                         aquaFish.isActive = false
                                     }
 
-                                  
                                     newestAquariumFish.isAquarium = false
-
                                     aquarium.refresh()
                                 }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .opacity(hasAvailableToRemove ? 1 : 0.5).foregroundColor(hasAvailableToRemove ? Color(red: 0.9, green: 0.3, blue: 0.3) : .gray)
+                                    .foregroundColor(hasAvailableToRemove ? Color(red: 0.0, green: 0.5, blue: 0.65)  : .gray)
+                                    .opacity(hasAvailableToRemove ? 1 : 0.5)
                                     .shadow(
-                                        color: hasAvailableToRemove ? Color(red: 0.9, green: 0.3, blue: 0.3).opacity(0.3) : .clear,
+                                        color: hasAvailableToRemove ? Color.cyan.opacity(0.3) : .clear,
                                         radius: 3,
                                         x: 0,
                                         y: 2

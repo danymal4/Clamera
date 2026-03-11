@@ -134,7 +134,7 @@ struct AlbumView: View {
                             .background(Color.white.opacity(1))
                             .shadow(color: .black.opacity(0.1), radius: 10)
                             .cornerRadius(40)
-                            .offset(y: showSearch ? -6 : 100)
+                            .offset(y: showSearch ? -40 : 100)
                             .animation(.easeInOut(duration: 0.3), value: showSearch)
                             .onChange(of: searchText) { newValue in
                                 showSuggestions = !newValue.isEmpty
@@ -168,7 +168,7 @@ struct AlbumView: View {
                         } .scaleEffect(showHint ? 1.06 : 1.0)
                     }
                     .padding(.trailing, 35)
-                    .padding(.bottom, 15)
+                    .padding(.bottom, 80)
                 }
             }
         }

@@ -38,145 +38,154 @@ struct CatchManageView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            
-            // Top Navigation
-            HStack {
-                Button("< Cancel") {
-                    editState = .notEditing
-                }
-                .foregroundColor(.cyan)
-                Spacer()
-            }
-            .padding(.horizontal)
-            
-            // Photo Hero with card style
-            if let uiImage = selectedUIImage {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .cornerRadius(20)
+        ScrollView {
+            VStack(spacing: 25) { // increased spacing for breathing room
+                
+                // Top Navigation
+                HStack {
+                    Button("< Cancel") {
+                        editState = .notEditing
+                    }
+                    .foregroundColor(.cyan)
+                    Spacer()
                 }
                 .padding(.horizontal)
-            }
-            
-            // Input Fields as "cards"
-            VStack(spacing: 15) {
                 
-                TextField("Description", text: $info)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(.systemGray6))
-                            .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
-                    )
+                // Photo Hero with card style
+                if let uiImage = selectedUIImage {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .cornerRadius(20)
+                    }
                     .padding(.horizontal)
+                    .padding(.top, 10)
+                }
                 
-                // Species Field + Dropdown
-                ZStack(alignment: .top) {
-                    TextField("Species", text: $species)
+                // Input Fields as "cards"
+                VStack(spacing: 20) { // more spacing between fields
+                    
+                    TextField("Description", text: $info)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 15)
                                 .fill(Color(.systemGray6))
                                 .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
                         )
-                        .onChange(of: species) { newValue in
-                            showSpeciesSuggestions = !newValue.isEmpty
-                            updatePreviewPoints()
-                        }
+                        .padding(.horizontal)
                     
-                    // Species Suggestions (kept layout and top padding)
-                    if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
-                        VStack(spacing: 0) {
-                            ForEach(speciesSuggestions.prefix(3).indices, id: \.self) { i in
-                                let suggestion = speciesSuggestions[i]
-                                
-                                Button(action: {
-                                    species = suggestion.name
-                                    showSpeciesSuggestions = false
-                                }) {
-                                    HStack {
-                                        Text(suggestion.name)
-                                            .foregroundColor(.black)
-                                            .padding(.vertical, 10)
-                                        Spacer()
+                    // Species Field + Dropdown
+                    ZStack(alignment: .top) {
+                        TextField("Species", text: $species)
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color(.systemGray6))
+                                    .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
+                            )
+                            .onChange(of: species) { newValue in
+                                showSpeciesSuggestions = !newValue.isEmpty
+                                updatePreviewPoints()
+                            }
+                        
+                        // Species Suggestions (keep existing padding/alignment)
+                        if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
+                            VStack(spacing: 0) {
+                                ForEach(speciesSuggestions.prefix(3).indices, id: \.self) { i in
+                                    let suggestion = speciesSuggestions[i]
+                                    
+                                    Button(action: {
+                                        species = suggestion.name
+                                        showSpeciesSuggestions = false
+                                    }) {
+                                        HStack {
+                                            Text(suggestion.name)
+                                                .foregroundColor(.black)
+                                                .padding(.vertical, 10)
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal)
+                                        .background(Color.white)
+                                        .cornerRadius(30)
                                     }
-                                    .padding(.horizontal)
-                                    .background(Color.white)
-                                    .cornerRadius(30)
-                                }
-                                
-                                // Only add divider if not the last
-                                if i != speciesSuggestions.prefix(3).count - 1 {
-                                    Divider()
+                                    
+                                    if i != speciesSuggestions.prefix(3).count - 1 {
+                                        Divider()
+                                    }
                                 }
                             }
+                            .background(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .fill(Color.white)
+                                    .shadow(radius: 5)
+                            )
+                            .padding(.top, 40)
+                            .zIndex(1)
                         }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Points Preview
+                    // Points Preview (modern card style)
+                    // inside the Points Preview HStack in CatchManageView
+                    if let points = previewPoints {
+                        let isCatchOfTheWeek = speciesStore.catchOfTheWeek?.name == species
+                        let accentColor: Color = isCatchOfTheWeek
+                            ? Color(red: 1.0, green: 0.84, blue: 0.0) // gold
+                            : colorForPoints(points)
+
+                        HStack {
+                            Image(systemName: "sparkles")
+                                .foregroundColor(accentColor)
+                            Text("+ \(points) Clam Points")
+                                .font(.headline)
+                                .bold()
+                                .foregroundColor(accentColor)
+                                .shadow(color: isCatchOfTheWeek ? accentColor.opacity(0.6) : .clear, radius: isCatchOfTheWeek ? 6 : 0)
+                            Spacer()
+                        }
+                        .padding()
                         .background(
-                            RoundedRectangle(cornerRadius: 30)
-                                .fill(Color.white)
-                                .shadow(radius: 5)
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(accentColor.opacity(isCatchOfTheWeek ? 0.25 : 0.15))
+                                .shadow(color: accentColor.opacity(isCatchOfTheWeek ? 0.3 : 0.1), radius: 4, x: 0, y: 2)
                         )
-                        .padding(.top, 40) // necessary
-                        .zIndex(1)
+                        .padding(.horizontal)
+                        .animation(.easeInOut(duration: 0.2), value: points)
                     }
+                    
+                    // Weight Field
+                    TextField("Weight (optional)                                          lbs", text: $weightText)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color(.systemGray6))
+                                .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
+                        )
+                        .onChange(of: weightText) { newValue in
+                            weight = Int(newValue)
+                        }
+                        .padding(.horizontal)
                 }
+                
+                // Spacer to push Confirm button lower
+                Spacer(minLength: 40)
+                
+                // Confirm Button
+                Button("Confirm") {
+                    saveCatch()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.cyan)
                 .padding(.horizontal)
-                
-                // Points Preview (modern card style)
-                if let points = previewPoints {
-                    let accentColor = colorForPoints(points)
-                    HStack {
-                        Image(systemName: "sparkles")
-                            .foregroundColor(accentColor)
-                        Text("+ \(points) Clam Points")
-                            .font(.headline)
-                            .bold()
-                            .foregroundColor(accentColor)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(accentColor.opacity(0.15))
-                            .shadow(color: accentColor.opacity(0.1), radius: 4, x: 0, y: 2)
-                    )
-                    .padding(.horizontal)
-                    .animation(.easeInOut(duration: 0.2), value: points)
-                }
-                
-                // Weight Field
-                TextField("Weight (optional)                                          lbs", text: $weightText)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(.systemGray6))
-                            .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
-                    )
-                    .onChange(of: weightText) { newValue in
-                        weight = Int(newValue)
-                    }
-                    .padding(.horizontal)
+                .padding(.bottom, 120) // extra space for big tab bar
+                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
-            
-            Spacer()
-            
-            
-            // Confirm Button with subtle shadow
-            Button("Confirm") {
-                saveCatch()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.cyan)
-            .padding(.horizontal)
-            .padding(.bottom, 40)
-            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-            Spacer()
+            .padding(.top, 10)
         }
         .navigationBarHidden(true)
         .background(Color(.systemBackground))
