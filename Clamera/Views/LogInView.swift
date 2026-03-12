@@ -18,8 +18,9 @@ struct LogInView: View {
             VStack{
                 HStack {
                     Text("Clamera")
-                        .font(.custom("AkayaTelivigala-regular", size: 90))
-                        .foregroundStyle(.blue)
+                        .font(.system(size: 42, weight: .bold))
+                        .foregroundColor(.black)
+                        .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1)
                     
                 }.position(x: 200, y: 40)
                 HStack {

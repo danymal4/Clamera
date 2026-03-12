@@ -19,8 +19,7 @@ struct HomeRevised: View {
             ScrollView {
                 
                 VStack(spacing: 32) {
-                    
-                    // MARK: Header
+                  
                     HStack {
                         (
                             Text("Good Morning ")
@@ -63,7 +62,7 @@ struct HomeRevised: View {
                     .padding(.top, 40)
                     
                     
-                    // MARK: Catch of the Week
+                  
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 30)
