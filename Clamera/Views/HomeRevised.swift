@@ -154,7 +154,7 @@ struct HomeRevised: View {
                     ZStack {
                         RoundedRectangle(cornerRadius: 25)
                             .foregroundStyle(.cyan)
-                            .opacity(0.2)
+                            .opacity(0.25)
                             .frame(width: ui.width * 0.9, height: ui.width * 0.35)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 25)
