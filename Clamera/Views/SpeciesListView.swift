@@ -162,9 +162,9 @@ struct SpeciesListView: View {
 
                             Rectangle()
                                 .colorInvert()
-                                .cornerRadius(22)
+                                .cornerRadius(25)
                                 .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-                                .padding(.vertical, -4)
+                                .padding(.vertical, -4.75)
                                 .padding(.horizontal, 13)
 
                             HStack {
