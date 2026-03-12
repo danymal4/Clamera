@@ -77,7 +77,7 @@ struct AlbumView: View {
                     Color.clear.frame(height: UIScreen.main.bounds.height)
                  
                     
-                    VStack(spacing: 20) {
+                    VStack(spacing: 25) {
                         Text("Album")
                             .font(.system(size: 34, weight: .bold))
                             .padding(.top, 20)

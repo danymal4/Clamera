@@ -115,7 +115,8 @@ struct HomeRevised: View {
                             
                             HStack {
                                 Text("Catch of the Week")
-                                    .bold()
+                                    .font(.headline)
+                                    .fontWeight(.bold)
                                     .foregroundColor(.white)
                                 
                                 Spacer()
