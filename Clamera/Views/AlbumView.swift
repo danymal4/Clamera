@@ -7,8 +7,7 @@
 import SwiftUI
 import Kingfisher
 
-// MARK: - Fish JSON Structure
-// MARK: - Fish JSON Structure (Matches fish_data.json)
+// codable since it absorbs data directly from fish data json
 struct FishData: Codable, Identifiable {
     let id = UUID()
     let Species: String        // Scientific name
@@ -16,8 +15,6 @@ struct FishData: Codable, Identifiable {
     let Image: String          // URL of image
 }
 
-// MARK: - Album View
-// MARK: - Album View
 struct AlbumView: View {
     
     @EnvironmentObject var user: User
@@ -76,20 +73,18 @@ struct AlbumView: View {
             ScrollView {
                 ZStack(alignment: .top) {
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-                    IconView()
+                 
                     
                     VStack(spacing: 20) {
                         Text("Album")
-                            .font(.custom("AkayaTelivigala-regular", size: 50))
-                            .foregroundStyle(.blue)
-                            .padding(.top)
-                            .opacity(0.8)
+                            .font(.system(size: 34, weight: .bold))
+                            .padding(.top, 20)
                         
                         ZStack {
                             HStack {}.background(
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 25)
                                     .colorInvert()
-                                    .frame(width: UIScreen.main.bounds.width * 0.85, height: UIScreen.main.bounds.width * 0.13)
+                                    .frame(width: UIScreen.main.bounds.width * 0.8575, height: UIScreen.main.bounds.width * 0.13)
                                     .shadow(color: .black.opacity(0.1), radius: 10)
                             )
                             HStack {
@@ -107,15 +102,16 @@ struct AlbumView: View {
                                     if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
                                         NavigationLink(
                                             destination: SpeciesListView(
-                                                aquarium: user.aquarium,
-                                                species: user.speciesStore.speciesList[index]
-                                            )
-                                        ) {
-                                            SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true) // ✅ pass ObservedObject
+                                                aquarium: aquarium,
+                                                species: speciesStore.speciesList[index]
+                                            ).navigationBarTitleDisplayMode(.inline)
+                                                .tint(.black)
+                                        )   {
+                                            SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true)
                                         }
                                     }
                                 } else {
-                                    SpeciesGridItem(species: item, clickable: false) // ✅ also observed
+                                    SpeciesGridItem(species: item, clickable: false)
                                 }
                             }
                         }.padding(.horizontal, 15)
@@ -136,7 +132,7 @@ struct AlbumView: View {
                             .background(Color.white.opacity(1))
                             .shadow(color: .black.opacity(0.1), radius: 10)
                             .cornerRadius(40)
-                            .offset(y: showSearch ? -6 : 100) // ✅ Slide up from offscreen
+                            .offset(y: showSearch ? -35 : 100)
                             .animation(.easeInOut(duration: 0.3), value: showSearch)
                             .onChange(of: searchText) { newValue in
                                 showSuggestions = !newValue.isEmpty
@@ -151,19 +147,26 @@ struct AlbumView: View {
                             searchText = ""
                         }
                     } label: {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 28))
-                            .foregroundColor(.blue)
-                            .scaleEffect(showHint ? 1.06 : 1.0)
-                            .shadow(color: Color.blue.opacity(0.2), radius: 3, x: 0, y: 1)
-                            .onAppear {
-                                withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                                    showHint.toggle()
-                                }
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 55, height: 55) // adjust size to your liking
+                                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+                            
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 28))
+                                .foregroundColor(.cyan)
+                               
+                                .shadow(color: Color.cyan.opacity(0.2), radius: 3, x: 0, y: 1)
+                                
+                        }.onAppear {
+                            withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
+                                showHint.toggle()
                             }
+                        } .scaleEffect(showHint ? 1.06 : 1.0)
                     }
-                    .padding(.trailing, 35)
-                    .padding(.bottom, 15)
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 70)
                 }
             }
         }
@@ -178,15 +181,17 @@ struct AlbumView: View {
             ZStack {
                 if selectedFilter == filter { SmallRoundedCard() }
                 else { SmallRoundedCard().opacity(0.0) }
-                Text(title).foregroundStyle(Color.black).opacity(0.7)
+                Text(title)
+                    .foregroundStyle(selectedFilter == filter ? .cyan : .secondary) // active = cyan, inactive = subtle gray
+                    .fontWeight(selectedFilter == filter ? .semibold : .regular)
             }
         }
     }
 }
 
-// MARK: - Species Grid Item
+// grid that's passed a species for each item 
 struct SpeciesGridItem: View {
-    @ObservedObject var species: Species // ✅ change here
+    @ObservedObject var species: Species
     let clickable: Bool
     
     private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
@@ -194,25 +199,45 @@ struct SpeciesGridItem: View {
     
     var body: some View {
         ZStack {
-            KFImage(
-                URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines))
-            )
-            .placeholder {
-                Image("stockPhoto")
+          
+            // special package I added from chat since I couldnt get the data to load consistently well (KF caches image data so it only has to load once per usage of the app)
+            ZStack {
+                // MARK: - Blurred Background
+                KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    .placeholder {
+                        Image("stockPhoto")
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    .retry(maxCount: 3, interval: .seconds(5))
                     .resizable()
                     .scaledToFill()
+                    .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
+                    .blur(radius: 10)
+                    .opacity(0.45)
+                    .clipped()
+                
+                // MARK: - Fish Image (stretched to fill frame)
+                KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    .placeholder {
+                        Image("stockPhoto")
+                            .resizable()
+                    }
+                    .retry(maxCount: 3, interval: .seconds(5))
+                    .resizable()
+                    .frame(width: cardWidth * 0.95, height: cardHeight * 0.95) // forces the frame
+                    .clipped()
+                    .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             }
-            .retry(maxCount: 3, interval: .seconds(5))
-            .resizable()
-            .scaledToFill()
             .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
             .background(
                 RoundedRectangle(cornerRadius: 25)
                     .fill(Color(.systemGray5))
             )
-            .cornerRadius(25)
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .opacity(clickable ? 1.0 : 0.6)
             .brightness(clickable ? -0.15 : 0)
+           
             
             HStack(spacing: 4) {
                 let imageName = "\(species.name)Icon"
@@ -220,13 +245,14 @@ struct SpeciesGridItem: View {
 
                 Text(species.name)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(imageExists ? .blue : .white)
+                    .foregroundColor(imageExists ? .white : .white)
+                    .shadow(color: clickable ? Color.cyan.opacity(0.6) : .clear, radius: 4, x: 0, y: 0)
                     .minimumScaleFactor(0.5)
                     .lineLimit(2)
                     .allowsTightening(true)
                 
                 if clickable {
-                    Text("(\(species.fishList.count))") // ✅ now updates live
+                    Text("(\(species.fishList.count))")
                         .foregroundStyle(.white)
                         .font(.system(size: UIScreen.main.bounds.width * 0.035))
                 }
@@ -240,7 +266,7 @@ struct SpeciesGridItem: View {
     }
 }
 
-// MARK: - Preview
+
 #Preview {
     AlbumView()
         .environmentObject(User())

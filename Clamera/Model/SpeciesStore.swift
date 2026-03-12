@@ -9,13 +9,15 @@ import SwiftUI
 
 final class SpeciesStore: ObservableObject {
     @Published var speciesList: [Species] = []
-    @Published var totalClamPoints: Int = 0
+    @Published var totalClamPoints: Int = 40
     
-    // MARK: - Catch of the Week
+
     @Published var catchOfTheWeek: Species?
     @Published var catchOfTheWeekPoints: Int = Int.random(in: 30...40) * 5
     
     init() {
+       
+        // calls all the json logic upon loading
         loadFromJSON()
         assignCatchOfTheWeek()
     }
@@ -26,17 +28,27 @@ final class SpeciesStore: ObservableObject {
         assignCatchOfTheWeek()
     }
     
+    
+    // declares url from fish data json
+    
     private func loadFromJSON() {
         guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
-            print("❌ Could not find fish_data.json")
+            print("Cant find fish data")
             return
         }
         
         do {
+        
+           // if successful then trys to get data from the url
+            
             let data = try Data(contentsOf: url)
+            
+            // attempts to convert json into an array of fishdata objects (try throws error if neccesary)
+            // fish data neeeded to match the json's organization
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
             
-            // Map FishData → Species
+        
+            // takes the decoded fish data and adds it into speciesList class with the correct format
             self.speciesList = decoded.map { fish in
                 Species(
                     name: fish.CommonName,
@@ -45,13 +57,15 @@ final class SpeciesStore: ObservableObject {
                 )
             }
             
-            print("✅ Loaded \(speciesList.count) species")
+            print("Loaded \(speciesList.count) species")
         } catch {
-            print("❌ JSON decode error:", error)
+            
+            // do/catch is here to see precise errors
+            print("JSON error:", error)
         }
     }
     
-    // MARK: - Catch of the Week Assignment
+  
     func assignCatchOfTheWeek() {
         let validSpecies = speciesList.filter { species in
             let imageName = "\(species.name)Icon"
@@ -66,13 +80,13 @@ final class SpeciesStore: ObservableObject {
         catchOfTheWeek = validSpecies.randomElement()
     }
     
-    // Optional: get icon for Catch of the Week
+   
     func catchOfTheWeekIcon() -> String? {
         guard let species = catchOfTheWeek else { return nil }
         return "\(species.name)Icon"
     }
     
-    // MARK: - Clam Points Logic
+
     func calculateClamPoints(
         totalOfSpecies caughtFish: Int,
         totalOtherFish otherFish: Int,
@@ -99,7 +113,7 @@ final class SpeciesStore: ObservableObject {
         return Int((speciesPoints + timeBonus).rounded())
     }
     
-    // MARK: - Stats
+   
     func getSpecies() -> Int {
         speciesList.filter { !$0.fishList.isEmpty }.count
     }
@@ -112,9 +126,9 @@ final class SpeciesStore: ObservableObject {
         Int.random(in: 30...40) * 5
     }
 
-    // MARK: - Manual Refresh
+    
     func refresh() {
-        objectWillChange.send()   // triggers SwiftUI updates manually
+        objectWillChange.send()
     }
 }
     

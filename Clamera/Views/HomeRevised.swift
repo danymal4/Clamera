@@ -18,9 +18,6 @@ struct HomeRevised: View {
             
             ScrollView {
                 
-                IconView()
-                    .padding(.bottom, -30)
-                
                 VStack(spacing: 32) {
                     
                     // MARK: Header
@@ -37,8 +34,8 @@ struct HomeRevised: View {
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
-                                    Color.black.opacity(0.6),
-                                    Color.blue.opacity(0.6)
+                                    Color.black.opacity(0.75),
+                                    Color.cyan.opacity(0.6)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -46,19 +43,34 @@ struct HomeRevised: View {
                         )
                         
                         Spacer()
+                        
+                        // Points Display
+                        HStack(spacing: 4) {
+                            Image("clamIcon")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 18, height: 18).scaleEffect(1.3)
+                            
+                            Text("\(speciesStore.totalClamPoints)")
+                                .bold()
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.black.opacity(0.05))
+                        .cornerRadius(10)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 40)
                     
                     
-                    // MARK: Catch of the Day
+                    // MARK: Catch of the Week
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 30)
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        Color.blue.opacity(0.45),
+                                        Color.cyan.opacity(0.45),
                                         Color.blue.opacity(0.20)
                                     ],
                                     startPoint: .topLeading,
@@ -88,7 +100,7 @@ struct HomeRevised: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: ui.width * 0.55, height: ui.width * 0.55)
-                                .shadow(color: .yellow.opacity(0.6), radius: 20)
+                                .shadow(color: .cyan.opacity(0.6), radius: 20)
                                 .shadow(color: .yellow.opacity(0.4), radius: 40)
                                 .shadow(color: .yellow.opacity(0.2), radius: 60)
                                 .offset(y: floatUpDown ? -6 : 6)
@@ -97,19 +109,13 @@ struct HomeRevised: View {
                                         .repeatForever(autoreverses: true),
                                     value: floatUpDown
                                 )
-                        } else {
-                            Image("") // fallback if no catch yet
-                                .resizable()
-                                .frame(width: 60, height: 60)
                         }
-                        
-                      
                         
                         VStack {
                             Spacer()
                             
                             HStack {
-                                Text("Catch of the Day")
+                                Text("Catch of the Week")
                                     .bold()
                                     .foregroundColor(.white)
                                 
@@ -128,114 +134,67 @@ struct HomeRevised: View {
                     }
                     
                     
-                    // MARK: Half Cards
+                    // MARK: Stats Section
                     HStack(spacing: 16) {
                         
-                        // Pinned Catch
-                        ZStack {
-                            
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.cyan.opacity(0.45),
-                                            Color.blue.opacity(0.20)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .overlay(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.25),
-                                            Color.clear
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .center
-                                    )
-                                    .clipShape(RoundedRectangle(cornerRadius: 25))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                )
-                                .frame(width: ui.width * 0.42, height: ui.width * 0.35)
-                            
-                            VStack {
-                                Image("grouperIcon")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: ui.width * 0.18, height: ui.width * 0.18)
-                                    .offset(y: floatUpDown ? -2 : 6)
-                                    .animation(
-                                        .easeInOut(duration: 1.3)
-                                            .repeatForever(autoreverses: true),
-                                        value: floatUpDown
-                                    )
-                                
-                                Text("500 pts")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .padding(6)
-                                    .background(Color.black.opacity(0.25))
-                                    .cornerRadius(10)
-                            }
-                        }
+                        statCard(
+                            title: "Fish Caught",
+                            value: "\(speciesStore.getFish())"
+                        )
                         
-                        // Catch of the Week (Image Card)
-                        ZStack {
-                            Image("clownFishExample")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: ui.width * 0.42, height: ui.width * 0.35)
-                                .clipShape(RoundedRectangle(cornerRadius: 25))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                )
-                        }
+                        statCard(
+                            title: "This Month",
+                            value: "\(speciesStore.getFish())"
+                        )
                     }
                     .padding(.horizontal, 20)
                     
                     
-                    // MARK: Streak Bar
+                  
                     ZStack {
-                        
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.purple.opacity(0.55),
-                                        Color.indigo.opacity(0.35)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                        RoundedRectangle(cornerRadius: 25)
+                            .foregroundStyle(.cyan)
+                            .opacity(0.2)
+                            .frame(width: ui.width * 0.9, height: ui.width * 0.35)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 25)
+                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
                             )
-                            .frame(height: ui.width * 0.15)
-                        
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("Fishing Streak")
+
+                        HStack(spacing: 16) {
+                            
+                           
+                            Image("opahCatch")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 90, height: 90)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
+                            
+                            VStack(alignment: .leading, spacing: 6) {
+                                
+                                Text("Pinned Catch")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                                
+                                Text("Opah")
+                                    .font(.title3)
                                     .bold()
                                     .foregroundColor(.white)
-                                Text("5 days in a row")
+                                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                                
+                                Text("40 lbs")
                                     .foregroundColor(.white.opacity(0.85))
-                                    .font(.subheadline)
+                                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
                             }
                             
                             Spacer()
                             
-                            Image(systemName: "flame.fill")
-                                .foregroundColor(.purple)
-                                .font(.title2)
+                            Image(systemName: "anchor.fill")
+                                .foregroundColor(.white)
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 20)
                     }
                     .padding(.horizontal, 20)
                     
@@ -246,14 +205,34 @@ struct HomeRevised: View {
                     floatUpDown.toggle()
                 }
             }
- 
         }
         .background(
             ZStack {
-                Color.blue.opacity(0.01).edgesIgnoringSafeArea(.top)
+                Color.blue.opacity(0.01)
+                    .edgesIgnoringSafeArea(.top)
 
-                WaterView().opacity(0.15).offset(y: -300)
+            
             }
+        )
+    }
+    
+    
+    // MARK: Stat Card
+    func statCard(title: String, value: String) -> some View {
+        VStack(spacing: 6) {
+            Text(value)
+                .font(.system(size: 22, weight: .bold))
+            
+            Text(title)
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         )
     }
 }

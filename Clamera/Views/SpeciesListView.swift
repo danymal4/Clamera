@@ -22,7 +22,7 @@ struct SpeciesListView: View {
     @State private var selectedFilter: FilterOption = .newest
     @State private var showPinnedOnly: Bool = false
 
-    // MARK: - Filter mechanic
+    
     var filteredFish: [Fish] {
         species.fishList
             .filter { !showPinnedOnly || $0.isPinned }
@@ -38,7 +38,6 @@ struct SpeciesListView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    // Aquarium Header
                     HStack(spacing: 16) {
 
                         Image("\(species.name)Icon")
@@ -71,11 +70,11 @@ struct SpeciesListView: View {
 
                         HStack(spacing: 12) {
 
-                            // Computed inside body so it updates live
+                           
                             let hasAvailableToAdd = species.fishList.contains { !$0.isAquarium } && !aquarium.checkAll()
                             let hasAvailableToRemove = species.fishList.contains { $0.isAquarium }
 
-                            // Add Fish
+                            // add fish
                             Button {
                                 if let newestAvailableFish = species.fishList
                                     .filter({ !$0.isAquarium })
@@ -96,18 +95,24 @@ struct SpeciesListView: View {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToAdd ? .blue : .gray)
-                                    .opacity(hasAvailableToAdd ? 1 : 0.6)
+                                    .foregroundColor(hasAvailableToAdd ? .cyan : .gray)
+                                    .opacity(hasAvailableToAdd ? 1 : 0.5)
+                                    .shadow(
+                                        color: hasAvailableToAdd ? Color.cyan.opacity(0.3) : .clear,
+                                        radius: 3,
+                                        x: 0,
+                                        y: 2
+                                    )
                             }
                             .disabled(!hasAvailableToAdd)
 
-                            // Remove Fish
+
+                            // remove fish
                             Button {
                                 if let newestAquariumFish = species.fishList
                                     .filter({ $0.isAquarium })
                                     .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                                    // deactivate matching aquarium fish manually
                                     if let aquaFish = aquarium.fish.first(where: {
                                         $0.isActive &&
                                         $0.imageName == "\(species.name)Icon" &&
@@ -116,17 +121,21 @@ struct SpeciesListView: View {
                                         aquaFish.isActive = false
                                     }
 
-                                    // mark species fish as removed from aquarium
                                     newestAquariumFish.isAquarium = false
-
                                     aquarium.refresh()
                                 }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToRemove ? .red : .gray)
-                                    .opacity(hasAvailableToRemove ? 1 : 0.6)
+                                    .foregroundColor(hasAvailableToRemove ? Color(red: 0.0, green: 0.5, blue: 0.65)  : .gray)
+                                    .opacity(hasAvailableToRemove ? 1 : 0.5)
+                                    .shadow(
+                                        color: hasAvailableToRemove ? Color.cyan.opacity(0.3) : .clear,
+                                        radius: 3,
+                                        x: 0,
+                                        y: 2
+                                    )
                             }
                             .disabled(!hasAvailableToRemove)
                         }
@@ -136,25 +145,26 @@ struct SpeciesListView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 25)
                             .fill(Color.white)
-                            .overlay(Color.blue.opacity(0.075).cornerRadius(25))
+                            .overlay(Color.cyan.opacity(0.2).cornerRadius(25))
                             .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                     )
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
 
-                    // Catch Log Header
+               
                     VStack(alignment: .leading, spacing: 12) {
 
                         Text("Catch Log")
-                            .font(.system(size: 26, weight: .bold))
+                            .font(.title2)
+                            .fontWeight(.bold)
 
                         ZStack {
 
                             Rectangle()
                                 .colorInvert()
-                                .cornerRadius(22)
+                                .cornerRadius(25)
                                 .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-                                .padding(.vertical, -4)
+                                .padding(.vertical, -4.75)
                                 .padding(.horizontal, 13)
 
                             HStack {
@@ -179,7 +189,7 @@ struct SpeciesListView: View {
                     .padding(.top, 15)
                     .padding(.vertical, 6)
 
-                    // Fish Cards
+                
                     VStack(spacing: 10) {
 
                         ForEach(filteredFish) { fish in
@@ -203,7 +213,7 @@ struct SpeciesListView: View {
         .background(Color.blue.opacity(0.01))
     }
 
-    // MARK: - Filter Button
+    
     @ViewBuilder
     private func filterButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
 
@@ -218,13 +228,16 @@ struct SpeciesListView: View {
                 }
 
                 Text(title)
-                    .foregroundStyle(Color.black)
-                    .opacity(0.7)
+                               .foregroundStyle(selected ? .cyan : .secondary) // cyan if active, gray otherwise
+                               .fontWeight(selected ? .semibold : .regular)
+                               .padding(.horizontal, 12)
+                               .frame(height: 35)
             }
-        }
+        } .buttonStyle(PlainButtonStyle())
     }
 }
-// Updated FishGridItem with toggle closure
+
+// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed 
 struct FishGridItem: View {
 
     @ObservedObject var fish: Fish
@@ -335,7 +348,7 @@ struct FishGridItem: View {
                                  }
                                 
                                 
-                                // Remove from species list
+                              
                                 species.fishList.removeAll { $0.id == fish.id }
 
                            
@@ -360,7 +373,7 @@ struct FishGridItem: View {
         }
     }
 }
-// MARK: - Image Loader Extension
+// helper I got from chat so that fish photos can actually compile and be displayed once uploaded to documents from catch view
 extension Image {
     init(fishPhoto name: String) {
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -382,7 +395,10 @@ struct SmallRoundedCard: View {
                 width: UIScreen.main.bounds.width * 0.265,
                 height: UIScreen.main.bounds.width * 0.105
             )
-            .foregroundStyle(Color.gray)
+            .foregroundStyle(Color.cyan.opacity(0.5))   .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.cyan.opacity(0.65), lineWidth: 1)
+            )
             .opacity(0.1)
         
     }
