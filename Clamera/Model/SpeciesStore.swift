@@ -9,7 +9,7 @@ import SwiftUI
 
 final class SpeciesStore: ObservableObject {
     @Published var speciesList: [Species] = []
-    @Published var totalClamPoints: Int = 0
+    @Published var totalClamPoints: Int = 40
     
 
     @Published var catchOfTheWeek: Species?

@@ -11,7 +11,7 @@ struct LogInView: View {
     var body: some View{
         
         WaterView()
-            .position(x: 200, y: 480)
+            .position(x: 200, y: 480).opacity(0)
         
         HStack {
             

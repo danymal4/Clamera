@@ -28,7 +28,6 @@ struct HomerView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
 
-            // MARK: - Content for Selected Tab
             Group {
                 switch tabRouter.viewState {
                 case .home: NavigationStack { HomeRevised() }

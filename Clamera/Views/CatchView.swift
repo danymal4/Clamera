@@ -150,27 +150,45 @@ struct CatchView: View {
                         .offset(x: 10 * vScale)
                         
                         // Visual filler section
-                        VStack(spacing: 12) {
-                            Text("Take a photo and upload to log your catch")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
+                        VStack(spacing: 10) {
                             
-                            HStack(spacing: 12) {
-                                ForEach(0..<5) { _ in
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(LinearGradient(
-                                            colors: [Color.gray.opacity(0.05), Color.gray.opacity(0.15)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing))
-                                        .frame(width: 60, height: 60)
-                                        .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
-                                }
+                            // Section label
+                            HStack {
+                                Spacer()
+                                Text("Recently Caught")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.gray)
+                                Spacer()
                             }
+                            
+                            // Rounded container around horizontal scroll
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(0..<10) { _ in
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [Color.gray.opacity(0.05), Color.gray.opacity(0.15)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 60, height: 60)
+                                            .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
+                                    }
+                                }
+                                .padding(12) // padding inside the rounded card
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(Color(.systemGray6)) // subtle background color
+                                    .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 2).opacity(0.0)
+                            )
                         }
-                        .padding(.top, -20)
+                        .padding(.top, -15)
                         .frame(maxWidth: .infinity)
-                        
+                        .padding(.horizontal, 25)
+
                         Spacer(minLength: 50)
                     }
                     .frame(maxWidth: .infinity)
