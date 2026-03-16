@@ -307,9 +307,9 @@ struct AquariumManageView: View {
                             width: min(UIScreen.main.bounds.width * 0.9, 2000),
                             height: isDropdown ? collapsedHeight : expandedHeight
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 30)) // ✅ global mask fixes corner radius
+                        .clipShape(RoundedRectangle(cornerRadius: 30))
                     }
-                    // 🔒 APPLY GLOBAL MASK ON OUTSIDE ZSTACK
+                    
                  
                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
                   
@@ -537,8 +537,8 @@ struct AquariumManageView: View {
 
     
         }
-        .background(Color.gray.opacity(0.1)) .onAppear {
-            user.aquariumState.markActive("manage")
+        .background(Color(.systemBackground)) .onAppear {
+            aquariumState.markActive("manage")
         }
         .onDisappear {
             user.aquariumState.updatePendingClean(to: user.aquariumState.clean)

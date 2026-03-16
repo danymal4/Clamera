@@ -75,7 +75,7 @@ struct AlbumView: View {
                     Color.clear.frame(height: UIScreen.main.bounds.height)
                  
                     
-                    VStack(spacing: 20) {
+                    VStack(spacing: 25) {
                         Text("Album")
                             .font(.system(size: 34, weight: .bold))
                             .padding(.top, 20)
@@ -148,10 +148,11 @@ struct AlbumView: View {
                         }
                     } label: {
                         ZStack {
+                           
                             Circle()
                                 .fill(Color.white)
                                 .frame(width: 55, height: 55) // adjust size to your liking
-                                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+                                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2).opacity(showSearch ? 0: 1)
                             
                             Image(systemName: "magnifyingglass")
                                 .font(.system(size: 28))

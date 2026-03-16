@@ -15,15 +15,17 @@ struct ProfileView: View {
         
         ZStack{
         
-            WaterView().opacity(0.3)
-   
+        
+
             
             VStack{
                 
                 
                 
                 
-                Text("Profile")                        .font(.custom("AkayaTelivigala-regular",  size: UIScreen.main.bounds.width * 0.175)).foregroundStyle(Color.blue).opacity(0.9).padding().padding(.bottom, -55)
+                Text("Profile")                         .font(.system(size: 42, weight: .bold))
+                    .foregroundColor(.black)
+                    .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1).padding().padding(.bottom, -55)
                 
                 Image("fisherman")
                     .resizable().aspectRatio(contentMode: .fit) .clipShape(Circle()).overlay(Circle().stroke(Color.blue, lineWidth: 5).opacity(0.2)).frame(width: min(UIScreen.main.bounds.width * 0.9, 2000),
@@ -126,7 +128,7 @@ struct ProfileView: View {
                   .edgesIgnoringSafeArea(.bottom)
             
         }
-       .background(Color.blue.opacity(0.08))
+       .background(Color.blue.opacity(0.01))
     }
 }
 

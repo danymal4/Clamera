@@ -60,14 +60,42 @@ struct LeaderboardView: View {
                         }
                         .background(Color(red: 0.5, green: 0.9, blue: 1.0))
                         
-                        // Horizontal Divider
+                    
                         Rectangle()
                             .fill(Color.black)
                             .frame(height: 1)
                         
-                        // 4. Data Rows
-                        DataView()
-                            .environmentObject(user)
+                        // data rows
+                        ForEach(0..<leaderboardData.count, id: \.self) { index in
+                            let entry = leaderboardData[index]
+                            
+                            HStack(spacing: 0) {
+                                Text(entry.name)
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                
+                                // Vertical Divider inside row
+                                Rectangle()
+                                    .fill(Color.black)
+                                    .frame(width: 1)
+                                
+                                Text(entry.score)
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                            }
+                            .background(Color(red: 0.6, green: 0.85, blue: 1.0)) // Light Blue Row
+                            
+                            // Divider between rows (except after the last one)
+                            if index < leaderboardData.count - 1 {
+                                Rectangle()
+                                    .fill(Color.black)
+                                    .frame(height: 1)
+                            }
+                        }
                     }
                     // 5. Clip Shape and Border for the entire table
                     .clipShape(RoundedRectangle(cornerRadius: 20))

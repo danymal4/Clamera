@@ -41,7 +41,6 @@ struct CatchView: View {
                                 .font(.system(size: 42, weight: .bold))
                                 .foregroundColor(.black)
                                 .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1)
-                               
                         }
                         .padding(.top, 10)
                         .padding(.trailing, 30)
@@ -66,6 +65,7 @@ struct CatchView: View {
                                     height: min(UIScreen.main.bounds.width * 0.85, 750)
                                 )
                                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                            
                             if let image = selectedImage {
                                 Image(uiImage: image)
                                     .resizable()
@@ -73,7 +73,8 @@ struct CatchView: View {
                                     .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
                                            height: min(UIScreen.main.bounds.width * 0.85, 750))
                                     .clipped()
-                                    .cornerRadius(40) .shadow(color: .cyan.opacity(0.15), radius: 15, x: 0, y: 0)
+                                    .cornerRadius(40)
+                                    .shadow(color: .cyan.opacity(0.15), radius: 15, x: 0, y: 0)
                             } else {
                                 HStack(spacing: 20 * hScale) {
                                     Text("Fish image")
@@ -88,8 +89,10 @@ struct CatchView: View {
                                 }
                             }
                         }
+                        .padding(.top, 10 * vScale)     // added breathing room
+                        .padding(.bottom, 8)           // subtle separation from buttons
                         
-                        // Buttons – original positions
+                        // Buttons
                         HStack(alignment: .center, spacing: 20 * hScale) {
                             PhotosPicker(
                                 selection: $selectedItem,
@@ -105,6 +108,7 @@ struct CatchView: View {
                                                height: min(UIScreen.main.bounds.width * 0.28, 140))
                                         .opacity(0.85)
                                         .shadow(color: .black.opacity(0.1), radius: 5)
+                                    
                                     Text("Add Photo")
                                         .font(.system(size: UIScreen.main.bounds.width * 0.04, weight: .semibold))
                                         .foregroundColor(.cyan)
@@ -146,13 +150,12 @@ struct CatchView: View {
                             .offset(y: 10 * vScale)
                             .disabled(selectedImage == nil)
                         }
-                        .offset(y: -20 * vScale)
+                        .offset(y: -10 * vScale)   // reduced from -20
                         .offset(x: 10 * vScale)
                         
-                        // Visual filler section
+                        // Recently Caught
                         VStack(spacing: 10) {
                             
-                            // Section label
                             HStack {
                                 Spacer()
                                 Text("Recently Caught")
@@ -161,7 +164,6 @@ struct CatchView: View {
                                 Spacer()
                             }
                             
-                            // Rounded container around horizontal scroll
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     ForEach(0..<10) { _ in
@@ -177,26 +179,27 @@ struct CatchView: View {
                                             .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
                                     }
                                 }
-                                .padding(12) // padding inside the rounded card
+                                .padding(12)
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color(.systemGray6)) // subtle background color
-                                    .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 2).opacity(0.0)
+                                    .fill(Color(.systemGray6))
+                                    .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 2)
+                                    .opacity(0.0)
                             )
                         }
-                        .padding(.top, -15)
+                        .padding(.top, -5)   // removed negative padding
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 25)
 
-                        Spacer(minLength: 50)
+                        Spacer(minLength: 70)   // increased bottom breathing room
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.top, 50 * vScale)
-                    .padding(.bottom, 50) // extra padding so scroll doesn't cut off content
-                } .background(Color.blue.opacity(0.01))
+                    .padding(.bottom, 50)
+                }
+                .background(Color.blue.opacity(0.01))
                 
-                // Optional accent gradient behind header
                 LinearGradient(
                     colors: [Color.black.opacity(0.03), Color.black.opacity(0.05)],
                     startPoint: .topLeading,
