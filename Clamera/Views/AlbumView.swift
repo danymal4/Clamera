@@ -134,7 +134,7 @@ struct AlbumView: View {
                             .cornerRadius(40)
                             .offset(y: showSearch ? -35 : 100)
                             .animation(.easeInOut(duration: 0.3), value: showSearch)
-                            .onChange(of: searchText) { newValue in
+                            .onChange(of: searchText) { oldState, newValue in
                                 showSuggestions = !newValue.isEmpty
                             }
                         Spacer()

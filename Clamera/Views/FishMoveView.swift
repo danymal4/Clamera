@@ -124,7 +124,7 @@ struct FishMoveView: View {
     }
 
     private func addRipple(for fish: AquariumFish, at position: CGPoint) {
-        var ripple = Ripple(position: position)
+        let ripple = Ripple(position: position)
         ripples.append(ripple)
         let index = ripples.count - 1
 

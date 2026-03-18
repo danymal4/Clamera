@@ -81,7 +81,7 @@ struct HomerView: View {
             cleanTimer = nil
             bottomBarWorkItem?.cancel()
         }
-        .onChange(of: tabRouter.viewState) { newState in
+        .onChange(of: tabRouter.viewState) { oldState, newState in
             if newState == .aquarium {
                 lastUpdate = Date()
                 user.aquariumState.commitPendingClean()
