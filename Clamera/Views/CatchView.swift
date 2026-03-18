@@ -28,7 +28,7 @@ struct CatchView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 20 * vScale) {
                         
-                        // Header with fishing rod and title
+                       
                         HStack(alignment: .top, spacing: -20) {
                             Image("Rod")
                                 .resizable()
