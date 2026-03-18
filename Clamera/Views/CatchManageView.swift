@@ -135,7 +135,7 @@ struct CatchManageView: View {
                     // Points Preview (modern card style)
                     // inside the Points Preview HStack in CatchManageView
                     if let points = previewPoints {
-                        let isCatchOfTheWeek = speciesStore.catchOfTheWeek?.name == species
+                        let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
                         let accentColor: Color = isCatchOfTheWeek
                             ? Color(red: 1.0, green: 0.84, blue: 0.0) // gold
                             : colorForPoints(points)
@@ -196,22 +196,22 @@ struct CatchManageView: View {
     // MARK: - Helpers
     
     func updatePreviewPoints() {
-        guard let index = speciesStore.speciesList.firstIndex(where: {
+        guard let index = user.speciesStore.speciesList.firstIndex(where: {
             $0.name.lowercased() ==
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else {
             previewPoints = nil
             return
         }
-        let fishList = speciesStore.speciesList[index].fishList
+        let fishList = user.speciesStore.speciesList[index].fishList
         let fishCount = fishList.count
         let previousFishDate: Date? = fishCount > 0 ? fishList[fishCount - 1].dateCaught : nil
         let totalOfSpecies = fishCount + 1
-        let totalOtherFish = max(speciesStore.getFish() - fishCount, 0)
+        let totalOtherFish = max(user.speciesStore.getFish() - fishCount, 0)
         previewPoints =
-            speciesStore.catchOfTheWeek?.name == species
-            ? speciesStore.catchOfTheWeekPoints
-            : speciesStore.calculateClamPoints(
+        user.speciesStore.catchOfTheWeek?.name == species
+        ? user.speciesStore.catchOfTheWeekPoints
+        : user.speciesStore.calculateClamPoints(
                 totalOfSpecies: totalOfSpecies,
                 totalOtherFish: totalOtherFish,
                 previousFishDate: previousFishDate
@@ -227,7 +227,7 @@ struct CatchManageView: View {
     }
     
     func saveCatch() {
-        guard let index = speciesStore.speciesList.firstIndex(where: {
+        guard let index = user.speciesStore.speciesList.firstIndex(where: {
             $0.name.lowercased() ==
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else { return }
@@ -246,21 +246,21 @@ struct CatchManageView: View {
                  fishWeight: weight)
         )
         
-        let fishIndex = speciesStore.speciesList[index].fishList.count
+        let fishIndex = user.speciesStore.speciesList[index].fishList.count
         let previousFishDate: Date? =
-            fishIndex > 1 ? speciesStore.speciesList[index].fishList[fishIndex - 2].dateCaught : nil
+        fishIndex > 1 ? user.speciesStore.speciesList[index].fishList[fishIndex - 2].dateCaught : nil
         
         let totalOfSpecies = fishIndex
-        let totalOtherFish = speciesStore.getFish() - 1
+        let totalOtherFish = user.speciesStore.getFish() - 1
         let points =
-            speciesStore.catchOfTheWeek?.name == species
-            ? speciesStore.catchOfTheWeekPoints
-            : speciesStore.calculateClamPoints(
+        user.speciesStore.catchOfTheWeek?.name == species
+        ? user.speciesStore.catchOfTheWeekPoints
+        : user.speciesStore.calculateClamPoints(
                 totalOfSpecies: totalOfSpecies,
                 totalOtherFish: totalOtherFish,
                 previousFishDate: previousFishDate
               )
-        speciesStore.totalClamPoints += points
+        user.speciesStore.totalClamPoints += points
         editState = .notEditing
     }
     

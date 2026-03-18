@@ -100,7 +100,7 @@ struct AquariumManageView: View {
 
                         // Fish rows
                         VStack(spacing: 14.5) {
-                            ForEach(Array(aquarium.fish.enumerated()), id: \.element.id) { i, fish in
+                            ForEach(Array(user.aquarium.fish.enumerated()), id: \.element.id) { i, fish in
 
                                 VStack(spacing: 5) {
                                     // Fish row: icon + toggle + divider
@@ -538,7 +538,7 @@ struct AquariumManageView: View {
     
         }
         .background(Color(.systemBackground)) .onAppear {
-            aquariumState.markActive("manage")
+            user.aquariumState.markActive("manage")
         }
         .onDisappear {
             user.aquariumState.updatePendingClean(to: user.aquariumState.clean)

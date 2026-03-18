@@ -102,12 +102,12 @@ struct AlbumView: View {
                                     if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
                                         NavigationLink(
                                             destination: SpeciesListView(
-                                                aquarium: aquarium,
-                                                species: speciesStore.speciesList[index]
+                                                aquarium: user.aquarium,
+                                                species: user.speciesStore.speciesList[index]
                                             ).navigationBarTitleDisplayMode(.inline)
                                                 .tint(.black)
                                         )   {
-                                            SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true)
+                                            SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
                                         }
                                     }
                                 } else {

@@ -11,80 +11,7 @@ enum EditState {
 }
 
 
-final class AquariumState: ObservableObject {
-    @Published var clean: Double = 0.0
-    @Published var bubbleVisibility: Double = 1.0
-    @Published var bubbleAmount: Double = 1.0
-    @Published var lastUpdate: Date = Date()
-    
-    
-    @Published var activeScreens: Set<String> = []
-    
-    let maxClean: Double = 0.3
-    private(set) var pendingClean: Double = 0.0
-    private var targetClean: Double? = nil
-    
-    func markActive(_ screen: String) {
-        activeScreens.insert(screen)
-        commitPendingClean()
-    }
-    
-    func markInactive(_ screen: String) {
-        activeScreens.remove(screen)
-        pendingClean = clean 
-    }
-    
-    var isActiveScreen: Bool {
-        !activeScreens.isEmpty
-    }
-    
-    func updateClean(by increment: Double) {
-        if let target = targetClean {
-            let delta = (target - clean) * 0.8
-            clean += delta
-            if abs(clean - target) < 0.01 {
-                clean = target
-                pendingClean = clean
-                targetClean = nil
-            }
-        } else {
-            clean = min(clean + increment, maxClean)
-        }
-    }
-    
-    func commitPendingClean() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            if let target = targetClean, target == 0 {
-            
-                clean = min(pendingClean, clean)
-            } else {
-                
-                clean = max(pendingClean, clean)
-            }
-        }
-    }
-    
-    func updatePendingClean(to value: Double) {
-        if let target = targetClean {
-            let delta = (target - pendingClean) * 0.8
-            pendingClean += delta
-            if abs(pendingClean - target) < 0.01 {
-                pendingClean = target
-                targetClean = nil
-                clean = pendingClean
-            }
-        } else {
-            pendingClean = min(value, maxClean)
-        }
-    }
-    
-    func cleanNow() {
-        targetClean = 0
-    }
-    
-    
-    
-}
+
 
 
 
@@ -168,8 +95,7 @@ struct BubbleView: View {
 
 
 struct AquariumView: View {
-    @EnvironmentObject var aquariumState: AquariumState
-    @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var user: User
     @Binding var showBottomBar: Bool
     @State var editState: EditState = .notEditing
     @State private var bubbleRefreshID = UUID()
@@ -182,15 +108,15 @@ struct AquariumView: View {
     var body: some View {
         ZStack {
             AquariumBackgroundView()
-                .environmentObject(aquariumState)
+                .environmentObject(user.aquariumState)
                 .offset(y: showBottomBar ? 0 : -20) // invert
 
             BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
                 .environmentObject(user)
                 .offset(y: 645)
 
-            FishMoveView(aquarium: aquarium)
-                .opacity(1 - aquariumState.clean)
+            FishMoveView(aquarium: user.aquarium)
+                .opacity(1 - user.aquariumState.clean)
                 .offset(y: -100)
                 .scaleEffect(1.6)
 
@@ -335,9 +261,9 @@ struct AquariumBackgroundView: View {
                             .resizable()
                             .frame(width: min(UIScreen.main.bounds.width * 0.22, 2000),
                                    height: min(UIScreen.main.bounds.width * 0.22, 700))
-                            .opacity(aquariumState.clean > 0 ? min(aquariumState.clean * 2.5, 1) : 0)
+                            .opacity(user.aquariumState.clean > 0 ? min(user.aquariumState.clean * 2.5, 1) : 0)
                             .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2) // subtle shadow
-                            .animation(.easeInOut(duration: 0.7), value: aquariumState.clean)
+                            .animation(.easeInOut(duration: 0.7), value: user.aquariumState.clean)
                     }
                     .padding(.top, -385)
                     .padding(.horizontal, 395)

@@ -39,13 +39,13 @@ struct HomerView: View {
                             resetBottomBarTimer: resetBottomBarTimer
                         )
                         .onAppear {
-                            aquariumState.markActive("aquarium")
+                            user.aquariumState.markActive("aquarium")
                             lastUpdate = Date()
-                            aquariumState.commitPendingClean()
+                            user.aquariumState.commitPendingClean()
                             resetBottomBarTimer() // start the hide timer
                         }
                         .onDisappear {
-                            aquariumState.markInactive("aquarium")
+                            user.aquariumState.markInactive("aquarium")
                             bottomBarWorkItem?.cancel()
                             showAquariumBottomBar = true // reset for next time
                         }
@@ -55,9 +55,7 @@ struct HomerView: View {
                 }
             }
             .environmentObject(tabRouter)
-            .environmentObject(aquarium)
-            .environmentObject(aquariumState)
-            .environmentObject(speciesStore)
+            .environmentObject(user)
 
             // MARK: - Custom Tab Bar
             HStack(spacing: 0) {
@@ -136,13 +134,13 @@ struct HomerView: View {
             let delta = now.timeIntervalSince(self.lastUpdate)
             self.lastUpdate = now
 
-            if aquariumState.isActiveScreen {
-                let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.updateClean(by: increment)
+            if user.aquariumState.isActiveScreen {
+                let increment = user.aquariumState.maxClean / totalDuration * delta
+                user.aquariumState.updateClean(by: increment)
             } else {
-                let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.updatePendingClean(
-                    to: min(aquariumState.pendingClean + increment, aquariumState.maxClean)
+                let increment = user.aquariumState.maxClean / totalDuration * delta
+                user.aquariumState.updatePendingClean(
+                    to: min(user.aquariumState.pendingClean + increment, user.aquariumState.maxClean)
                 )
             }
         }
