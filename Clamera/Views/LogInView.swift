@@ -11,15 +11,16 @@ struct LogInView: View {
     var body: some View{
         
         WaterView()
-            .position(x: 200, y: 480)
+            .position(x: 200, y: 480).opacity(0)
         
         HStack {
             
             VStack{
                 HStack {
                     Text("Clamera")
-                        .font(.custom("AkayaTelivigala-regular", size: 90))
-                        .foregroundStyle(.blue)
+                        .font(.system(size: 42, weight: .bold))
+                        .foregroundColor(.black)
+                        .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1)
                     
                 }.position(x: 200, y: 40)
                 HStack {

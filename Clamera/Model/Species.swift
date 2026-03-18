@@ -7,24 +7,17 @@
 
 import SwiftUI
 
-class Species: Identifiable, ObservableObject {
+class Species: ObservableObject, Identifiable, Hashable {
+
     let id: String   // stable ID = species name
     let name: String
     let imageName: String
     let icon: String
+
     @Published var fishList: [Fish]
 
     var numberOfFish: Int { fishList.count }
 
-    func update() {
-        for i in 1...fishList.count {
-            var index = fishList.count-i
-            if fishList[index].isDeleted {
-                fishList.remove(at:index)
-            }
-        }
-    }
-    
     func getFishPhotos() -> [String] {
         fishList.map { $0.photo }
     }
@@ -36,4 +29,15 @@ class Species: Identifiable, ObservableObject {
         self.icon = icon
         self.fishList = fishList
     }
+
+    // MARK: - Hashable
+    static func == (lhs: Species, rhs: Species) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
+

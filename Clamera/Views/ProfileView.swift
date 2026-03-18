@@ -15,21 +15,23 @@ struct ProfileView: View {
         
         ZStack{
         
-            WaterView().opacity(0.3)
-   
+        
+
             
             VStack{
                 
                 
                 
                 
-                Text("Profile")                        .font(.custom("AkayaTelivigala-regular",  size: UIScreen.main.bounds.width * 0.175)).foregroundStyle(Color.blue).opacity(0.9).padding().padding(.bottom, -55)
+                Text("Profile")                         .font(.system(size: 42, weight: .bold))
+                    .foregroundColor(.black)
+                    .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1).padding().padding(.bottom, -55)
                 
-                Image("fisherman")
+                Image(user.profilePicture)
                     .resizable().aspectRatio(contentMode: .fit) .clipShape(Circle()).overlay(Circle().stroke(Color.blue, lineWidth: 5).opacity(0.2)).frame(width: min(UIScreen.main.bounds.width * 0.9, 2000),
                                                                                                                                                             height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.bottom, -10)
                 
-                Text("Ellis").padding(.top, -38).font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold().padding(.top, 10).opacity(0.9)
+                Text(user.username).padding(.top, -38).font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold().padding(.top, 10).opacity(0.9)
              
                 ZStack {
                     
@@ -50,7 +52,7 @@ struct ProfileView: View {
                     HStack(){
                         
                         VStack{
-                            Text("email:     s012345@​gmail.com ")
+                            Text("email:     \(user.email)")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -59,7 +61,7 @@ struct ProfileView: View {
                                 )
                             
                             
-                            Text("password:   ******")
+                            Text("password:   *****")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .opacity(0.8)
                                 .bold().padding(.bottom).frame(
@@ -126,7 +128,7 @@ struct ProfileView: View {
                   .edgesIgnoringSafeArea(.bottom)
             
         }
-       .background(Color.blue.opacity(0.08))
+       .background(Color.blue.opacity(0.01))
     }
 }
 

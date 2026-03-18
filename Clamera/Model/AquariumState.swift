@@ -8,16 +8,16 @@
 import SwiftUI
 
 final class AquariumState: ObservableObject {
-    @Published var clean: Double = 0.3
+    @Published var clean: Double = 0.0
     @Published var bubbleVisibility: Double = 1.0
     @Published var bubbleAmount: Double = 1.0
     @Published var lastUpdate: Date = Date()
     
-    // Track active screens
+    
     @Published var activeScreens: Set<String> = []
     
     let maxClean: Double = 0.3
-    private(set) var pendingClean: Double = 0.3
+    private(set) var pendingClean: Double = 0.0
     private var targetClean: Double? = nil
     
     func markActive(_ screen: String) {
@@ -27,7 +27,7 @@ final class AquariumState: ObservableObject {
     
     func markInactive(_ screen: String) {
         activeScreens.remove(screen)
-        pendingClean = clean 
+        pendingClean = clean
     }
     
     var isActiveScreen: Bool {
@@ -51,10 +51,10 @@ final class AquariumState: ObservableObject {
     func commitPendingClean() {
         withAnimation(.easeInOut(duration: 0.3)) {
             if let target = targetClean, target == 0 {
-                // If brush is active, keep the smaller of pendingClean and current clean
+            
                 clean = min(pendingClean, clean)
             } else {
-                // Otherwise, take the larger to respect increments
+                
                 clean = max(pendingClean, clean)
             }
         }

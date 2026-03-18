@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AquariumManageView: View {
     @EnvironmentObject var user: User
+    
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
     @State private var selectedFish: Int = -1
@@ -47,7 +48,7 @@ struct AquariumManageView: View {
                             Image("aquariumSetting").resizable() .frame(
                                 width: min(UIScreen.main.bounds.width * 0.2, 2000),
                                 height: min(UIScreen.main.bounds.width * 0.2, 2000)
-                            ).overlay(Color.blue.opacity(0.1)).cornerRadius(15).padding(.horizontal, -160)           .shadow(color: .black.opacity(0.08), radius: 5)
+                            ).overlay(Color.cyan.opacity(0.15)).cornerRadius(15).padding(.horizontal, -160)           .shadow(color: .black.opacity(0.08), radius: 5)
                             
                             Text("Aquarium").bold() .font(.system(size: UIScreen.main.bounds.width * 0.06)).frame(
                                 width: min(UIScreen.main.bounds.width * 0.8, 2000),
@@ -68,7 +69,7 @@ struct AquariumManageView: View {
                     
                     
                     
-                    let collapsedHeight = min(UIScreen.main.bounds.width * 0.45, 2000)
+                    let collapsedHeight = min(UIScreen.main.bounds.width * 0.43, 2000)
                     let expandedHeight = min(UIScreen.main.bounds.width * 0.6, 2000)
 
                     ZStack {
@@ -91,17 +92,15 @@ struct AquariumManageView: View {
                                 .opacity(0.5)
                                 .font(.system(size: UIScreen.main.bounds.width * 0.045))
                                 .bold()
-                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15 - 5)
+                                .offset(y: isDropdown ? 0 : -0.5 * UIScreen.main.bounds.width * 0.15 - 9.5)
                             Spacer()
                         }
-                        .padding(.horizontal, 50).padding(.top, -115)
-                        
-                        
-                        
-                        
-                        VStack(spacing: 10) {
-                            ForEach(user.aquarium.fish.indices, id: \.self) { i in
-                                let fish = user.aquarium.fish[i]
+                        .padding(.horizontal, 50)
+                        .padding(.top, -110)
+
+                        // Fish rows
+                        VStack(spacing: 14.5) {
+                            ForEach(Array(user.aquarium.fish.enumerated()), id: \.element.id) { i, fish in
 
                                 VStack(spacing: 5) {
                                     // Fish row: icon + toggle + divider
@@ -156,7 +155,7 @@ struct AquariumManageView: View {
                                                 .scaleEffect(x: -1, y: 1, anchor: .center)
                                                 .offset(x: swipedIndex == i ? 70 : 0)
                                         }
-                                       
+
                                         Spacer()
                                         Spacer()
                                         Spacer()
@@ -176,13 +175,13 @@ struct AquariumManageView: View {
                                                     }
                                                 }
                                             ))
-                                            .labelsHidden()
+                                            .labelsHidden()   .tint(.green)
                                         }
                                         Spacer()
                                         Spacer()
                                         Spacer()
                                         Spacer()
-                                        
+
                                     }
                                     .padding(.horizontal, -210)
                                     .offset(y: isDropdown
@@ -219,7 +218,7 @@ struct AquariumManageView: View {
                                                         }
                                                     ),
                                                     in: 1...15
-                                                ).accentColor(.blue.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6))
 
                                                 Image("fast").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.06, 2000),
@@ -240,8 +239,8 @@ struct AquariumManageView: View {
                                                             user.aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
                                                         }
                                                     ),
-                                                    in: 20...150
-                                                ).accentColor(.blue.opacity(0.6))
+                                                    in: 20...200
+                                                ).accentColor(.cyan.opacity(0.6))
 
                                                 Image("big").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.08, 2000),
@@ -259,18 +258,29 @@ struct AquariumManageView: View {
                                 .background(
                                     HStack {
                                         Spacer()
+
                                         Button {
-                                            withAnimation(.easeInOut) {
-                                                user.aquarium.removeFish(with: fish.imageName)
-                                                swipedIndex = nil
+                                            if fish.isActive {
+                                                withAnimation(.easeInOut) {
+                                                    if let speciesID = fish.speciesID,
+                                                       let species = user.speciesStore.speciesList.first(where: { $0.id == speciesID }) {
+                                                        
+                                                        if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
+                                                            fishToRemove.isAquarium = false
+                                                        }
+                                                    }
+                                                    user.aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
+                                                    swipedIndex = nil
+                                                }
                                             }
                                         } label: {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.white)
                                                 .frame(width: 70, height: 61)
-                                                .background(Color.red).cornerRadius(5)
+                                                .background(Color.red)
+                                                .cornerRadius(5).opacity(fish.isActive ? 1 : 0)
                                         }
-                                        .padding(.top, -12.5)
+                                        .padding(.top, -13.5)
                                         .offset(x: swipedIndex == i ? 90 : 90)
                                         .animation(.easeInOut(duration: 0.25), value: swipedIndex)
                                     }
@@ -297,9 +307,9 @@ struct AquariumManageView: View {
                             width: min(UIScreen.main.bounds.width * 0.9, 2000),
                             height: isDropdown ? collapsedHeight : expandedHeight
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 30)) // ✅ global mask fixes corner radius
+                        .clipShape(RoundedRectangle(cornerRadius: 30))
                     }
-                    // 🔒 APPLY GLOBAL MASK ON OUTSIDE ZSTACK
+                    
                  
                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
                   
@@ -439,7 +449,7 @@ struct AquariumManageView: View {
                                         user.aquariumState.bubbleVisibility = newValue ? 1 : 0
                                     }
                                 ))
-                                .labelsHidden()
+                                .labelsHidden().tint(.green)
                                 
                             }.padding(.horizontal, 45)
                             
@@ -525,15 +535,9 @@ struct AquariumManageView: View {
                 }
             }
 
-            VStack {
-                Spacer()
-                Rectangle()
-                    .fill(Color.white.opacity(0.9))
-                    .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
-            }
-            .edgesIgnoringSafeArea(.bottom)
+    
         }
-        .background(Color.gray.opacity(0.1)) .onAppear {
+        .background(Color(.systemBackground)) .onAppear {
             user.aquariumState.markActive("manage")
         }
         .onDisappear {

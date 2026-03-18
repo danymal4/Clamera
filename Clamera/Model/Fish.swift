@@ -7,8 +7,6 @@
 
 import Foundation
 
-
-
 class Fish: Identifiable, ObservableObject, Hashable {
     let id = UUID()
     var photo: String
@@ -19,12 +17,12 @@ class Fish: Identifiable, ObservableObject, Hashable {
     @Published var isAquarium: Bool
     @Published var isDeleted: Bool
     @Published var fishWeight: Int?
-
+    
     init(photo: String,
          speciesName: String,
          description: String = "cool fish I found with sam",
          dateCaught: Date = Date(),
-         isPinned: Bool = true,
+         isPinned: Bool = false,
          isAquarium: Bool = false,
          isDeleted: Bool = false,
          fishWeight: Int? = nil) {
@@ -37,8 +35,37 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.isDeleted = isDeleted
         self.fishWeight = fishWeight
     }
-
+    
     // Hashable conformance
     static func == (lhs: Fish, rhs: Fish) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    
+    func getSize() -> CGSize {
+        guard let weight = fishWeight else { return CGSize(width: 110, height: 110) } // default size
+
+        let dimension: CGFloat
+
+        switch weight {
+        case 0...5:
+            dimension = 20 + CGFloat(weight) / 5 * 22     // 20–42
+        case 5...10:
+            dimension = 42 + CGFloat(weight - 5) / 5 * 22 // 42–64
+        case 10...20:
+            dimension = 64 + CGFloat(weight - 10) / 10 * 22 // 64–86
+        case 20...30:
+            dimension = 86 + CGFloat(weight - 20) / 10 * 22 // 86–108
+        case 30...40:
+            dimension = 108 + CGFloat(weight - 30) / 10 * 22 // 108–130
+        case 40...50:
+            dimension = 130 + CGFloat(weight - 40) / 10 * 22 // 130–152
+        case 50...75:
+            dimension = 152 + CGFloat(weight - 50) / 25 * 22 // 152–174
+        case 75...100:
+            dimension = 174 + CGFloat(weight - 75) / 25 * 26 // 174–200
+        default:
+            dimension = 200 // anything above 100 lbs
+        }
+
+        return CGSize(width: dimension, height: dimension)
+    }
 }

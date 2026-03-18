@@ -60,14 +60,13 @@ struct LeaderboardView: View {
                         }
                         .background(Color(red: 0.5, green: 0.9, blue: 1.0))
                         
-                        // Horizontal Divider
+                    
                         Rectangle()
                             .fill(Color.black)
                             .frame(height: 1)
                         
-                        // 4. Data Rows
+                        // data rows
                         DataView()
-                            .environmentObject(user)
                     }
                     // 5. Clip Shape and Border for the entire table
                     .clipShape(RoundedRectangle(cornerRadius: 20))

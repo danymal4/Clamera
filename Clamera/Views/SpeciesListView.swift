@@ -6,50 +6,40 @@
 //
 import SwiftUI
 
+
 struct SpeciesListView: View {
 
     @ObservedObject var aquarium: AquariumFishList
-    @ObservedObject var speciesStore: SpeciesStore
     @ObservedObject var species: Species
-    @State private var refreshID = UUID()
+    @EnvironmentObject var user: User
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
         case newest = "Newest"
-        var id: String { self.rawValue }
+        var id: String { rawValue }
     }
 
-    @State private var selectedFilter: FilterOption = .oldest
+    @State private var selectedFilter: FilterOption = .newest
     @State private var showPinnedOnly: Bool = false
 
-    // filter mechanic
+    
     var filteredFish: [Fish] {
-        // Start from the species' fish list
-        species.update()
-        var fish = species.fishList
-
-        // Exclude deleted fish
-        fish = fish.filter { !$0.isDeleted }
-
-        // Sort by filter
-        if selectedFilter == .newest {
-            fish.reverse()
-        }
-
-        // Filter pinned if requested
-        if showPinnedOnly {
-            fish = fish.filter { $0.isPinned }
-        }
-
-        return fish
+        species.fishList
+            .filter { !showPinnedOnly || $0.isPinned }
+            .sorted {
+                selectedFilter == .oldest
+                    ? $0.dateCaught < $1.dateCaught
+                    : $0.dateCaught > $1.dateCaught
+            }
     }
 
     var body: some View {
         ZStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Aquarium Header
+
                     HStack(spacing: 16) {
+
                         Image("\(species.name)Icon")
                             .resizable()
                             .scaledToFit()
@@ -59,104 +49,136 @@ struct SpeciesListView: View {
                             .overlay(Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1))
 
                         VStack(alignment: .leading, spacing: 4) {
+
                             Text(species.name)
                                 .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.black)
-                            
+
                             Text("\(species.fishList.count) Fish")
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
-                            
-                            if let heaviest = species.fishList.max(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) }) {
+
+                            if let heaviest = species.fishList.max(by: {
+                                ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0)
+                            }) {
                                 Text("Heaviest: \(heaviest.fishWeight ?? 0) lbs")
                                     .font(.system(size: 14))
                                     .foregroundColor(.secondary)
                             }
                         }
-                        .lineLimit(1)
 
                         Spacer()
 
-                        // Determine button states
-                        let hasAvailableToAdd = species.fishList.contains { !$0.isAquarium } && !aquarium.checkAll()
-                        let hasAvailableToRemove = species.fishList.contains { $0.isAquarium }
-
                         HStack(spacing: 12) {
-                            // Add Fish Button
+
+                           
+                            let hasAvailableToAdd = species.fishList.contains { !$0.isAquarium } && !aquarium.checkAll()
+                            let hasAvailableToRemove = species.fishList.contains { $0.isAquarium }
+
+                            // add fish
                             Button {
-                                var activeNum = 0
-                                if hasAvailableToAdd {
-                                    for fish in species.fishList {
-                                        guard activeNum < 3 else { break } // stop if we reached the limit
-                                        if !fish.isAquarium {
-                                            if let fishBinding = binding(for: fish) {
-                                                aquarium.addFish(with: "\(species.name)Icon")
-                                                fishBinding.isAquarium.wrappedValue.toggle()
-                                                aquarium.refresh()
-                                                activeNum = 3 // stop further additions
-                                            }
-                                        }
-                                        activeNum += 1
-                                    }
+                                if let newestAvailableFish = species.fishList
+                                    .filter({ !$0.isAquarium })
+                                    .max(by: { $0.dateCaught < $1.dateCaught }) {
+
+                                    aquarium.addFish(
+                                        with: "\(species.name)Icon",
+                                        speciesID: species.id,
+                                        size: newestAvailableFish.getSize()
+                                    )
+
+                                    newestAvailableFish.isAquarium = true
                                 }
+
+                                aquarium.refresh()
+
                             } label: {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToAdd ? .blue : .gray).opacity(hasAvailableToAdd ? 1.0 : 0.6)
+                                    .foregroundColor(hasAvailableToAdd ? .cyan : .gray)
+                                    .opacity(hasAvailableToAdd ? 1 : 0.5)
+                                    .shadow(
+                                        color: hasAvailableToAdd ? Color.cyan.opacity(0.3) : .clear,
+                                        radius: 3,
+                                        x: 0,
+                                        y: 2
+                                    )
                             }
+                            .disabled(!hasAvailableToAdd)
 
-                            // Remove Fish Button
+
+                            // remove fish
                             Button {
-                                for fish in species.fishList {
-                                    guard fish.isAquarium, let fishBinding = binding(for: fish) else { continue }
+                                if let newestAquariumFish = species.fishList
+                                    .filter({ $0.isAquarium })
+                                    .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                                    aquarium.removeFish(with: "\(species.name)Icon")
-                                    fishBinding.isAquarium.wrappedValue = false
+                                    if let aquaFish = aquarium.fish.first(where: {
+                                        $0.isActive &&
+                                        $0.imageName == "\(species.name)Icon" &&
+                                        $0.size == newestAquariumFish.getSize()
+                                    }) {
+                                        aquaFish.isActive = false
+                                    }
+
+                                    newestAquariumFish.isAquarium = false
+                                    aquarium.refresh()
                                 }
-
-                                // Refresh once after all removals
-                                aquarium.refresh()
-
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToRemove ? .red : .gray).opacity(hasAvailableToRemove ? 1.0 : 0.6)
+                                    .foregroundColor(hasAvailableToRemove ? Color(red: 0.0, green: 0.5, blue: 0.65)  : .gray)
+                                    .opacity(hasAvailableToRemove ? 1 : 0.5)
+                                    .shadow(
+                                        color: hasAvailableToRemove ? Color.cyan.opacity(0.3) : .clear,
+                                        radius: 3,
+                                        x: 0,
+                                        y: 2
+                                    )
                             }
+                            .disabled(!hasAvailableToRemove)
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.white).overlay(Color.blue.opacity(0.075).cornerRadius(25))
+                            .fill(Color.white)
+                            .overlay(Color.cyan.opacity(0.2).cornerRadius(25))
                             .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                     )
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
 
-                    // Catch Log Header
+               
                     VStack(alignment: .leading, spacing: 12) {
+
                         Text("Catch Log")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundColor(.black)
-                        
+                            .font(.title2)
+                            .fontWeight(.bold)
+
                         ZStack {
+
                             Rectangle()
                                 .colorInvert()
-                                .cornerRadius(22)
+                                .cornerRadius(25)
                                 .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-                                .padding(.vertical, -4)
+                                .padding(.vertical, -4.75)
                                 .padding(.horizontal, 13)
 
                             HStack {
-                                filterButton(title: "Oldest", selected: selectedFilter == .oldest) {
-                                    selectedFilter = .oldest
-                                }
+
+                              
                                 filterButton(title: "Newest", selected: selectedFilter == .newest) {
                                     selectedFilter = .newest
                                 }
+                                
+                                filterButton(title: "Oldest", selected: selectedFilter == .oldest) {
+                                    selectedFilter = .oldest
+                                }
+
+
                                 filterButton(title: "Pinned", selected: showPinnedOnly) {
                                     showPinnedOnly.toggle()
                                 }
@@ -167,190 +189,191 @@ struct SpeciesListView: View {
                     .padding(.top, 15)
                     .padding(.vertical, 6)
 
-                    // Fish Cards
-                    GridListView(aquarium: aquarium, speciesStore: speciesStore, species: species, filteredFish: filteredFish)
+                
+                    VStack(spacing: 10) {
+
+                        ForEach(filteredFish) { fish in
+                            FishGridItem(
+                                fish: fish,
+                                species: species,
+                                clickable: true
+                            ) {
+                                fish.isPinned.toggle()
+                            }
+                        }
+
+                    }
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 120)
                 }
             }
-
-       
+        }.onAppear {
+            user.speciesStore.refresh()
         }
         .background(Color.blue.opacity(0.01))
-        
-    }
-        
-    // MARK: - Binding Helper
-    private func binding(for fish: Fish) -> Binding<Fish>? {
-        guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
-              let fishIdx = speciesStore.speciesList[speciesIdx]
-                .fishList.firstIndex(where: { $0.id == fish.id }) else {
-            return nil
-        }
-        return $speciesStore.speciesList[speciesIdx].fishList[fishIdx]
     }
 
-    // MARK: - Filter Button
+    
     @ViewBuilder
     private func filterButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+
         Button(action: action) {
+
             ZStack {
+
                 if selected {
                     SmallRoundedCard()
                 } else {
-                    SmallRoundedCard().opacity(0.0)
+                    SmallRoundedCard().opacity(0)
                 }
+
                 Text(title)
-                    .foregroundStyle(Color.black)
-                    .opacity(0.7)
+                               .foregroundStyle(selected ? .cyan : .secondary) // cyan if active, gray otherwise
+                               .fontWeight(selected ? .semibold : .regular)
+                               .padding(.horizontal, 12)
+                               .frame(height: 35)
             }
-        }
+        } .buttonStyle(PlainButtonStyle())
     }
 }
 
-struct GridListView: View {
-    @ObservedObject var aquarium: AquariumFishList
-    @ObservedObject var speciesStore: SpeciesStore
-    @ObservedObject var species: Species
-    @State var filteredFish: [Fish]
-    
-    var body: some View {
-        VStack {
-            ForEach(filteredFish) { fish in
-                if let fishBinding = binding(for: fish) {
-                    NavigationLink(
-                        destination: FishDetailsView(
-                            speciesStore: speciesStore,
-                            aquarium: aquarium,
-                            fishID: fish.id
-                        )
-                    ) {
-                        FishGridItem(species: species, fish: fish, clickable: true) {
-                            fishBinding.isPinned.wrappedValue.toggle() // <-- WORKING ANCHOR
-                        }.onAppear {
-                            species.update()
-                        }
-            
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .padding(.horizontal, 15)
-        .padding(.bottom, 120)
-    }
-    
-    private func binding(for fish: Fish) -> Binding<Fish>? {
-        guard let speciesIdx = speciesStore.speciesList.firstIndex(where: { $0.id == species.id }),
-              let fishIdx = speciesStore.speciesList[speciesIdx]
-                .fishList.firstIndex(where: { $0.id == fish.id }) else {
-            return nil
-        }
-        return $speciesStore.speciesList[speciesIdx].fishList[fishIdx]
-    }
-}
-
-// Updated FishGridItem with toggle closure
+// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed 
 struct FishGridItem: View {
-    @ObservedObject var species: Species
+
     @ObservedObject var fish: Fish
+    @ObservedObject var species: Species
+    @EnvironmentObject var user: User
+    
+
     let clickable: Bool
-    var onTogglePinned: (() -> Void)? // <- new callback
-  
+    var onTogglePinned: (() -> Void)?
 
     private var cardWidth: CGFloat { UIScreen.main.bounds.width - 32 }
     private var cardHeight: CGFloat { cardWidth * 0.35 }
 
     var body: some View {
-        if !fish.isDeleted {
-            ZStack {
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.white)
-                    .frame(width: cardWidth, height: cardWidth * 0.45)
-                    .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
-                    .shadow(color: .black.opacity(0.03), radius: 2, y: 1)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 25)
-                            .stroke(Color.black.opacity(0.04), lineWidth: 1)
-                    )
-                
-                HStack(spacing: 20) {
-                    VStack {
-                        
-                        Image(fishPhoto: fish.photo)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: cardHeight, height: cardHeight)
-                            .cornerRadius(16)
-                            .clipped()
-                            .opacity(clickable ? 1.0 : 0.4)
-                            .shadow(color: .black.opacity(0.08), radius: 8, y: 4).padding(.top, 11)
-                        
-                        Spacer()
-                        
-                    }
-                    
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            if let weight = fish.fishWeight {
-                                Text("\(weight) lbs")
-                                    .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                    .bold()
-                                    .foregroundColor(.black.opacity(0.85))
-                            }
-                            
-                            Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
+
+        ZStack {
+
+            RoundedRectangle(cornerRadius: 25)
+                .fill(Color.white)
+                .frame(width: cardWidth, height: cardWidth * 0.45)
+                .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 25)
+                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                )
+
+            HStack(spacing: 20) {
+
+                VStack {
+
+                    Image(fishPhoto: fish.photo)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cardHeight, height: cardHeight)
+                        .cornerRadius(16)
+                        .clipped()
+                        .opacity(clickable ? 1 : 0.4)
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+                        .padding(.top, 11)
+
+                    Spacer()
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+
+                    HStack(spacing: 8) {
+
+                        if let weight = fish.fishWeight {
+                            let isHeaviest = fish == species.fishList.max(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) })
+
+                            Text("\(weight) lbs")
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .bold()
-                                .foregroundColor(.black.opacity(0.6))
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
-                                .allowsTightening(true)
-                            
-                            Spacer()
-                            
-                            Button {
-                                onTogglePinned?()
-                                                      } label: {
-                                Image(fish.isPinned ? "anchorUnpinned" : "anchor")
-                                    .resizable()
-                                    .frame(
-                                        width: min(UIScreen.main.bounds.width * 0.08, 180),
-                                        height: min(UIScreen.main.bounds.width * 0.1, 180)
-                                    )
-                                    .scaleEffect(fish.isPinned ? 1.0 : 0.95)
-                                    .opacity(fish.isPinned ? 1.0 : 0.8)
-                            }
-                            .padding(.top)
+                                .foregroundColor(isHeaviest ? .yellow : .primary)
+                                .shadow(color: isHeaviest ? .yellow.opacity(0.7) : .clear,
+                                        radius: isHeaviest ? 6 : 0,
+                                        x: 0, y: 0)
                         }
                         
-                        Text(fish.description)
-                            .font(.system(size: UIScreen.main.bounds.width * 0.035))
-                            .foregroundColor(.black.opacity(0.65))
-                            .lineLimit(2)
-                        
+                        Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
+                            .font(.system(size: UIScreen.main.bounds.width * 0.04))
+                            .bold()
+                            .foregroundColor(.black.opacity(0.6))
+                            .lineLimit(1)
+
                         Spacer()
-                        
-                        HStack {
-                            Spacer()
+
+                        Button {
+                            onTogglePinned?()
+                        } label: {
+
+                            Image(fish.isPinned ? "anchor" : "anchorUnpinned")
+                                .resizable()
+                                .frame(
+                                    width: UIScreen.main.bounds.width * 0.08,
+                                    height: UIScreen.main.bounds.width * 0.1
+                                )
+                                .scaleEffect(fish.isPinned ? 1 : 0.95)
+                                .opacity(fish.isPinned ? 1 : 0.8)
+                        }
+                        .padding(.top)
+                    }
+
+                    Text(fish.description)
+                        .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                        .foregroundColor(.black.opacity(0.65))
+                        .lineLimit(2)
+
+                    Spacer()
+
+                    HStack {
+
+                        Spacer()
+
+                        if species.fishList.count > 1 {
                             Button {
-                                fish.isDeleted = true
+
+                                let targetSize = fish.getSize()
+
+                                
+                                if fish.isAquarium {
+                                    user.aquarium.removeFish(
+                                         with: "\(species.name)Icon",
+                                         targetSize: targetSize
+                                     )
+
+                                    user.aquarium.refresh()
+                                 }
+                                
+                                
+                              
+                                species.fishList.removeAll { $0.id == fish.id }
+
+                           
+                              
+
                             } label: {
                                 Image(systemName: "trash.fill")
                                     .foregroundColor(.red.opacity(0.85))
                             }
                             .padding(.bottom)
+
+                        } else {
+
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.gray.opacity(0.85))
+                                .padding(.bottom)
                         }
                     }
-                    
                 }
-                .padding(.horizontal, 12)
-                
             }
-            .padding(.bottom, 5)
+            .padding(.horizontal, 12)
         }
     }
 }
-// MARK: - Image Loader Extension
+// helper I got from chat so that fish photos can actually compile and be displayed once uploaded to documents from catch view
 extension Image {
     init(fishPhoto name: String) {
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -372,65 +395,60 @@ struct SmallRoundedCard: View {
                 width: UIScreen.main.bounds.width * 0.265,
                 height: UIScreen.main.bounds.width * 0.105
             )
-            .foregroundStyle(Color.gray)
+            .foregroundStyle(Color.cyan.opacity(0.5))   .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.cyan.opacity(0.65), lineWidth: 1)
+            )
             .opacity(0.1)
         
     }
 }
 
-
-
-
 #Preview {
-    let aquarium = AquariumFishList()
-    
-    // SAMPLE FISH
+    let user = User()
+
     let fish1 = Fish(
         photo: "clownfish1",
         speciesName: "Largemouth Bass",
         description: "Caught near the dock at sunset.",
         dateCaught: Date(),
-        isPinned: true,
+        isPinned: false,
         isAquarium: false,
         fishWeight: 4
     )
-    
+
     let fish2 = Fish(
         photo: "clownfish2",
         speciesName: "Largemouth Bass",
         description: "Big one by the weeds.",
         dateCaught: Calendar.current.date(byAdding: .day, value: -3, to: Date())!,
-        isPinned: true,
+        isPinned: false,
         isAquarium: true,
         fishWeight: 6
     )
-    
+
     let fish3 = Fish(
         photo: "clownfish3",
         speciesName: "Largemouth Bass",
         description: "Small but fought hard.",
         dateCaught: Calendar.current.date(byAdding: .day, value: -10, to: Date())!,
-        isPinned: true,
+        isPinned: false,
         isAquarium: false,
         fishWeight: 3
     )
-    
-    // SAMPLE SPECIES
+
     let sampleSpecies = Species(
         name: "Largemouth Bass",
         imageName: "largemouthBassPhoto",
         icon: "clownfishIcon",
         fishList: [fish1, fish2, fish3]
     )
-    
-    // Use preview initializer
-    let store = SpeciesStore(previewSpecies: [sampleSpecies])
-    
+
     NavigationStack {
         SpeciesListView(
-            aquarium: aquarium,
-            speciesStore: store,
-            species: store.speciesList[0]
+            aquarium: user.aquarium,
+            species: sampleSpecies
         )
     }
+    .environmentObject(user)
 }
