@@ -162,6 +162,11 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Spacer()
                                         Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                
 
                                         if fish.isActive {
                                             Toggle("", isOn: Binding(
@@ -178,6 +183,10 @@ struct AquariumManageView: View {
                                             ))
                                             .labelsHidden()   .tint(.green)
                                         }
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
                                         Spacer()
                                         Spacer()
                                         Spacer()
@@ -219,7 +228,7 @@ struct AquariumManageView: View {
                                                         }
                                                     ),
                                                     in: 1...15
-                                                ).accentColor(.cyan.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6)) .layoutPriority(1)
 
                                                 Image("fast").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.06, 2000),
@@ -241,7 +250,7 @@ struct AquariumManageView: View {
                                                         }
                                                     ),
                                                     in: 20...200
-                                                ).accentColor(.cyan.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6)) .layoutPriority(1)
 
                                                 Image("big").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.08, 2000),
@@ -439,10 +448,11 @@ struct AquariumManageView: View {
                             
                             HStack{
                                 
-                                Text("Bubbles").opacity(0.5).font(.system(size: UIScreen.main.bounds.width * 0.045)).bold()
+                                Text("Bubbles").opacity(0.5).font(.system(size: UIScreen.main.bounds.width * 0.045)).bold().padding(.horizontal, 10)
                                  
                                 
                                 Spacer()
+                              
                                 
                                 Toggle("Bubbles", isOn: Binding(
                                     get: { aquariumState.bubbleVisibility > 0 },
@@ -454,7 +464,7 @@ struct AquariumManageView: View {
                                 .labelsHidden()
                                 .tint(.green)
                                 
-                            }.padding(.horizontal, 45)
+                            }.padding(.horizontal, 35)
                             
                             
                             Divider()

@@ -178,6 +178,8 @@ struct CatchManageView: View {
                 // Confirm Button
                 Button("Confirm") {
                     saveCatch()
+                 
+               
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.cyan)
@@ -229,24 +231,27 @@ struct CatchManageView: View {
             $0.name.lowercased() ==
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else { return }
-        
+
+        // Save photo if available
         var photoFilename = ""
         if let image = selectedUIImage {
             photoFilename = "\(UUID().uuidString).jpg"
             try? saveImageToDocuments(image: image, key: photoFilename)
         }
-        
+
+        // Append the new fish
         speciesStore.speciesList[index].fishList.append(
             Fish(photo: photoFilename,
                  speciesName: speciesStore.speciesList[index].name,
                  description: info,
                  fishWeight: weight)
         )
-        
+
+        // Calculate points
         let fishIndex = speciesStore.speciesList[index].fishList.count
         let previousFishDate: Date? =
             fishIndex > 1 ? speciesStore.speciesList[index].fishList[fishIndex - 2].dateCaught : nil
-        
+
         let totalOfSpecies = fishIndex
         let totalOtherFish = speciesStore.getFish() - 1
         let points =
@@ -258,6 +263,21 @@ struct CatchManageView: View {
                 previousFishDate: previousFishDate
               )
         speciesStore.totalClamPoints += points
+
+        // Decide popup type
+        let isFirstOfSpecies = fishIndex == 1
+        let isCatchOfTheWeek = speciesStore.catchOfTheWeek?.name == species
+
+        if isCatchOfTheWeek {
+            speciesStore.popupType = 3
+            speciesStore.catchOfTheWeek = nil// catch of the week
+        } else if isFirstOfSpecies {
+            speciesStore.popupType = 2 // first of species
+        } else {
+            speciesStore.popupType = 1 // normal fish
+        }
+
+        // Close editor
         editState = .notEditing
     }
     

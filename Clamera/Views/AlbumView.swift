@@ -107,7 +107,7 @@ struct AlbumView: View {
                                                 aquarium: aquarium,
                                                 species: speciesStore.speciesList[index]
                                             ).navigationBarTitleDisplayMode(.inline)
-                                                .tint(.black)
+                                               
                                         )   {
                                             SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true)
                                         }
@@ -233,13 +233,16 @@ struct SpeciesGridItem: View {
                     .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             }
             .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
-            .background(
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color(.systemGray5))
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 25))
+           
+            .clipShape(RoundedRectangle(cornerRadius: 25)).saturation(clickable ? 1 : 0)
             .opacity(clickable ? 1.0 : 0.6)
             .brightness(clickable ? -0.15 : 0)
+                
+            if !clickable {
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color(.systemGray5).opacity(0.3)) .frame(width: cardWidth * 0.95, height: cardHeight * 0.95) .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+            }
+            
            
             
             HStack(spacing: 4) {

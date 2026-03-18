@@ -22,7 +22,13 @@ struct HomerView: View {
     @StateObject private var tabRouter = TabRouter()
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
-
+    
+    // ✅ Popup state
+    @State private var showCatchSavedPopup: Bool = false
+    @State private var catchSavedMessage: String = ""
+    @State private var popupColor: Color = .cyan
+    @State private var popupOffset: CGFloat = 150
+    
     @State private var showAquariumBottomBar: Bool = true
     @State private var bottomBarWorkItem: DispatchWorkItem?
 
@@ -32,7 +38,8 @@ struct HomerView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-
+            
+            // MARK: - Main Content
             Group {
                 switch tabRouter.viewState {
                 case .home: NavigationStack { HomeRevised() }
@@ -65,7 +72,7 @@ struct HomerView: View {
             .environmentObject(aquarium)
             .environmentObject(aquariumState)
             .environmentObject(speciesStore)
-
+            
             // MARK: - Custom Tab Bar
             HStack(spacing: 0) {
                 customTabIcon(systemImage: "house", tab: .home)
@@ -82,6 +89,43 @@ struct HomerView: View {
             .offset(y: tabRouter.viewState == .aquarium && !showAquariumBottomBar ? 120 : 0)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: showAquariumBottomBar)
             .ignoresSafeArea(edges: .bottom)
+            
+            // MARK: - Animated Popup
+            VStack {
+                Spacer()
+                
+                if showCatchSavedPopup {
+                    Text(catchSavedMessage)
+                        .font(.system(size: 16, weight: .semibold))
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 22)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(popupColor.opacity(0.9))
+                                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+                        )
+                        .foregroundColor(.white)
+                        .offset(y: popupOffset)
+                        .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .zIndex(1)
+                        .padding(.bottom, 100)
+                        .onAppear {
+                            // Bounce up
+                            withAnimation(.interpolatingSpring(stiffness: 180, damping: 18)) {
+                                popupOffset = 0
+                            }
+                            // Fade out after 3 seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showCatchSavedPopup = false
+                                    popupOffset = 150
+                                    speciesStore.popupType = 0
+                                }
+                            }
+                        }
+                }
+            }
         }
         .edgesIgnoringSafeArea(.bottom)
         .onAppear { startCleanTimer() }
@@ -91,40 +135,52 @@ struct HomerView: View {
             bottomBarWorkItem?.cancel()
             stopBubbleSound()
         }
+        // MARK: - Observe speciesStore.popupType
+        .onChange(of: speciesStore.popupType) { newValue in
+            guard newValue > 0 else { return }
+            var message = ""
+            var color: Color = .cyan
+            switch newValue {
+            case 1:
+                message = "Fish Caught!"
+                color = .cyan
+            case 2:
+                message = "New Species Caught!"
+                color = .cyan
+            case 3:
+                message = "Catch of the Week!"
+                color = Color(red: 1.0, green: 0.84, blue: 0.0) 
+            default: break
+            }
+            triggerCatchPopup(message: message, color: color)
+        }
+        // MARK: - Tab change logic
         .onChange(of: tabRouter.viewState) { newState in
             if newState == .aquarium {
                 lastUpdate = Date()
                 aquariumState.commitPendingClean()
-                if aquariumState.bubbleAmount > 0 {
-                    startBubbleSound()
-                }
-            } else {
-                stopBubbleSound()
-            }
+                if aquariumState.bubbleAmount > 0 { startBubbleSound() }
+            } else { stopBubbleSound() }
         }
-        // ✅ Listen to bubbleAmount changes from slider or toggle
         .onReceive(aquariumState.$bubbleAmount) { newValue in
-            updateBubbleVolume() // always update volume if player exists
-
+            updateBubbleVolume()
             if tabRouter.viewState == .aquarium {
-                if newValue > 0 {
-                    if bubblePlayer == nil { startBubbleSound() }
-                } else {
-                    stopBubbleSound()
-                }
-            } else {
-              
-                stopBubbleSound()
-            }
+                if newValue > 0 && bubblePlayer == nil { startBubbleSound() }
+            } else { stopBubbleSound() }
         }
     }
-
+    
+    // MARK: - Trigger Popup Animation
+    private func triggerCatchPopup(message: String, color: Color) {
+        popupOffset = 150
+        catchSavedMessage = message
+        popupColor = color
+        showCatchSavedPopup = true
+    }
+    
     // MARK: - Custom Tab Icon Helpers
     private func customTabIcon(systemImage: String, tab: ViewState) -> some View {
-        Button(action: {
-            tabRouter.viewState = tab
-            if tab == .aquarium { resetBottomBarTimer() }
-        }) {
+        Button(action: { tabRouter.viewState = tab; if tab == .aquarium { resetBottomBarTimer() } }) {
             Image(systemName: systemImage)
                 .resizable()
                 .scaledToFit()
@@ -136,10 +192,7 @@ struct HomerView: View {
     }
 
     private func customTabIcon(imageName: String, tab: ViewState) -> some View {
-        Button(action: {
-            tabRouter.viewState = tab
-            if tab == .aquarium { resetBottomBarTimer() }
-        }) {
+        Button(action: { tabRouter.viewState = tab; if tab == .aquarium { resetBottomBarTimer() } }) {
             Image(imageName)
                 .renderingMode(.template)
                 .resizable()
@@ -157,12 +210,12 @@ struct HomerView: View {
         let totalDuration: TimeInterval = 60 * 60
         let tickInterval: TimeInterval = 5
         lastUpdate = Date()
-
+        
         cleanTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { _ in
             let now = Date()
             let delta = now.timeIntervalSince(self.lastUpdate)
             self.lastUpdate = now
-
+            
             if aquariumState.isActiveScreen {
                 let increment = aquariumState.maxClean / totalDuration * delta
                 aquariumState.updateClean(by: increment)
@@ -178,23 +231,17 @@ struct HomerView: View {
     // MARK: - Bottom Bar Timer
     func resetBottomBarTimer() {
         bottomBarWorkItem?.cancel()
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
-            showAquariumBottomBar = true
-        }
-
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { showAquariumBottomBar = true }
         let workItem = DispatchWorkItem {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
-                showAquariumBottomBar = false
-            }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { showAquariumBottomBar = false }
         }
-
         bottomBarWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
     // MARK: - Bubble Audio
     private func startBubbleSound() {
-        guard bubblePlayer == nil else { return } // already playing
+        guard bubblePlayer == nil else { return }
         guard let url = Bundle.main.url(forResource: "bubble", withExtension: "wav") else { return }
         do {
             bubblePlayer = try AVAudioPlayer(contentsOf: url)
