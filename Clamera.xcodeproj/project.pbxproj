@@ -9,11 +9,13 @@
 /* Begin PBXBuildFile section */
 		4050C1A12F5161BD0061F5CE /* fish_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 4050C1A02F5161BD0061F5CE /* fish_data.json */; };
 		40A207AB2F535281008A557A /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 40A207AA2F535281008A557A /* Kingfisher */; };
+		40C22BD92F64BC2C0083E9AD /* bubble.wav in Resources */ = {isa = PBXBuildFile; fileRef = 40C22BD82F64BC2B0083E9AD /* bubble.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		16BA8AA82F2A490600BA04E9 /* Clamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4050C1A02F5161BD0061F5CE /* fish_data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fish_data.json; sourceTree = "<group>"; };
+		40C22BD82F64BC2B0083E9AD /* bubble.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bubble.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -55,6 +57,7 @@
 				16BA8AAA2F2A490600BA04E9 /* Clamera */,
 				16BA8AA92F2A490600BA04E9 /* Products */,
 				4050C1A02F5161BD0061F5CE /* fish_data.json */,
+				40C22BD82F64BC2B0083E9AD /* bubble.wav */,
 			);
 			sourceTree = "<group>";
 		};
@@ -135,6 +138,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4050C1A12F5161BD0061F5CE /* fish_data.json in Resources */,
+				40C22BD92F64BC2C0083E9AD /* bubble.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

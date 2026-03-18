@@ -448,9 +448,11 @@ struct AquariumManageView: View {
                                     get: { aquariumState.bubbleVisibility > 0 },
                                     set: { newValue in
                                         aquariumState.bubbleVisibility = newValue ? 1 : 0
+                                        aquariumState.bubbleAmount = newValue ? 1.0 : 0.0
                                     }
                                 ))
-                                .labelsHidden().tint(.green)
+                                .labelsHidden()
+                                .tint(.green)
                                 
                             }.padding(.horizontal, 45)
                             

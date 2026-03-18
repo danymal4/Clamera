@@ -4,6 +4,7 @@
 //
 //  Created by Ellis Kamplain (student LM) on 2/4/26.
 import SwiftUI
+import AVFoundation
 
 enum ViewState {
     case home, aquarium, profile, caught, album, social, settings
@@ -25,6 +26,10 @@ struct HomerView: View {
     @State private var showAquariumBottomBar: Bool = true
     @State private var bottomBarWorkItem: DispatchWorkItem?
 
+    // MARK: - Bubble audio
+    @State private var bubblePlayer: AVAudioPlayer?
+    @State private var fadeTimer: Timer?
+
     var body: some View {
         ZStack(alignment: .bottom) {
 
@@ -32,7 +37,7 @@ struct HomerView: View {
                 switch tabRouter.viewState {
                 case .home: NavigationStack { HomeRevised() }
                 case .caught: NavigationStack { CatchView() }
-                case .album: NavigationStack { AlbumView() }.tint(.cyan) 
+                case .album: NavigationStack { AlbumView() }.tint(.cyan)
                 case .aquarium:
                     NavigationStack {
                         AquariumView(
@@ -43,12 +48,13 @@ struct HomerView: View {
                             aquariumState.markActive("aquarium")
                             lastUpdate = Date()
                             aquariumState.commitPendingClean()
-                            resetBottomBarTimer() // start the hide timer
+                            resetBottomBarTimer()
                         }
                         .onDisappear {
                             aquariumState.markInactive("aquarium")
                             bottomBarWorkItem?.cancel()
-                            showAquariumBottomBar = true // reset for next time
+                            showAquariumBottomBar = true
+                            stopBubbleSound()
                         }
                     }
                 case .social: NavigationStack { SocialView() }
@@ -83,16 +89,37 @@ struct HomerView: View {
             cleanTimer?.invalidate()
             cleanTimer = nil
             bottomBarWorkItem?.cancel()
+            stopBubbleSound()
         }
         .onChange(of: tabRouter.viewState) { newState in
             if newState == .aquarium {
                 lastUpdate = Date()
                 aquariumState.commitPendingClean()
+                if aquariumState.bubbleAmount > 0 {
+                    startBubbleSound()
+                }
+            } else {
+                stopBubbleSound()
+            }
+        }
+        // ✅ Listen to bubbleAmount changes from slider or toggle
+        .onReceive(aquariumState.$bubbleAmount) { newValue in
+            updateBubbleVolume() // always update volume if player exists
+
+            if tabRouter.viewState == .aquarium {
+                if newValue > 0 {
+                    if bubblePlayer == nil { startBubbleSound() }
+                } else {
+                    stopBubbleSound()
+                }
+            } else {
+              
+                stopBubbleSound()
             }
         }
     }
 
-    // MARK: - Custom Tab Icon for SF Symbols
+    // MARK: - Custom Tab Icon Helpers
     private func customTabIcon(systemImage: String, tab: ViewState) -> some View {
         Button(action: {
             tabRouter.viewState = tab
@@ -108,7 +135,6 @@ struct HomerView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Custom Tab Icon for Asset Images
     private func customTabIcon(imageName: String, tab: ViewState) -> some View {
         Button(action: {
             tabRouter.viewState = tab
@@ -149,16 +175,13 @@ struct HomerView: View {
         }
     }
 
-    // MARK: - Reset Bottom Bar Timer
+    // MARK: - Bottom Bar Timer
     func resetBottomBarTimer() {
         bottomBarWorkItem?.cancel()
-
-        // Make sure the bar is visible immediately
         withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
             showAquariumBottomBar = true
         }
 
-        // Hide after 5 seconds
         let workItem = DispatchWorkItem {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
                 showAquariumBottomBar = false
@@ -167,6 +190,33 @@ struct HomerView: View {
 
         bottomBarWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
+    }
+
+    // MARK: - Bubble Audio
+    private func startBubbleSound() {
+        guard bubblePlayer == nil else { return } // already playing
+        guard let url = Bundle.main.url(forResource: "bubble", withExtension: "wav") else { return }
+        do {
+            bubblePlayer = try AVAudioPlayer(contentsOf: url)
+            bubblePlayer?.numberOfLoops = -1
+            bubblePlayer?.volume = 0
+            bubblePlayer?.play()
+            updateBubbleVolume()
+        } catch {
+            print("Error playing bubble sound: \(error)")
+        }
+    }
+
+    private func stopBubbleSound() {
+        fadeTimer?.invalidate()
+        bubblePlayer?.stop()
+        bubblePlayer = nil
+    }
+
+    private func updateBubbleVolume() {
+        guard let player = bubblePlayer else { return }
+        let scaledVolume = Float(aquariumState.bubbleAmount) * 0.5
+        player.volume = scaledVolume
     }
 }
 

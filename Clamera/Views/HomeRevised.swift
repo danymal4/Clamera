@@ -10,6 +10,7 @@ struct HomeRevised: View {
     
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
+    @State private var showNameBubble = false
     @EnvironmentObject var speciesStore: SpeciesStore
     
     var body: some View {
@@ -43,7 +44,7 @@ struct HomeRevised: View {
                         
                         Spacer()
                         
-                        // Points Display
+                       
                         HStack(spacing: 4) {
                             Image("clamIcon")
                                 .resizable()
@@ -93,23 +94,56 @@ struct HomeRevised: View {
                             )
                             .frame(width: ui.width * 0.9, height: ui.width * 0.9)
                         
-                        
+                   
                         if let catchOfTheWeek = speciesStore.catchOfTheWeek {
-                            Image("\(catchOfTheWeek.name)Icon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: ui.width * 0.55, height: ui.width * 0.55)
-                                .shadow(color: .cyan.opacity(0.6), radius: 20)
-                                .shadow(color: .yellow.opacity(0.4), radius: 40)
-                                .shadow(color: .yellow.opacity(0.2), radius: 60)
-                                .offset(y: floatUpDown ? -6 : 6)
-                                .animation(
-                                    .easeInOut(duration: 1.6)
-                                        .repeatForever(autoreverses: true),
-                                    value: floatUpDown
-                                )
+                            ZStack {
+                                // Animated fish icon
+                                Image("\(catchOfTheWeek.name)Icon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: ui.width * 0.55, height: ui.width * 0.55)
+                                    .shadow(color: .cyan.opacity(0.6), radius: 20)
+                                    .shadow(color: .yellow.opacity(0.4), radius: 40)
+                                    .shadow(color: .yellow.opacity(0.2), radius: 60)
+                                    .offset(y: floatUpDown ? -6 : 6)
+                                    .animation(
+                                        .easeInOut(duration: 1.6)
+                                            .repeatForever(autoreverses: true),
+                                        value: floatUpDown
+                                    )
+                                    .onTapGesture {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                                            showNameBubble = true
+                                        }
+                                        // Hide bubble after 2 seconds
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            withAnimation(.easeOut(duration: 0.3)) {
+                                                showNameBubble = false
+                                            }
+                                        }
+                                    }
+
+                           
+                                if showNameBubble {
+                                    Text(catchOfTheWeek.name)
+                                        .font(.headline)
+                                        .bold()
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.white.opacity(0.85))
+                                                .shadow(radius: 4)
+                                        )
+                                        
+                                        .offset(y: -ui.width * 0.22 + (floatUpDown ? -2 : 2))
+                                        .scaleEffect(showNameBubble ? 1 : 0.5)
+                                        .opacity(showNameBubble ? 1 : 0)
+                                        .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: floatUpDown)
+                                        .transition(.scale.combined(with: .opacity))
+                                }
+                            }
                         }
-                        
                         VStack {
                             Spacer()
                             
@@ -134,7 +168,7 @@ struct HomeRevised: View {
                     }
                     
                     
-                    // MARK: Stats Section
+                
                     HStack(spacing: 16) {
                         
                         statCard(
@@ -216,8 +250,7 @@ struct HomeRevised: View {
         )
     }
     
-    
-    // MARK: Stat Card
+   
     func statCard(title: String, value: String) -> some View {
         VStack(spacing: 6) {
             Text(value)

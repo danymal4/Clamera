@@ -10,7 +10,7 @@ import SwiftUI
 struct SocialView: View {
     var body: some View {
         ZStack {
-            IconView()
+            
             
             VStack(spacing: 35) {
                 
