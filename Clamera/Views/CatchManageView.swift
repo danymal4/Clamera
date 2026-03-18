@@ -89,7 +89,7 @@ struct CatchManageView: View {
                                     .fill(Color(.systemGray6))
                                     .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
                             )
-                            .onChange(of: species) { newValue in
+                            .onChange(of: species) { oldState, newValue in
                                 showSpeciesSuggestions = !newValue.isEmpty
                                 updatePreviewPoints()
                             }
@@ -168,7 +168,7 @@ struct CatchManageView: View {
                                 .fill(Color(.systemGray6))
                                 .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
                         )
-                        .onChange(of: weightText) { newValue in
+                        .onChange(of: weightText) { oldState, newValue in
                             weight = Int(newValue)
                         }
                         .padding(.horizontal)

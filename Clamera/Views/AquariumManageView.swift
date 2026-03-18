@@ -166,7 +166,7 @@ struct AquariumManageView: View {
                                             Toggle("", isOn: Binding(
                                                 get: { fish.isShown },
                                                 set: { newValue in
-                                                    var updatedFish = fish
+                                                    let updatedFish = fish
                                                     updatedFish.isShown = newValue
                                                     user.aquarium.fish[i] = updatedFish
                                                     
