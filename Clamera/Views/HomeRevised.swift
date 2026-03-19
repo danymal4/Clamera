@@ -6,10 +6,14 @@
 //
 import SwiftUI
 
+//  Created by Ellis Kamplain (student LM) on 2/25/26.
+
+
 struct HomeRevised: View {
     
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
+    @State private var showNameBubble = false
     @EnvironmentObject var user: User
     
     var body: some View {
@@ -19,17 +23,21 @@ struct HomeRevised: View {
             ScrollView {
                 
                 VStack(spacing: 32) {
-                  
+                    
+                
                     HStack {
                         (
                             Text("Good Morning ")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             +
-                            Text("User")
+                            Text(user.username.lowercased())
                                 .font(.title2)
                                 .fontWeight(.bold)
-                        )
+                                
+                        ).lineLimit(1)               // keep it on a single line
+                            .minimumScaleFactor(0.5)    //
+                            .truncationMode(.tail)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
@@ -43,7 +51,6 @@ struct HomeRevised: View {
                         
                         Spacer()
                         
-                        // Points Display
                         HStack(spacing: 4) {
                             Image("clamIcon")
                                 .resizable()
@@ -61,16 +68,15 @@ struct HomeRevised: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 40)
                     
-                    
-                  
+                    // MARK: - Catch of the Week Card
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 30)
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        Color.cyan.opacity(0.45),
-                                        Color.blue.opacity(0.20)
+                                        Color.cyan.opacity(0.7),
+                                        Color.blue.opacity(0.25)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -93,131 +99,225 @@ struct HomeRevised: View {
                             )
                             .frame(width: ui.width * 0.9, height: ui.width * 0.9)
                         
-                        
-                        if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {
-                            Image("\(catchOfTheWeek.name)Icon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: ui.width * 0.55, height: ui.width * 0.55)
-                                .shadow(color: .cyan.opacity(0.6), radius: 20)
-                                .shadow(color: .yellow.opacity(0.4), radius: 40)
-                                .shadow(color: .yellow.opacity(0.2), radius: 60)
-                                .offset(y: floatUpDown ? -6 : 6)
-                                .animation(
-                                    .easeInOut(duration: 1.6)
+                        ZStack {
+                            if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {
+                                Image("\(catchOfTheWeek.name)Icon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: ui.width * 0.55, height: ui.width * 0.55)
+                                    .shadow(color: .cyan.opacity(0.6), radius: 20)
+                                    .shadow(color: .yellow.opacity(0.4), radius: 40)
+                                    .shadow(color: .yellow.opacity(0.2), radius: 60)
+                                    .offset(y: floatUpDown ? -6 : 6)
+                                    .animation(
+                                        .easeInOut(duration: 1.6)
                                         .repeatForever(autoreverses: true),
-                                    value: floatUpDown
-                                )
-                        }
-                        
-                        VStack {
-                            Spacer()
-                            
-                            HStack {
-                                Text("Catch of the Week")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                        value: floatUpDown
+                                    )
+                                    .onTapGesture {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                                            showNameBubble = true
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            withAnimation(.easeOut(duration: 0.3)) {
+                                                showNameBubble = false
+                                            }
+                                        }
+                                    }
                                 
-                                Spacer()
+                                if showNameBubble {
+                                    Text(catchOfTheWeek.name)
+                                        .font(.headline)
+                                        .bold()
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.white.opacity(0.85))
+                                                .shadow(radius: 4)
+                                        )
+                                        .offset(y: -ui.width * 0.22 + (floatUpDown ? -2 : 2))
+                                        .scaleEffect(showNameBubble ? 1 : 0.5)
+                                        .opacity(showNameBubble ? 1 : 0)
+                                        .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: floatUpDown)
+                                        .transition(.scale.combined(with: .opacity))
+                                }
                                 
-                                Text("\(user.speciesStore.catchOfTheWeekPoints) Points")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .padding(6)
-                                    .background(Color.black.opacity(0.25))
-                                    .cornerRadius(10)
+                            } else {
+                                // EMPTY STATE (fishing rod + fish placeholder)
+                                ZStack {
+                                    Image("FishIcon")
+                                        .resizable().scaleEffect(x: -1, y: 1)
+                                        .scaledToFit()
+                                        .frame(width: ui.width * 0.18, height: ui.width * 0.18)
+                                        .offset(y: floatUpDown ? ui.width * 0.12 : ui.width * 0.08)
+                                        .animation(
+                                            .easeInOut(duration: 1.6)
+                                            .repeatForever(autoreverses: true),
+                                            value: floatUpDown
+                                        )
+                                    
+                                    Text("Congrats")
+                                        .font(.headline)
+                                        .bold()
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+                                        .offset(y: ui.width * 0.25)
+                                }
                             }
-                            .padding(16)
-                            .frame(width: ui.width * 0.9)
+                            
+                            if user.speciesStore.catchOfTheWeek != nil {
+                                VStack {
+                                    Spacer()
+                                    
+                                    HStack {
+                                        Text("Catch of the Week")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                            .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(user.speciesStore.catchOfTheWeekPoints) Points")
+                                            .bold()
+                                            .foregroundColor(.white)
+                                            .padding(6)
+                                            .background(Color.black.opacity(0.25))
+                                            .cornerRadius(10)
+                                    }
+                                    .padding(16)
+                                    .frame(width: ui.width * 0.9)
+                                }
+                            }
                         }
                     }
                     
-                    
-                    // MARK: Stats Section
+                    // MARK: - Stats
                     HStack(spacing: 16) {
-                        
-                        statCard(
-                            title: "Fish Caught",
-                            value: "\(user.speciesStore.getFish())"
-                        )
-                        
-                        statCard(
-                            title: "This Month",
-                            value: "\(user.speciesStore.getFish())"
-                        )
+                        statCard(title: "Fish Caught", value: "\(user.speciesStore.getFish())")
+                        statCard(title: "This Month", value: "\(user.speciesStore.getFish())")
                     }
                     .padding(.horizontal, 20)
                     
-                    
-                  
+                    // MARK: - Pinned Catch
                     ZStack {
-                        RoundedRectangle(cornerRadius: 25)
-                            .foregroundStyle(.cyan)
-                            .opacity(0.25)
-                            .frame(width: ui.width * 0.9, height: ui.width * 0.35)
-                            .overlay(
+                        if let fish = user.speciesStore.pinnedDisplay,
+                           let species = user.speciesStore.speciesList.first(where: { $0.name == fish.speciesName }) {
+                            
+                            NavigationLink(destination:
+                                SpeciesListView(aquarium: user.aquarium, species: species)
+                                    .navigationBarTitleDisplayMode(.inline)
+                            ) {
                                 RoundedRectangle(cornerRadius: 25)
-                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                            )
-
-                        HStack(spacing: 16) {
-                            
-                           
-                            Image("opahCatch")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 90, height: 90)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                                .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
-                            
-                            VStack(alignment: .leading, spacing: 6) {
-                                
-                                Text("Pinned Catch")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
-                                
-                                Text("Opah")
-                                    .font(.title3)
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                
-                                Text("40 lbs")
-                                    .foregroundColor(.white.opacity(0.85))
-                                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                                    .foregroundStyle(.cyan)
+                                    .opacity(0.25)
+                                    .frame(width: ui.width * 0.9, height: ui.width * 0.35).scaleEffect(floatUpDown ? 1.01 : 0.99) // subtle "breathing" effect
+                                    .shadow(color: Color.cyan.opacity(floatUpDown ? 0.4 : 0.2), radius: 10, x: 0, y: 5)
+                                    .animation(
+                                        .easeInOut(duration: 1.2)
+                                            .repeatForever(autoreverses: true),
+                                        value: floatUpDown
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 25)
+                                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                    )
+                                    .overlay(
+                                        HStack(spacing: 16) {
+                                            Image(fishPhoto : fish.photo)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 90, height: 90)
+                                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                                .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
+                                            
+                                            VStack(alignment: .leading, spacing: 6) {
+                                                Text("Pinned Catch")
+                                                    .font(.system(size: 15, weight: .semibold))
+                                                    .foregroundColor(.white.opacity(0.9))
+                                                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                                                
+                                                Text(fish.speciesName)
+                                                    .font(.title3)
+                                                    .bold()
+                                                    .foregroundColor(.white)
+                                                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                                                
+                                                if let weight = fish.fishWeight {
+                                                    Text("\(weight) lbs")
+                                                        .foregroundColor(.white.opacity(0.85))
+                                                        .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                                                }
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                        
+                                        }
+                                        .padding(.horizontal, 20)
+                                    )
                             }
+                            .buttonStyle(PlainButtonStyle())
                             
-                            Spacer()
-                            
-                            Image(systemName: "anchor.fill")
-                                .foregroundColor(.white)
+                        } else {
+                            // Fallback stock card
+                            Group {
+                                RoundedRectangle(cornerRadius: 25)
+                                    .foregroundStyle(Color.cyan.opacity(0.35))
+                                    .frame(width: ui.width * 0.9, height: ui.width * 0.35)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 25)
+                                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                    )
+                                
+                                HStack(spacing: 16) {
+                                    Image("opahCatch")
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 90, height: 90)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
+                                    
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text("Pinned Catch")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.9))
+                                            .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                                        
+                                        Text("Opah")
+                                            .font(.title3)
+                                            .bold()
+                                            .foregroundColor(.white)
+                                            .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                                        
+                                        Text("40 lbs")
+                                            .foregroundColor(.white.opacity(0.85))
+                                            .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                  
+                                }
+                                .padding(.horizontal, 20)
+                            }
                         }
-                        .padding(.horizontal, 20)
                     }
                     .padding(.horizontal, 20)
-                    
                     
                     Spacer(minLength: 80)
                 }
-                .onAppear {
-                    floatUpDown.toggle()
-                }
+                .onAppear { floatUpDown.toggle() }
             }
         }
         .background(
-            ZStack {
-                Color.blue.opacity(0.01)
-                    .edgesIgnoringSafeArea(.top)
-
-            
-            }
+            Color.blue.opacity(0.01)
+                .edgesIgnoringSafeArea(.top)
         )
     }
     
-    
-    // MARK: Stat Card
+    // MARK: - Stat Card Helper
     func statCard(title: String, value: String) -> some View {
         VStack(spacing: 6) {
             Text(value)
@@ -238,6 +338,5 @@ struct HomeRevised: View {
 }
 
 #Preview {
-    HomeRevised()
-        .environmentObject(User())
+    HomeRevised().environmentObject(User())
 }

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUICore
+import SwiftUI
 struct WaterWave: Shape {
     var amplitude: CGFloat = 30 // Height of waves
     var waveCount: CGFloat = 2 // Number of waves

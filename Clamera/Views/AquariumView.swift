@@ -16,16 +16,17 @@ enum EditState {
 
 
 
+
 struct BubbleView: View {
     @EnvironmentObject var user: User
     @State private var yOffset: CGFloat = 0
     @State private var opacity: Double = 0
+    @State private var scale: CGFloat = 0.9
     @State private var animationActive = true
 
     let topY: CGFloat
     let bottomY: CGFloat
 
-   
     @State private var size: CGFloat
     @State private var xPosition: CGFloat
     @State private var duration: Double
@@ -35,62 +36,84 @@ struct BubbleView: View {
         self.topY = topY - 350
         self.bottomY = bottomY + 200
 
-        
         _size = State(initialValue: CGFloat.random(in: 8...30))
         _xPosition = State(initialValue: CGFloat.random(in: 60...(UIScreen.main.bounds.width - 30)))
         _duration = State(initialValue: Double.random(in: 7...20))
-        _delayOffset = State(initialValue: Double.random(in: 0...1)) // 0–1s random delay
+        _delayOffset = State(initialValue: Double.random(in: 0...1))
     }
 
     var body: some View {
         Circle()
-            .fill(Color.white.opacity(0.3))
+            .fill(Color.white.opacity(0.28))
             .overlay(
-                    Circle()
-                        .fill(Color.green.opacity(user.aquariumState.clean * 0.6 * user.aquariumState.bubbleVisibility))
-                )
+                Circle()
+                    .fill(
+                        Color.green.opacity(
+                            user.aquariumState.clean *
+                            0.6 *
+                            user.aquariumState.bubbleVisibility *
+                            Double.random(in: 0.9...1)
+                        )
+                    )
+            )
+            .overlay( // subtle highlight ring
+                Circle()
+                    .stroke(Color.white.opacity(0.35), lineWidth: 0.6)
+            )
             .frame(width: size, height: size)
+            .scaleEffect(scale)
             .position(x: xPosition, y: yOffset)
             .opacity(opacity * user.aquariumState.bubbleVisibility)
-           
-        
-        
-        
             .onAppear {
                 animationActive = true
-                startAnimation()  // This actually triggers the bubble movement
+                startAnimation()
             }
             .onDisappear {
                 animationActive = false
             }
-
     }
 
     func startAnimation() {
-      
+
         DispatchQueue.main.asyncAfter(deadline: .now() + delayOffset) {
 
             guard animationActive else { return }
 
             let startYOffset = bottomY + CGFloat.random(in: 0...20)
+
             yOffset = startYOffset
             opacity = 0
+            scale = 0.9
 
-          // random positions
+            // keep your original random spawn
             xPosition = CGFloat.random(in: 0...(2 * UIScreen.main.bounds.width))
 
-            withAnimation(.easeIn(duration: duration * 0.2)) { opacity = 1 }
-            withAnimation(Animation.linear(duration: duration)) { yOffset = topY }
-            withAnimation(.easeOut(duration: duration * 0.2).delay(duration * 0.8)) { opacity = 0 }
+            withAnimation(.easeIn(duration: duration * 0.2)) {
+                opacity = 1
+            }
 
-         
+            // vertical movement (unchanged)
+            withAnimation(Animation.linear(duration: duration)) {
+                yOffset = topY
+            }
+
+            // slight growth while rising (new polish)
+            withAnimation(.easeOut(duration: duration)) {
+                scale = 1.05
+            }
+
+            withAnimation(.easeOut(duration: duration * 0.2).delay(duration * 0.8)) {
+                opacity = 0
+            }
+
             DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                if animationActive { startAnimation() }
+                if animationActive {
+                    startAnimation()
+                }
             }
         }
     }
 }
-
 
 
 
@@ -109,7 +132,7 @@ struct AquariumView: View {
         ZStack {
             AquariumBackgroundView()
                 .environmentObject(user.aquariumState)
-                .offset(y: showBottomBar ? 0 : -20) // invert
+                // invert
 
             BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)
                 .environmentObject(user)
@@ -265,7 +288,7 @@ struct AquariumBackgroundView: View {
                             .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2) // subtle shadow
                             .animation(.easeInOut(duration: 0.7), value: user.aquariumState.clean)
                     }
-                    .padding(.top, -385)
+                    .padding(.top, -400)
                     .padding(.horizontal, 395)
                     .disabled(user.aquariumState.clean <= 0)
                 }
