@@ -31,7 +31,7 @@ struct HomeRevised: View {
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             +
-                            Text(user.username)
+                            Text(user.username.lowercased())
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 
