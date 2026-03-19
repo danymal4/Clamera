@@ -45,7 +45,7 @@ struct SignInView: View {
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
                 
-            Text("email@domain.com")
+            Text("email@​domain.com")
                 .foregroundStyle(.gray)
                 .bold()
                 .padding(.trailing, 170)
@@ -76,7 +76,7 @@ struct SignInView: View {
                 .position(x: 200, y:-200)
             
             
-            Text("Continue With Username & Password")
+            Text("Login With Username & Password")
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-150)
