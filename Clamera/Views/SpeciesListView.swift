@@ -257,12 +257,33 @@ struct FishGridItem: View {
         ZStack {
 
             RoundedRectangle(cornerRadius: 25)
-                .fill(Color.white)
+                .fill(
+                    LinearGradient(
+                        colors: fish.isPinned
+                            ? [Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.25), Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.1)]
+                            : [Color.white, Color.white],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .frame(width: cardWidth, height: cardWidth * 0.45)
-                .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+                // Premium shadow for pinned cards
+                .shadow(
+                    color: fish.isPinned
+                        ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.25)
+                        : Color.black.opacity(0.06),
+                    radius: 16,
+                    y: 6
+                )
+                // Thin glow/border for pinned cards
                 .overlay(
                     RoundedRectangle(cornerRadius: 25)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(
+                            fish.isPinned
+                                ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.3)
+                                : Color.black.opacity(0.04),
+                            lineWidth: 2
+                        )
                 )
 
             HStack(spacing: 20) {
