@@ -14,7 +14,7 @@ struct HomeRevised: View {
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
     @State private var showNameBubble = false
-    @EnvironmentObject var user: User  // ✅ Use user for all data
+    @EnvironmentObject var user: User
     
     var body: some View {
         
@@ -24,17 +24,20 @@ struct HomeRevised: View {
                 
                 VStack(spacing: 32) {
                     
-                    // MARK: - Greeting + Clam Points
+                
                     HStack {
                         (
                             Text("Good Morning ")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             +
-                            Text("User")
+                            Text(user.username)
                                 .font(.title2)
                                 .fontWeight(.bold)
-                        )
+                                
+                        ).lineLimit(1)               // keep it on a single line
+                            .minimumScaleFactor(0.5)    //
+                            .truncationMode(.tail)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
@@ -209,7 +212,13 @@ struct HomeRevised: View {
                                 RoundedRectangle(cornerRadius: 25)
                                     .foregroundStyle(.cyan)
                                     .opacity(0.25)
-                                    .frame(width: ui.width * 0.9, height: ui.width * 0.35)
+                                    .frame(width: ui.width * 0.9, height: ui.width * 0.35).scaleEffect(floatUpDown ? 1.01 : 0.99) // subtle "breathing" effect
+                                    .shadow(color: Color.cyan.opacity(floatUpDown ? 0.4 : 0.2), radius: 10, x: 0, y: 5)
+                                    .animation(
+                                        .easeInOut(duration: 1.2)
+                                            .repeatForever(autoreverses: true),
+                                        value: floatUpDown
+                                    )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 25)
                                             .stroke(Color.white.opacity(0.15), lineWidth: 1)
@@ -244,8 +253,7 @@ struct HomeRevised: View {
                                             
                                             Spacer()
                                             
-                                            Image(systemName: "anchor.fill")
-                                                .foregroundColor(.white)
+                                        
                                         }
                                         .padding(.horizontal, 20)
                                     )
@@ -290,8 +298,7 @@ struct HomeRevised: View {
                                     
                                     Spacer()
                                     
-                                    Image(systemName: "anchor.fill")
-                                        .foregroundColor(.white)
+                                  
                                 }
                                 .padding(.horizontal, 20)
                             }
