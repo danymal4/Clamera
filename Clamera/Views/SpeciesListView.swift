@@ -115,8 +115,7 @@ struct SpeciesListView: View {
 
                                     if let aquaFish = aquarium.fish.first(where: {
                                         $0.isActive &&
-                                        $0.imageName == "\(species.name)Icon" &&
-                                        $0.size == newestAquariumFish.getSize()
+                                        $0.imageName == "\(species.name)Icon"
                                     }) {
                                         aquaFish.isActive = false
                                     }
@@ -162,9 +161,9 @@ struct SpeciesListView: View {
 
                             Rectangle()
                                 .colorInvert()
-                                .cornerRadius(25)
+                                .cornerRadius(27.5)
                                 .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-                                .padding(.vertical, -4.75)
+                                .padding(.vertical, -5)
                                 .padding(.horizontal, 13)
 
                             HStack {
@@ -240,6 +239,7 @@ struct SpeciesListView: View {
 // grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed 
 struct FishGridItem: View {
 
+    @EnvironmentObject var speciesStore: SpeciesStore
     @ObservedObject var fish: Fish
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
@@ -307,6 +307,7 @@ struct FishGridItem: View {
 
                         Button {
                             onTogglePinned?()
+                            user.speciesStore.assignPinnedDisplay()
                         } label: {
 
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")
@@ -337,6 +338,11 @@ struct FishGridItem: View {
 
                                 let targetSize = fish.getSize()
 
+                                if fish == user.speciesStore.pinnedDisplay {
+                                    fish.isPinned.toggle()
+                                    user.speciesStore.assignPinnedDisplay()
+                                }
+                                
                                 
                                 if fish.isAquarium {
                                     user.aquarium.removeFish(

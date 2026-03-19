@@ -180,6 +180,8 @@ struct CatchManageView: View {
                 // Confirm Button
                 Button("Confirm") {
                     saveCatch()
+                 
+               
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.cyan)
@@ -231,7 +233,8 @@ struct CatchManageView: View {
             $0.name.lowercased() ==
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else { return }
-        
+
+        // Save photo if available
         var photoFilename = ""
         if let image = selectedUIImage {
             photoFilename = "\(UUID().uuidString).jpg"
@@ -261,6 +264,21 @@ struct CatchManageView: View {
                 previousFishDate: previousFishDate
               )
         user.speciesStore.totalClamPoints += points
+
+        // Decide popup type
+        let isFirstOfSpecies = fishIndex == 1
+        let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
+
+        if isCatchOfTheWeek {
+            user.speciesStore.popupType = 3
+            user.speciesStore.catchOfTheWeek = nil// catch of the week
+        } else if isFirstOfSpecies {
+            user.speciesStore.popupType = 2 // first of species
+        } else {
+            user.speciesStore.popupType = 1 // normal fish
+        }
+
+        // Close editor
         editState = .notEditing
     }
     
