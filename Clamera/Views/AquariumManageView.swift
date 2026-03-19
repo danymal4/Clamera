@@ -442,7 +442,7 @@ struct AquariumManageView: View {
                     
                         
                         
-                        VStack(spacing: 8){
+                        VStack(spacing: 10){
                            
                             
                             
