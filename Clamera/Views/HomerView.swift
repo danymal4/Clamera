@@ -22,7 +22,7 @@ struct HomerView: View {
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
     
-    // ✅ Popup state
+    // Popup state
     @State private var showCatchSavedPopup: Bool = false
     @State private var catchSavedMessage: String = ""
     @State private var popupColor: Color = .cyan
@@ -31,14 +31,12 @@ struct HomerView: View {
     @State private var showAquariumBottomBar: Bool = true
     @State private var bottomBarWorkItem: DispatchWorkItem?
 
-    // MARK: - Bubble audio
     @State private var bubblePlayer: AVAudioPlayer?
     @State private var fadeTimer: Timer?
 
     var body: some View {
         ZStack(alignment: .bottom) {
             
-            // MARK: - Main Content
             Group {
                 switch tabRouter.viewState {
                 case .home: NavigationStack { HomeRevised() }
@@ -70,7 +68,6 @@ struct HomerView: View {
             .environmentObject(tabRouter)
             .environmentObject(user)
 
-            // MARK: - Custom Tab Bar
             HStack(spacing: 0) {
                 customTabIcon(systemImage: "house", tab: .home)
                 customTabIcon(systemImage: "fish", tab: .caught)
@@ -152,7 +149,7 @@ struct HomerView: View {
             triggerCatchPopup(message: message, color: color)
         }
         // MARK: - Tab change logic
-        .onChange(of: tabRouter.viewState) { newState in
+        .onChange(of: tabRouter.viewState) { oldState, newState in
             if newState == .aquarium {
                 lastUpdate = Date()
                 user.aquariumState.commitPendingClean()
