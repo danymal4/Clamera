@@ -131,7 +131,7 @@ struct AquariumView: View {
     var body: some View {
         ZStack {
             AquariumBackgroundView()
-                .environmentObject(aquariumState)
+                .environmentObject(user.aquariumState)
                 // invert
 
             BubbleLayerView(topY: aquariumTop, bottomY: aquariumBottom, refreshID: $bubbleRefreshID)

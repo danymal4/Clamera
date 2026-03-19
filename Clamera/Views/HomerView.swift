@@ -117,7 +117,7 @@ struct HomerView: View {
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     showCatchSavedPopup = false
                                     popupOffset = 150
-                                    speciesStore.popupType = 0
+                                    user.speciesStore.popupType = 0
                                 }
                             }
                         }
@@ -133,7 +133,7 @@ struct HomerView: View {
             stopBubbleSound()
         }
         // MARK: - Observe speciesStore.popupType
-        .onChange(of: user.speciesStore.popupType) { newValue in
+        .onReceive(user.speciesStore.$popupType) { newValue in
             guard newValue > 0 else { return }
             var message = ""
             var color: Color = .cyan
@@ -155,11 +155,11 @@ struct HomerView: View {
         .onChange(of: tabRouter.viewState) { newState in
             if newState == .aquarium {
                 lastUpdate = Date()
-                aquariumState.commitPendingClean()
-                if aquariumState.bubbleAmount > 0 { startBubbleSound() }
+                user.aquariumState.commitPendingClean()
+                if user.aquariumState.bubbleAmount > 0 { startBubbleSound() }
             } else { stopBubbleSound() }
         }
-        .onReceive(aquariumState.$bubbleAmount) { newValue in
+        .onReceive(user.aquariumState.$bubbleAmount) { newValue in
             updateBubbleVolume()
             if tabRouter.viewState == .aquarium {
                 if newValue > 0 && bubblePlayer == nil { startBubbleSound() }
@@ -259,7 +259,7 @@ struct HomerView: View {
 
     private func updateBubbleVolume() {
         guard let player = bubblePlayer else { return }
-        let scaledVolume = Float(aquariumState.bubbleAmount) * 0.5
+        let scaledVolume = Float(user.aquariumState.bubbleAmount) * 0.5
         player.volume = scaledVolume
     }
 }
