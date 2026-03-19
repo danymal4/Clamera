@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct ClameraApp: App {
+    
     @StateObject var user = User()
     
     var body: some Scene {
