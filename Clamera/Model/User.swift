@@ -20,7 +20,7 @@ class User: ObservableObject {
         return LeaderboardUser(name: self.username, points: speciesStore.totalClamPoints)
     }
     
-    init(username: String = "FishHunter5",
+    init(username: String = "DefaultUser",
          email: String = "default@default.com",
          password: String = "DefaultPassword",
          profilePicture: String = "fisherman",
