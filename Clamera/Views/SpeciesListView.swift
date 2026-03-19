@@ -11,7 +11,7 @@ struct SpeciesListView: View {
 
     @ObservedObject var aquarium: AquariumFishList
     @ObservedObject var species: Species
-    @EnvironmentObject var speciesStore: SpeciesStore
+    @EnvironmentObject var user: User
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
@@ -207,7 +207,7 @@ struct SpeciesListView: View {
                 }
             }
         }.onAppear {
-            speciesStore.refresh()
+            user.speciesStore.refresh()
         }
         .background(Color.blue.opacity(0.01))
     }
@@ -242,7 +242,7 @@ struct FishGridItem: View {
     @EnvironmentObject var speciesStore: SpeciesStore
     @ObservedObject var fish: Fish
     @ObservedObject var species: Species
-    @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var user: User
     
 
     let clickable: Bool
@@ -345,12 +345,12 @@ struct FishGridItem: View {
                                 
                                 
                                 if fish.isAquarium {
-                                     aquarium.removeFish(
+                                    user.aquarium.removeFish(
                                          with: "\(species.name)Icon",
                                          targetSize: targetSize
                                      )
 
-                                     aquarium.refresh()
+                                    user.aquarium.refresh()
                                  }
                                 
                                 
@@ -411,8 +411,7 @@ struct SmallRoundedCard: View {
 }
 
 #Preview {
-    let aquarium = AquariumFishList()
-    let speciesStore = SpeciesStore()
+    let user = User()
 
     let fish1 = Fish(
         photo: "clownfish1",
@@ -453,9 +452,9 @@ struct SmallRoundedCard: View {
 
     NavigationStack {
         SpeciesListView(
-            aquarium: aquarium,
+            aquarium: user.aquarium,
             species: sampleSpecies
         )
     }
-    .environmentObject(speciesStore)
+    .environmentObject(user)
 }

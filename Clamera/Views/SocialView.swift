@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SocialView: View {
+    @EnvironmentObject var user: User
+    
     var body: some View {
         ZStack {
             
@@ -81,4 +83,5 @@ struct SocialView: View {
 
 #Preview {
     SocialView()
+        .environmentObject(User())
 }

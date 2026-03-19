@@ -8,30 +8,7 @@
 import SwiftUI
 
 struct LeaderboardView: View {
-    
-    
-    let leaderboardData: [(name: String, score: String)] = [
-        ("FishMaster69", "18,000"),
-        ("FishNChips10", "13,000"),
-        ("NotUrBaitBro", "8,000"),
-        ("FindingNemo", "7,500"),
-        ("RealFishHunter", "7,200"),
-        ("SeaWeedKing", "6,900"),
-        ("OceanMan", "6,500"),
-        ("SharkBait", "6,200"),
-        ("BubbleBeam", "5,800"),
-        ("AquaMarine", "5,500"),
-        ("DeepDiver", "5,100"),
-        ("CoralReef", "4,900"),
-        ("StarFishy", "4,600"),
-        ("JellyJam", "4,300"),
-        ("CrabbyPatty", "4,000"),
-        ("LobsterMobster", "3,800"),
-        ("ShrimpFried", "3,500"),
-        ("WhaleHello", "3,200"),
-        ("DolphinDive", "3,000"),
-        ("TunaTurnup", "2,800")
-    ]
+    @EnvironmentObject var user: User
     
     var body: some View {
         ZStack {
@@ -89,36 +66,7 @@ struct LeaderboardView: View {
                             .frame(height: 1)
                         
                         // data rows
-                        ForEach(0..<leaderboardData.count, id: \.self) { index in
-                            let entry = leaderboardData[index]
-                            
-                            HStack(spacing: 0) {
-                                Text(entry.name)
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(.black)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                
-                                // Vertical Divider inside row
-                                Rectangle()
-                                    .fill(Color.black)
-                                    .frame(width: 1)
-                                
-                                Text(entry.score)
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(.black)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                            }
-                            .background(Color(red: 0.6, green: 0.85, blue: 1.0)) // Light Blue Row
-                            
-                            // Divider between rows (except after the last one)
-                            if index < leaderboardData.count - 1 {
-                                Rectangle()
-                                    .fill(Color.black)
-                                    .frame(height: 1)
-                            }
-                        }
+                        DataView()
                     }
                     // 5. Clip Shape and Border for the entire table
                     .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -141,6 +89,72 @@ struct LeaderboardView: View {
     }
 }
 
+struct DataView: View {
+    
+    @EnvironmentObject var user: User
+    @State var leaderboardData: [LeaderboardUser] = [
+        LeaderboardUser(name: "FishMaster69", points: 18000),
+        LeaderboardUser(name: "FishNChips10", points: 13000),
+        LeaderboardUser(name: "NotUrBaitBro", points: 8000),
+        LeaderboardUser(name: "FindingNemo", points: 7500),
+        LeaderboardUser(name: "RealFishHunter", points: 7200),
+        LeaderboardUser(name: "SeaWeedKing", points: 6900),
+        LeaderboardUser(name: "OceanMan", points: 6500),
+        LeaderboardUser(name: "SharkBait", points: 6200),
+        LeaderboardUser(name: "BubbleBeam", points: 5800),
+        LeaderboardUser(name: "AquaMarine", points: 5500),
+        LeaderboardUser(name: "DeepDiver", points: 5100),
+        LeaderboardUser(name: "CoralReef", points: 4900),
+        LeaderboardUser(name: "StarFishy", points: 4600),
+        LeaderboardUser(name: "JellyJam", points: 4300),
+        LeaderboardUser(name: "CrabbyPatty", points: 4000),
+        LeaderboardUser(name: "LobsterMobster", points: 3800),
+        LeaderboardUser(name: "ShrimpFried", points: 3500),
+        LeaderboardUser(name: "WhaleHello", points: 3200),
+        LeaderboardUser(name: "DolphinDive", points: 3000)
+    ]
+    
+    func fixUsers() {
+        leaderboardData.append(user.leaderboardUser)
+        leaderboardData = leaderboardData.sorted()
+    }
+    
+    var body: some View {
+        
+        ForEach($leaderboardData) { $leaderboardUser in
+            
+            HStack(spacing: 0) {
+                Text(leaderboardUser.name)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                
+                // Vertical Divider inside row
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(width: 1)
+                
+                Text(String(leaderboardUser.points))
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+            }
+            .background(Color(red: 0.6, green: 0.85, blue: 1.0)) // Light Blue Row
+            
+            Rectangle()
+                .fill(Color.black)
+                .frame(height: 1)
+        }
+        .onAppear {
+            fixUsers()
+        }
+    }
+}
+
+
 #Preview {
     LeaderboardView()
+        .environmentObject(User())
 }

@@ -28,7 +28,7 @@ struct HomeRevised: View {
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             +
-                            Text("James")
+                            Text("User")
                                 .font(.title2)
                                 .fontWeight(.bold)
                         )

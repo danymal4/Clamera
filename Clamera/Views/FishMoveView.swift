@@ -160,7 +160,7 @@ struct FishMoveView: View {
 
     // MARK: Ripple for tapped fish only
     private func addRipple(for fish: AquariumFish, at position: CGPoint) {
-        var ripple = Ripple(position: position)
+        let ripple = Ripple(position: position)
         ripples.append(ripple)
         let index = ripples.count - 1
         withAnimation(.easeOut(duration: 1.1)) {

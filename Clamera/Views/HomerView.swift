@@ -10,14 +10,13 @@ enum ViewState {
     case home, aquarium, profile, caught, album, social, settings
 }
 
+
 final class TabRouter: ObservableObject {
     @Published var viewState: ViewState = .home
 }
 
 struct HomerView: View {
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var speciesStore: SpeciesStore
-    @EnvironmentObject var aquariumState: AquariumState
+    @EnvironmentObject var user: User
 
     @StateObject private var tabRouter = TabRouter()
     @State private var cleanTimer: Timer?
@@ -52,13 +51,13 @@ struct HomerView: View {
                             resetBottomBarTimer: resetBottomBarTimer
                         )
                         .onAppear {
-                            aquariumState.markActive("aquarium")
+                            user.aquariumState.markActive("aquarium")
                             lastUpdate = Date()
-                            aquariumState.commitPendingClean()
+                            user.aquariumState.commitPendingClean()
                             resetBottomBarTimer()
                         }
                         .onDisappear {
-                            aquariumState.markInactive("aquarium")
+                            user.aquariumState.markInactive("aquarium")
                             bottomBarWorkItem?.cancel()
                             showAquariumBottomBar = true
                             stopBubbleSound()
@@ -69,10 +68,8 @@ struct HomerView: View {
                 }
             }
             .environmentObject(tabRouter)
-            .environmentObject(aquarium)
-            .environmentObject(aquariumState)
-            .environmentObject(speciesStore)
-            
+            .environmentObject(user)
+
             // MARK: - Custom Tab Bar
             HStack(spacing: 0) {
                 customTabIcon(systemImage: "house", tab: .home)
@@ -136,7 +133,7 @@ struct HomerView: View {
             stopBubbleSound()
         }
         // MARK: - Observe speciesStore.popupType
-        .onChange(of: speciesStore.popupType) { newValue in
+        .onChange(of: user.speciesStore.popupType) { newValue in
             guard newValue > 0 else { return }
             var message = ""
             var color: Color = .cyan
@@ -215,14 +212,14 @@ struct HomerView: View {
             let now = Date()
             let delta = now.timeIntervalSince(self.lastUpdate)
             self.lastUpdate = now
-            
-            if aquariumState.isActiveScreen {
-                let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.updateClean(by: increment)
+
+            if user.aquariumState.isActiveScreen {
+                let increment = user.aquariumState.maxClean / totalDuration * delta
+                user.aquariumState.updateClean(by: increment)
             } else {
-                let increment = aquariumState.maxClean / totalDuration * delta
-                aquariumState.updatePendingClean(
-                    to: min(aquariumState.pendingClean + increment, aquariumState.maxClean)
+                let increment = user.aquariumState.maxClean / totalDuration * delta
+                user.aquariumState.updatePendingClean(
+                    to: min(user.aquariumState.pendingClean + increment, user.aquariumState.maxClean)
                 )
             }
         }
@@ -269,7 +266,6 @@ struct HomerView: View {
 
 #Preview {
     HomerView()
-        .environmentObject(AquariumFishList())
+        .environmentObject(User())
         .environmentObject(SpeciesStore())
-        .environmentObject(AquariumState())
 }

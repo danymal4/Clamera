@@ -16,10 +16,8 @@ struct FishData: Codable, Identifiable {
 }
 
 struct AlbumView: View {
-
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var speciesStore: SpeciesStore
-
+    
+    @EnvironmentObject var user: User
     @State private var searchText: String = ""
     @State private var showSuggestions: Bool = false
     @State private var showSearch: Bool = false
@@ -40,7 +38,7 @@ struct AlbumView: View {
     @State private var selectedFilter: FilterOption = .alphabetical
     
     var filteredSpecies: [Species] {
-        var filtered = speciesStore.speciesList
+        var filtered = user.speciesStore.speciesList
 
         if !searchText.isEmpty {
             filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
@@ -101,15 +99,15 @@ struct AlbumView: View {
                                 let hasFish = item.fishList.isEmpty
                                 
                                 if !hasFish {
-                                    if let index = speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                    if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
                                         NavigationLink(
                                             destination: SpeciesListView(
-                                                aquarium: aquarium,
-                                                species: speciesStore.speciesList[index]
+                                                aquarium: user.aquarium,
+                                                species: user.speciesStore.speciesList[index]
                                             ).navigationBarTitleDisplayMode(.inline)
                                                
                                         )   {
-                                            SpeciesGridItem(species: speciesStore.speciesList[index], clickable: true)
+                                            SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
                                         }
                                     }
                                 } else {
@@ -136,7 +134,7 @@ struct AlbumView: View {
                             .cornerRadius(40)
                             .offset(y: showSearch ? -35 : 100)
                             .animation(.easeInOut(duration: 0.3), value: showSearch)
-                            .onChange(of: searchText) { newValue in
+                            .onChange(of: searchText) { oldState, newValue in
                                 showSuggestions = !newValue.isEmpty
                             }
                         Spacer()
@@ -275,6 +273,5 @@ struct SpeciesGridItem: View {
 
 #Preview {
     AlbumView()
-        .environmentObject(AquariumFishList())
-        .environmentObject(SpeciesStore())
+        .environmentObject(User())
 }
