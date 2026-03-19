@@ -340,6 +340,14 @@ struct FishGridItem: View {
                                 )
                                 .scaleEffect(fish.isPinned ? 1 : 0.95)
                                 .opacity(fish.isPinned ? 1 : 0.8)
+                                .shadow(
+                                    color: fish.isPinned
+                                        ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.7)
+                                        : Color.clear,
+                                    radius: fish.isPinned ? 4 : 0,
+                                    x: 0,
+                                    y: 0
+                                )
                         }
                         .padding(.top)
                     }
@@ -360,7 +368,7 @@ struct FishGridItem: View {
                                 showDeleteFishConfirm = true
                             } label: {
                                 Image(systemName: "trash.fill")
-                                    .foregroundColor(.red.opacity(0.85))
+                                    .foregroundColor(.red.opacity(0.85)).shadow(color: Color.red.opacity(0.3), radius: 2, x: 0, y: 1)
                             }
                             .padding(.bottom)
                             
