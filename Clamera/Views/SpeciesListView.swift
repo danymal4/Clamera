@@ -243,6 +243,7 @@ struct FishGridItem: View {
     @ObservedObject var fish: Fish
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
+    @State private var showDeleteFishConfirm = false
     
 
     let clickable: Bool
@@ -335,39 +336,41 @@ struct FishGridItem: View {
 
                         if species.fishList.count > 1 {
                             Button {
-
-                                let targetSize = fish.getSize()
-
-                                if fish == user.speciesStore.pinnedDisplay {
-                                    fish.isPinned.toggle()
-                                    user.speciesStore.assignPinnedDisplay()
-                                }
-                                
-                                
-                                if fish.isAquarium {
-                                    user.aquarium.removeFish(
-                                         with: "\(species.name)Icon",
-                                         targetSize: targetSize
-                                     )
-
-                                    user.aquarium.refresh()
-                                 }
-                                
-                                
-                              
-                                species.fishList.removeAll { $0.id == fish.id }
-
-                           
-                              
-
+                                showDeleteFishConfirm = true
                             } label: {
                                 Image(systemName: "trash.fill")
                                     .foregroundColor(.red.opacity(0.85))
                             }
                             .padding(.bottom)
+                            
+                            .confirmationDialog("Delete this fish? This cannot be undone.",
+                                                isPresented: $showDeleteFishConfirm,
+                                                titleVisibility: .visible) {
+                                
+                                Button("Delete", role: .destructive) {
+                                    
+                                    let targetSize = fish.getSize()
+
+                                    if fish == user.speciesStore.pinnedDisplay {
+                                        fish.isPinned.toggle()
+                                        user.speciesStore.assignPinnedDisplay()
+                                    }
+                                    
+                                    if fish.isAquarium {
+                                        user.aquarium.removeFish(
+                                            with: "\(species.name)Icon",
+                                            targetSize: targetSize
+                                        )
+                                        user.aquarium.refresh()
+                                    }
+                                    
+                                    species.fishList.removeAll { $0.id == fish.id }
+                                }
+                                
+                                Button("Cancel", role: .cancel) { }
+                            }
 
                         } else {
-
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.gray.opacity(0.85))
                                 .padding(.bottom)

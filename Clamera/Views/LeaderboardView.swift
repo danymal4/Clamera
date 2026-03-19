@@ -12,11 +12,7 @@ struct LeaderboardView: View {
     
     var body: some View {
         ZStack {
-            
-            WaterView()
-                .ignoresSafeArea()
-            IconView()
-                .offset(y: -30)
+          
             
             VStack {
                 

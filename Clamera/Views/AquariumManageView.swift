@@ -9,6 +9,7 @@ struct AquariumManageView: View {
     @State private var delay: Bool = false
     @State private var refreshID = UUID()
     @State private var swipedIndex: Int? = nil
+    @State private var showClearConfirm = false
 
 
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
@@ -433,7 +434,7 @@ struct AquariumManageView: View {
                             .cornerRadius(30)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.9, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.45, 2000)
+                                height: min(UIScreen.main.bounds.width * 0.44, 2000)
                             )
                             .shadow(color: .black.opacity(0.1), radius: 10)
                         
@@ -520,10 +521,8 @@ struct AquariumManageView: View {
                     ZStack{
                         
  
-
                         Button {
-                            user.aquarium.toggleAll()               // your existing logic
-                            refreshID = UUID()                  // triggers SwiftUI to re-render the view
+                            showClearConfirm = true
                         } label: {
                             Rectangle()
                                 .opacity(1)
@@ -535,7 +534,18 @@ struct AquariumManageView: View {
                                 )
                                 .shadow(color: .black.opacity(0.1), radius: 10)
                         }
-                        .id(refreshID)   // <-- forces this view (and its subtree) to refresh
+                        .id(refreshID)
+                        .confirmationDialog("Are you sure?",
+                                            isPresented: $showClearConfirm,
+                                            titleVisibility: .visible) {
+
+                            Button("Yes", role: .destructive) {
+                                user.aquarium.toggleAll()
+                                refreshID = UUID()
+                            }
+
+                            Button("Cancel", role: .cancel) { }
+                        }
                         
                         HStack{
                             Text("Clear Aquarium").foregroundStyle(.red)
