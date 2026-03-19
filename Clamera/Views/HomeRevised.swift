@@ -6,13 +6,15 @@
 //
 import SwiftUI
 
+//  Created by Ellis Kamplain (student LM) on 2/25/26.
+
+
 struct HomeRevised: View {
     
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
     @State private var showNameBubble = false
-    @EnvironmentObject var speciesStore: SpeciesStore
-    @EnvironmentObject var aquarium: AquariumFishList
+    @EnvironmentObject var user: User  // ✅ Use user for all data
     
     var body: some View {
         
@@ -22,6 +24,7 @@ struct HomeRevised: View {
                 
                 VStack(spacing: 32) {
                     
+                    // MARK: - Greeting + Clam Points
                     HStack {
                         (
                             Text("Good Morning ")
@@ -45,14 +48,13 @@ struct HomeRevised: View {
                         
                         Spacer()
                         
-                        
                         HStack(spacing: 4) {
                             Image("clamIcon")
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 18, height: 18).scaleEffect(1.3)
                             
-                            Text("\(speciesStore.totalClamPoints)")
+                            Text("\(user.speciesStore.totalClamPoints)")
                                 .bold()
                         }
                         .padding(.horizontal, 10)
@@ -63,16 +65,15 @@ struct HomeRevised: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 40)
                     
-                    
-                    
+                    // MARK: - Catch of the Week Card
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 30)
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        Color.cyan.opacity(0.7),   // brighter top
-                                        Color.blue.opacity(0.25)   // deeper bottom
+                                        Color.cyan.opacity(0.7),
+                                        Color.blue.opacity(0.25)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -95,11 +96,8 @@ struct HomeRevised: View {
                             )
                             .frame(width: ui.width * 0.9, height: ui.width * 0.9)
                         
-                        
                         ZStack {
-                            
-                            if let catchOfTheWeek = speciesStore.catchOfTheWeek {
-                                // ✅ EXISTING (unchanged)
+                            if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {
                                 Image("\(catchOfTheWeek.name)Icon")
                                     .resizable()
                                     .scaledToFit()
@@ -143,11 +141,8 @@ struct HomeRevised: View {
                                 }
                                 
                             } else {
-                                // ✅ NEW EMPTY STATE (fishing rod + fish placeholder)
+                                // EMPTY STATE (fishing rod + fish placeholder)
                                 ZStack {
-                                    // Fishing Rod (simple vertical rectangle for now)
-                                
-                                    // Floating fish icon at hook
                                     Image("FishIcon")
                                         .resizable().scaleEffect(x: -1, y: 1)
                                         .scaledToFit()
@@ -159,7 +154,6 @@ struct HomeRevised: View {
                                             value: floatUpDown
                                         )
                                     
-                                    // Encouraging text
                                     Text("Congrats")
                                         .font(.headline)
                                         .bold()
@@ -169,8 +163,7 @@ struct HomeRevised: View {
                                 }
                             }
                             
-                            // ✅ Points block only visible if catchOfTheWeek exists
-                            if speciesStore.catchOfTheWeek != nil {
+                            if user.speciesStore.catchOfTheWeek != nil {
                                 VStack {
                                     Spacer()
                                     
@@ -183,7 +176,7 @@ struct HomeRevised: View {
                                         
                                         Spacer()
                                         
-                                        Text("\(speciesStore.catchOfTheWeekPoints) Points")
+                                        Text("\(user.speciesStore.catchOfTheWeekPoints) Points")
                                             .bold()
                                             .foregroundColor(.white)
                                             .padding(6)
@@ -197,32 +190,22 @@ struct HomeRevised: View {
                         }
                     }
                     
-                    
+                    // MARK: - Stats
                     HStack(spacing: 16) {
-                        
-                        statCard(
-                            title: "Fish Caught",
-                            value: "\(speciesStore.getFish())"
-                        )
-                        
-                        statCard(
-                            title: "This Month",
-                            value: "\(speciesStore.getFish())"
-                        )
+                        statCard(title: "Fish Caught", value: "\(user.speciesStore.getFish())")
+                        statCard(title: "This Month", value: "\(user.speciesStore.getFish())")
                     }
                     .padding(.horizontal, 20)
                     
-                    
-                    
+                    // MARK: - Pinned Catch
                     ZStack {
-                        if let fish = speciesStore.pinnedDisplay,
-                           let species = speciesStore.speciesList.first(where: { $0.name == fish.speciesName }) {
+                        if let fish = user.speciesStore.pinnedDisplay,
+                           let species = user.speciesStore.speciesList.first(where: { $0.name == fish.speciesName }) {
                             
                             NavigationLink(destination:
-                                SpeciesListView(aquarium: aquarium, species: species)
+                                SpeciesListView(aquarium: user.aquarium, species: species)
                                     .navigationBarTitleDisplayMode(.inline)
                             ) {
-                                // The card content
                                 RoundedRectangle(cornerRadius: 25)
                                     .foregroundStyle(.cyan)
                                     .opacity(0.25)
@@ -267,9 +250,10 @@ struct HomeRevised: View {
                                         .padding(.horizontal, 20)
                                     )
                             }
-                            .buttonStyle(PlainButtonStyle()) // avoids the blue highlight
-                        }else {
-                            // Fallback / stock card if no pinned fish
+                            .buttonStyle(PlainButtonStyle())
+                            
+                        } else {
+                            // Fallback stock card
                             Group {
                                 RoundedRectangle(cornerRadius: 25)
                                     .foregroundStyle(Color.cyan.opacity(0.35))
@@ -312,28 +296,21 @@ struct HomeRevised: View {
                                 .padding(.horizontal, 20)
                             }
                         }
-                        
                     }
                     .padding(.horizontal, 20)
                     
                     Spacer(minLength: 80)
                 }
-                .onAppear {
-                    floatUpDown.toggle()
-                }
+                .onAppear { floatUpDown.toggle() }
             }
         }
         .background(
-            ZStack {
-                Color.blue.opacity(0.01)
-                    .edgesIgnoringSafeArea(.top)
-                
-                
-            }
+            Color.blue.opacity(0.01)
+                .edgesIgnoringSafeArea(.top)
         )
     }
     
-    
+    // MARK: - Stat Card Helper
     func statCard(title: String, value: String) -> some View {
         VStack(spacing: 6) {
             Text(value)
@@ -351,13 +328,8 @@ struct HomeRevised: View {
                 .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         )
     }
-    
-  
 }
 
-
-
-
 #Preview {
-    HomeRevised().environmentObject(SpeciesStore()).environmentObject(AquariumFishList())
+    HomeRevised().environmentObject(User())
 }

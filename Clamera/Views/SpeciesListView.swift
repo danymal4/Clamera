@@ -307,7 +307,7 @@ struct FishGridItem: View {
 
                         Button {
                             onTogglePinned?()
-                            speciesStore.assignPinnedDisplay()
+                            user.speciesStore.assignPinnedDisplay()
                         } label: {
 
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")
@@ -338,9 +338,9 @@ struct FishGridItem: View {
 
                                 let targetSize = fish.getSize()
 
-                                if fish == speciesStore.pinnedDisplay {
+                                if fish == user.speciesStore.pinnedDisplay {
                                     fish.isPinned.toggle()
-                                    speciesStore.assignPinnedDisplay()
+                                    user.speciesStore.assignPinnedDisplay()
                                 }
                                 
                                 
