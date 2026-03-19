@@ -10,7 +10,7 @@ struct HomeRevised: View {
     
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
-    @EnvironmentObject var speciesStore: SpeciesStore
+    @EnvironmentObject var user: User
     
     var body: some View {
         
@@ -50,7 +50,7 @@ struct HomeRevised: View {
                                 .scaledToFill()
                                 .frame(width: 18, height: 18).scaleEffect(1.3)
                             
-                            Text("\(speciesStore.totalClamPoints)")
+                            Text("\(user.speciesStore.totalClamPoints)")
                                 .bold()
                         }
                         .padding(.horizontal, 10)
@@ -94,7 +94,7 @@ struct HomeRevised: View {
                             .frame(width: ui.width * 0.9, height: ui.width * 0.9)
                         
                         
-                        if let catchOfTheWeek = speciesStore.catchOfTheWeek {
+                        if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {
                             Image("\(catchOfTheWeek.name)Icon")
                                 .resizable()
                                 .scaledToFit()
@@ -121,7 +121,7 @@ struct HomeRevised: View {
                                 
                                 Spacer()
                                 
-                                Text("\(speciesStore.catchOfTheWeekPoints) Points")
+                                Text("\(user.speciesStore.catchOfTheWeekPoints) Points")
                                     .bold()
                                     .foregroundColor(.white)
                                     .padding(6)
@@ -139,12 +139,12 @@ struct HomeRevised: View {
                         
                         statCard(
                             title: "Fish Caught",
-                            value: "\(speciesStore.getFish())"
+                            value: "\(user.speciesStore.getFish())"
                         )
                         
                         statCard(
                             title: "This Month",
-                            value: "\(speciesStore.getFish())"
+                            value: "\(user.speciesStore.getFish())"
                         )
                     }
                     .padding(.horizontal, 20)
@@ -238,5 +238,6 @@ struct HomeRevised: View {
 }
 
 #Preview {
-    HomeRevised().environmentObject(SpeciesStore())
+    HomeRevised()
+        .environmentObject(User())
 }
