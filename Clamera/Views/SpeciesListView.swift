@@ -282,7 +282,7 @@ struct FishGridItem: View {
                     RoundedRectangle(cornerRadius: 25)
                         .stroke(
                             fish.isPinned
-                                ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.15)
+                                ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.2)
                                 : Color.black.opacity(0.04),
                             lineWidth: 2
                         )
