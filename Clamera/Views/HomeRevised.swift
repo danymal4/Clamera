@@ -252,7 +252,12 @@ struct HomeRevised: View {
                                             }
                                             
                                             Spacer()
-                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundColor(.white.opacity(0.8))
+                                                .padding(10)
+                                                .background(Color.black.opacity(0.2))
+                                                .clipShape(Circle())
                                         
                                         }
                                         .padding(.horizontal, 20)

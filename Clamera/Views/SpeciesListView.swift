@@ -236,7 +236,7 @@ struct SpeciesListView: View {
     }
 }
 
-// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed 
+// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed
 struct FishGridItem: View {
 
     @EnvironmentObject var speciesStore: SpeciesStore
@@ -260,7 +260,10 @@ struct FishGridItem: View {
                 .fill(
                     LinearGradient(
                         colors: fish.isPinned
-                            ? [Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.25), Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.1)]
+                            ? [
+                                Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.28),
+                                Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.12)
+                            ]
                             : [Color.white, Color.white],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -269,9 +272,8 @@ struct FishGridItem: View {
                 .frame(width: cardWidth, height: cardWidth * 0.45)
                 // Premium shadow for pinned cards
                 .shadow(
-                    color: fish.isPinned
-                        ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.25)
-                        : Color.black.opacity(0.06),
+                    color:
+                         Color.black.opacity(0.06),
                     radius: 16,
                     y: 6
                 )
@@ -280,7 +282,7 @@ struct FishGridItem: View {
                     RoundedRectangle(cornerRadius: 25)
                         .stroke(
                             fish.isPinned
-                                ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.3)
+                                ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.15)
                                 : Color.black.opacity(0.04),
                             lineWidth: 2
                         )
