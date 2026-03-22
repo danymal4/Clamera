@@ -69,7 +69,6 @@ struct AquariumManageView: View {
                     
                     
                     
-                    
                     let collapsedHeight = min(UIScreen.main.bounds.width * 0.43, 2000)
                     let expandedHeight = min(UIScreen.main.bounds.width * 0.6, 2000)
 
@@ -166,32 +165,27 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Spacer()
                                         Spacer()
-                                
 
+                                        // ✅ Updated Toggle
                                         if fish.isActive {
-                                            Toggle("", isOn: Binding(
-                                                get: { fish.isShown },
-                                                set: { newValue in
-                                                    let updatedFish = fish
-                                                    updatedFish.isShown = newValue
-                                                    user.aquarium.fish[i] = updatedFish
-                                                    
+                                            Toggle("", isOn: $user.aquarium.fish[i].isShown)
+                                                .labelsHidden()
+                                                .tint(.green)
+                                                .onChange(of: user.aquarium.fish[i].isShown) { newValue in
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
                                                     }
                                                 }
-                                            ))
-                                            .labelsHidden()   .tint(.green)
                                         }
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
 
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
                                     }
                                     .padding(.horizontal, -210)
                                     .offset(y: isDropdown
@@ -274,7 +268,7 @@ struct AquariumManageView: View {
                                                 withAnimation(.easeInOut) {
                                                     if let speciesID = fish.speciesID,
                                                        let species = user.speciesStore.speciesList.first(where: { $0.id == speciesID }) {
-                                                        
+
                                                         if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
                                                             fishToRemove.isAquarium = false
                                                         }
@@ -313,14 +307,14 @@ struct AquariumManageView: View {
                                 .padding(.horizontal, 60)
                             }
                         }
-                        .padding(.bottom, -10)  .frame(
+                        .padding(.bottom, -10)
+                        .frame(
                             width: min(UIScreen.main.bounds.width * 0.9, 2000),
                             height: isDropdown ? collapsedHeight : expandedHeight
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 30))
                     }
-                    
-                 
+
                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
                   
                     
