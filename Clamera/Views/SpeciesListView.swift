@@ -12,6 +12,8 @@ struct SpeciesListView: View {
     @ObservedObject var aquarium: AquariumFishList
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
+    
+    var startWithPinnedOnly: Bool = false
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
@@ -195,7 +197,8 @@ struct SpeciesListView: View {
                             FishGridItem(
                                 fish: fish,
                                 species: species,
-                                clickable: true
+                                clickable: true,
+                                showPinnedOnly: $showPinnedOnly
                             ) {
                                 fish.isPinned.toggle()
                             }
@@ -208,6 +211,7 @@ struct SpeciesListView: View {
             }
         }.onAppear {
             user.speciesStore.refresh()
+            showPinnedOnly = startWithPinnedOnly
         }
         .background(Color.blue.opacity(0.01))
     }
@@ -244,6 +248,7 @@ struct FishGridItem: View {
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
     @State private var showDeleteFishConfirm = false
+    @Binding var showPinnedOnly: Bool
     
 
     let clickable: Bool
@@ -252,6 +257,22 @@ struct FishGridItem: View {
     private var cardWidth: CGFloat { UIScreen.main.bounds.width - 32 }
     private var cardHeight: CGFloat { cardWidth * 0.35 }
 
+    
+    init(fish: Fish,
+           species: Species,
+           clickable: Bool,
+           showPinnedOnly: Binding<Bool>,
+           onTogglePinned: (() -> Void)? = nil) {
+          self.fish = fish
+          self.species = species
+          self.clickable = clickable
+          self._showPinnedOnly = showPinnedOnly
+          self.onTogglePinned = onTogglePinned
+      }
+
+    
+    
+    
     var body: some View {
 
         ZStack {
@@ -293,15 +314,13 @@ struct FishGridItem: View {
                 VStack {
 
                     Image(fishPhoto: fish.photo)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: cardHeight, height: cardHeight)
+                        .resizable() // allows resizing
+                        .frame(width: cardHeight, height: cardHeight) // forces square size
                         .cornerRadius(16)
                         .clipped()
                         .opacity(clickable ? 1 : 0.4)
                         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                         .padding(.top, 11)
-
                     Spacer()
                 }
 
@@ -332,6 +351,10 @@ struct FishGridItem: View {
                         Button {
                             onTogglePinned?()
                             user.speciesStore.assignPinnedDisplay()
+                            
+                            if showPinnedOnly {
+                                user.aquarium.refresh()
+                            }
                         } label: {
 
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")

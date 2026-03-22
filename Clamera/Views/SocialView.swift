@@ -11,37 +11,60 @@ struct SocialView: View {
     @EnvironmentObject var user: User
     
     var body: some View {
-        ZStack {
-            
-            
+        ScrollView {
             VStack(spacing: 35) {
                 
-                // Section Title
+                // MARK: - Section Title
                 Text("Social")
-                    .font(.system(size: 42, weight: .bold)) // matches other titles
+                    .font(.system(size: 42, weight: .bold))
                     .foregroundColor(.black)
                     .shadow(color: .black.opacity(0.05), radius: 2, x: 1, y: 1)
                     .padding(.top, 60)
                 
                 VStack(spacing: 25) {
                     
-                    // Friends Button
-                    Button {
-                        // action
-                    } label: {
-                        socialRow(imageName: "friends", title: "Friends")
+                    // MARK: - Profile Row
+                    NavigationLink(destination: ProfileView()) {
+                        socialRow(
+                            imageName: "fisherman", // placeholder image
+                            title: user.username,
+                            subtitle: "View your profile",
+                            isHighlighted: true
+                        )
                     }
                     
-                    // Leaderboard Navigation
+                    // MARK: - Friends Row
+                    Button {
+                        // Friends action
+                    } label: {
+                        socialRow(
+                            imageName: "friends",
+                            title: "Friends",
+                            subtitle: "10 friends",
+                            isHighlighted: false
+                        )
+                    }
+                    
+                    // MARK: - Leaderboard Row
                     NavigationLink(destination: LeaderboardView()) {
-                        socialRow(imageName: "Trophy", title: "Leaderboard")
+                        socialRow(
+                            imageName: "Trophy",
+                            title: "Leaderboard",
+                            subtitle: "Your rank: #5",
+                            isHighlighted: false
+                        )
                     }
                     
-                    // Shop Button
+                    // MARK: - Shop Row
                     Button {
-                        // action
+                        // Shop action
                     } label: {
-                        socialRow(imageName: "Shop", title: "Shop")
+                        socialRow(
+                            imageName: "Shop",
+                            title: "Shop",
+                            subtitle: "New items available",
+                            isHighlighted: false
+                        )
                     }
                     
                     Spacer()
@@ -52,29 +75,39 @@ struct SocialView: View {
         .background(Color.blue.opacity(0.01))
     }
     
-    // MARK: - Social Row
-    private func socialRow(imageName: String, title: String) -> some View {
+    // MARK: - Social Row Helper
+    private func socialRow(imageName: String, title: String, subtitle: String? = nil, isHighlighted: Bool) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30)
-                .fill(Color.cyan.opacity(0.15)) // light cyan
+                .fill(isHighlighted ? Color.cyan.opacity(0.25) : Color.cyan.opacity(0.15))
                 .frame(height: UIScreen.main.bounds.width * 0.35)
                 .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
             
-            HStack {
+            HStack(spacing: 20) {
                 Image(imageName)
                     .resizable()
                     .scaledToFit()
-                    .frame(
-                        width: min(UIScreen.main.bounds.width * 0.15, 120),
-                        height: min(UIScreen.main.bounds.width * 0.15, 120)
-                    )
+                    .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
+                           height: min(UIScreen.main.bounds.width * 0.15, 120))
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 
-                Text(title)
-                    .font(.system(size: 22, weight: .semibold)) // semi-bold
-                    .foregroundColor(.black.opacity(0.85)) // slightly softer
-                    .padding(.horizontal)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.black.opacity(0.85))
+                    
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 
                 Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.black.opacity(0.4))
             }
             .padding(.horizontal)
         }

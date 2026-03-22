@@ -18,7 +18,7 @@ struct CatchManageView: View {
     
     @EnvironmentObject var user: User
     
-    var selectedUIImage: UIImage?
+    @Binding var selectedUIImage: UIImage?
     
     @State private var showSpeciesSuggestions: Bool = false
     
@@ -266,20 +266,32 @@ struct CatchManageView: View {
         user.speciesStore.totalClamPoints += points
 
         // Decide popup type
-        let isFirstOfSpecies = fishIndex == 1
-        let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
+  
+        
+        let animationDuration = 0.2
 
-        if isCatchOfTheWeek {
-            user.speciesStore.popupType = 3
-            user.speciesStore.catchOfTheWeek = nil// catch of the week
-        } else if isFirstOfSpecies {
-            user.speciesStore.popupType = 2 // first of species
-        } else {
-            user.speciesStore.popupType = 1 // normal fish
+        withAnimation(.easeInOut(duration: animationDuration)) {
+            selectedUIImage = nil
+            editState = .notEditing
         }
 
-        // Close editor
-        editState = .notEditing
+        DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
+            
+            let isFirstOfSpecies = fishIndex == 1
+            let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
+
+            if isCatchOfTheWeek {
+                user.speciesStore.popupType = 3
+                user.speciesStore.catchOfTheWeek = nil// catch of the week
+            } else if isFirstOfSpecies {
+                user.speciesStore.popupType = 2 // first of species
+            } else {
+                user.speciesStore.popupType = 1 // normal fish
+            }
+        }
+        
+        
+      
     }
     
     func saveImageToDocuments(image: UIImage, key: String) throws {
@@ -293,7 +305,7 @@ struct CatchManageView: View {
 #Preview {
     CatchManageView(
         editState: Binding.constant(.editing),
-        selectedUIImage: UIImage(systemName: "photo")
+        selectedUIImage: Binding.constant(UIImage(systemName: "photo"))
     )
     .environmentObject(User())
 }

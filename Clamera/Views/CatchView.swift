@@ -213,7 +213,7 @@ struct CatchView: View {
                 
             }
         } else {
-            CatchManageView(editState: $editState, selectedUIImage: selectedImage)
+            CatchManageView(editState: $editState, selectedUIImage: $selectedImage)
         }
     }
 }

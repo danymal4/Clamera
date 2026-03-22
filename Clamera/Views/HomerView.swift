@@ -70,7 +70,7 @@ struct HomerView: View {
             .environmentObject(tabRouter)
             .environmentObject(user)
 
-            // MARK: - Custom Tab Bar
+   
             HStack(spacing: 0) {
                 customTabIcon(systemImage: "house", tab: .home)
                 customTabIcon(systemImage: "fish", tab: .caught)

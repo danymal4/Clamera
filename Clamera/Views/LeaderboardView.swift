@@ -7,87 +7,44 @@
 
 import SwiftUI
 
+
+
+
 struct LeaderboardView: View {
     @EnvironmentObject var user: User
     
     var body: some View {
-        ZStack {
-          
-            
-            VStack {
-                
-                
-                ZStack {
-                    
-                    VStack(spacing: -10) {
-                        Text("Leaderboard ")
-                            .font(.custom("AkayaTelivigala-regular", size: 70))
-                            .foregroundColor(.blue)
-                        
-                        Text("Top 20")
-                            .font(.custom("AkayaTelivigala-regular", size: 40))
-                            .foregroundColor(.blue.opacity(0.8))
-                    }
+        VStack(spacing: 0) {
+
+            // MARK: - Title
+            VStack(spacing: 4) {
+                Text("Leaderboard")
+                    .font(.system(size: 34, weight: .bold))
+
+                Text("Top 20")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.top, 20)
+            .padding(.bottom, 10)
+
+            // MARK: - List
+            ScrollView {
+                VStack(spacing: 12) {
+                    DataView()
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 20)
-                
-                
-                ScrollView {
-                    VStack(spacing: 0) {
-                        
-                        HStack(spacing: 0) {
-                            Text("Username")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(Color.blue)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 15)
-                            
-                            
-                            Rectangle()
-                                .fill(Color.black)
-                                .frame(width: 1)
-                            
-                            Text("ClamPoints")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(Color.blue)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 15)
-                        }
-                        .background(Color(red: 0.5, green: 0.9, blue: 1.0))
-                        
-                    
-                        Rectangle()
-                            .fill(Color.black)
-                            .frame(height: 1)
-                        
-                        // data rows
-                        DataView()
-                    }
-                    // 5. Clip Shape and Border for the entire table
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.black, lineWidth: 2)
-                    )
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 50)
-                }
-                ZStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.white.opacity(0.6))
-                        .frame(height: 83)
-                }
-                .edgesIgnoringSafeArea(.bottom).padding(.bottom, -100)
+                .padding(.top, 16) // <-- added extra top padding for breathing room
+                .padding(.horizontal, 16)
+                .padding(.bottom, 100)
             }
         }
+        .background(Color.blue.opacity(0.01))
     }
 }
 
 struct DataView: View {
-    
     @EnvironmentObject var user: User
+    
     @State var leaderboardData: [LeaderboardUser] = [
         LeaderboardUser(name: "FishMaster69", points: 18000),
         LeaderboardUser(name: "FishNChips10", points: 13000),
@@ -116,39 +73,64 @@ struct DataView: View {
     }
     
     var body: some View {
-        
-        ForEach($leaderboardData) { $leaderboardUser in
+        ForEach(Array(leaderboardData.enumerated()), id: \.element.id) { index, leaderboardUser in
+            let rank = index + 1
+            let isTopThree = rank <= 3
+            let isCurrentUser = leaderboardUser.name == user.username
             
-            HStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // MARK: - Rank
+                Text("#\(rank)")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(isTopThree ? Color(red: 1.0, green: 0.8, blue: 0.3) : .secondary)
+                    .frame(width: 40)
+                
+                // MARK: - Username
                 Text(leaderboardUser.name)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .font(.system(size: 18, weight: .semibold))
+                    .lineLimit(1)
+                    .foregroundColor(.primary)
                 
-                // Vertical Divider inside row
-                Rectangle()
-                    .fill(Color.black)
-                    .frame(width: 1)
+                Spacer()
                 
-                Text(String(leaderboardUser.points))
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                // MARK: - Points
+                HStack(spacing: 4) {
+                    Image("clamIcon")
+                        .resizable()
+                        .frame(width: 16, height: 16)
+                    
+                    Text("\(leaderboardUser.points)")
+                        .font(.system(size: 18, weight: .bold))
+                }
             }
-            .background(Color(red: 0.6, green: 0.85, blue: 1.0)) // Light Blue Row
-            
-            Rectangle()
-                .fill(Color.black)
-                .frame(height: 1)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
+                        isTopThree
+                        ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.08)
+                        : Color.white
+                    )
+                    .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(
+                        isCurrentUser
+                        ? Color.cyan.opacity(0.4)
+                        : (isTopThree
+                           ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.3)
+                           : Color.black.opacity(0.05)),
+                        lineWidth: isCurrentUser ? 2 : 1
+                    )
+            )
+            .scaleEffect(isCurrentUser ? 1.02 : 1.0)
         }
         .onAppear {
             fixUsers()
         }
     }
 }
-
 
 #Preview {
     LeaderboardView()

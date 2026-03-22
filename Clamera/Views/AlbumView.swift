@@ -35,7 +35,7 @@ struct AlbumView: View {
         var id: String { rawValue }
     }
 
-    @State private var selectedFilter: FilterOption = .alphabetical
+    @State private var selectedFilter: FilterOption = .caught
     
     var filteredSpecies: [Species] {
         var filtered = user.speciesStore.speciesList
@@ -95,26 +95,57 @@ struct AlbumView: View {
                         }
                         
                         LazyVGrid(columns: columns, spacing: 15) {
-                            ForEach(filteredSpecies) { item in
-                                let hasFish = item.fishList.isEmpty
-                                
-                                if !hasFish {
-                                    if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
-                                        NavigationLink(
-                                            destination: SpeciesListView(
-                                                aquarium: user.aquarium,
-                                                species: user.speciesStore.speciesList[index]
-                                            ).navigationBarTitleDisplayMode(.inline)
-                                            
-                                        )   {
-                                            SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
-                                        }
+                            if filteredSpecies.isEmpty && selectedFilter == .caught {
+                                // Placeholder as a proper grid item, matches normal card layout
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(Color(.systemGray5).opacity(0.25))
+                                        .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
+
+                                    VStack(spacing: 8) {
+                                        Spacer()
+                                        
+                                        Image(systemName: "fish")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.cyan.opacity(0.7))
+                                            .padding(.bottom, 4)
+                                        
+                                        Text("No fish caught yet")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                        
+                                        Spacer()
                                     }
-                                } else {
-                                    SpeciesGridItem(species: item, clickable: false)
+                                    .padding(.horizontal, 10)
+                                }
+                                .frame(height: UIScreen.main.bounds.width * 0.45) // same as normal cards
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                // Normal species grid
+                                ForEach(filteredSpecies) { item in
+                                    let hasFish = !item.fishList.isEmpty
+
+                                    if hasFish {
+                                        if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                            NavigationLink(
+                                                destination: SpeciesListView(
+                                                    aquarium: user.aquarium,
+                                                    species: user.speciesStore.speciesList[index]
+                                                ).navigationBarTitleDisplayMode(.inline)
+                                            ) {
+                                                SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
+                                            }
+                                        }
+                                    } else {
+                                        SpeciesGridItem(species: item, clickable: false)
+                                    }
                                 }
                             }
-                        }.padding(.horizontal, 15)
+                        }
+                        .padding(.horizontal, 15)
                     }
                 }
             }
