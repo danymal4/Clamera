@@ -319,5 +319,5 @@ struct BubbleLayerView: View {
 
 #Preview {
     AquariumView(showBottomBar: .constant(true))
-        .environmentObject(AquariumFishList())  .environmentObject(AquariumState())
+        .environmentObject(User())
 }

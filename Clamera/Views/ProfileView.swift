@@ -25,7 +25,7 @@ struct ProfileView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 140, height: 140)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.cyan.opacity(0.3), lineWidth: 4))
+                        .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                         .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
                     
                     // Username

@@ -69,7 +69,7 @@ struct CatchView: View {
                             if let image = selectedImage {
                                 Image(uiImage: image)
                                     .resizable()
-                                    .scaledToFill()
+                                   
                                     .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
                                            height: min(UIScreen.main.bounds.width * 0.85, 750))
                                     .clipped()

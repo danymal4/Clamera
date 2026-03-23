@@ -7,14 +7,15 @@
 
 import SwiftUI
 
+
 struct SocialView: View {
     @EnvironmentObject var user: User
+    @EnvironmentObject var leaderboard: LeaderboardData
     
     var body: some View {
         ScrollView {
             VStack(spacing: 35) {
                 
-                // MARK: - Section Title
                 Text("Social")
                     .font(.system(size: 42, weight: .bold))
                     .foregroundColor(.black)
@@ -23,7 +24,6 @@ struct SocialView: View {
                 
                 VStack(spacing: 25) {
                     
-                    // MARK: - Profile Row
                     NavigationLink(destination: ProfileView()) {
                         socialRow(
                             imageName: "fisherman", // placeholder image
@@ -33,7 +33,6 @@ struct SocialView: View {
                         )
                     }
                     
-                    // MARK: - Friends Row
                     Button {
                         // Friends action
                     } label: {
@@ -45,17 +44,22 @@ struct SocialView: View {
                         )
                     }
                     
-                    // MARK: - Leaderboard Row
                     NavigationLink(destination: LeaderboardView()) {
                         socialRow(
                             imageName: "Trophy",
                             title: "Leaderboard",
-                            subtitle: "Your rank: #5",
+                            subtitle: {
+                                
+                                if let rank = user.leaderboardUser.getRank(from: leaderboard.users) {
+                                    return "Your rank: #\(rank)"
+                                } else {
+                                    return "Your rank: N/A"
+                                }
+                            }(),
                             isHighlighted: false
                         )
                     }
                     
-                    // MARK: - Shop Row
                     Button {
                         // Shop action
                     } label: {
@@ -73,9 +77,15 @@ struct SocialView: View {
             }
         }
         .background(Color.blue.opacity(0.01))
+        .onAppear {
+            user.leaderboardUser.points = user.speciesStore.totalClamPoints
+            let currentUser = user.leaderboardUser
+            if !leaderboard.users.contains(where: { $0.id == currentUser.id }) {
+                leaderboard.addUser(currentUser)
+            }
+        }
     }
     
-    // MARK: - Social Row Helper
     private func socialRow(imageName: String, title: String, subtitle: String? = nil, isHighlighted: Bool) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30)
@@ -117,4 +127,5 @@ struct SocialView: View {
 #Preview {
     SocialView()
         .environmentObject(User())
+        .environmentObject(LeaderboardData())
 }

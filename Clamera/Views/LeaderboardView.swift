@@ -8,72 +8,47 @@
 import SwiftUI
 
 
-
-
 struct LeaderboardView: View {
     @EnvironmentObject var user: User
+    @EnvironmentObject var leaderboard: LeaderboardData
     
     var body: some View {
         VStack(spacing: 0) {
-
-            // MARK: - Title
+            
+            
             VStack(spacing: 4) {
                 Text("Leaderboard")
                     .font(.system(size: 34, weight: .bold))
-
+                
                 Text("Top 20")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             .padding(.top, 20)
             .padding(.bottom, 10)
-
-            // MARK: - List
+            
+    
             ScrollView {
                 VStack(spacing: 12) {
                     DataView()
                 }
-                .padding(.top, 16) // <-- added extra top padding for breathing room
+                .padding(.top, 16)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 100)
             }
         }
         .background(Color.blue.opacity(0.01))
+        
     }
 }
 
+// MARK: - Data View
 struct DataView: View {
     @EnvironmentObject var user: User
-    
-    @State var leaderboardData: [LeaderboardUser] = [
-        LeaderboardUser(name: "FishMaster69", points: 18000),
-        LeaderboardUser(name: "FishNChips10", points: 13000),
-        LeaderboardUser(name: "NotUrBaitBro", points: 8000),
-        LeaderboardUser(name: "FindingNemo", points: 7500),
-        LeaderboardUser(name: "RealFishHunter", points: 7200),
-        LeaderboardUser(name: "SeaWeedKing", points: 6900),
-        LeaderboardUser(name: "OceanMan", points: 6500),
-        LeaderboardUser(name: "SharkBait", points: 6200),
-        LeaderboardUser(name: "BubbleBeam", points: 5800),
-        LeaderboardUser(name: "AquaMarine", points: 5500),
-        LeaderboardUser(name: "DeepDiver", points: 5100),
-        LeaderboardUser(name: "CoralReef", points: 4900),
-        LeaderboardUser(name: "StarFishy", points: 4600),
-        LeaderboardUser(name: "JellyJam", points: 4300),
-        LeaderboardUser(name: "CrabbyPatty", points: 4000),
-        LeaderboardUser(name: "LobsterMobster", points: 3800),
-        LeaderboardUser(name: "ShrimpFried", points: 3500),
-        LeaderboardUser(name: "WhaleHello", points: 3200),
-        LeaderboardUser(name: "DolphinDive", points: 3000)
-    ]
-    
-    func fixUsers() {
-        leaderboardData.append(user.leaderboardUser)
-        leaderboardData = leaderboardData.sorted()
-    }
+    @EnvironmentObject var leaderboard: LeaderboardData
     
     var body: some View {
-        ForEach(Array(leaderboardData.enumerated()), id: \.element.id) { index, leaderboardUser in
+        ForEach(Array(leaderboard.users.prefix(20).enumerated()), id: \.element.id) { index, leaderboardUser in
             let rank = index + 1
             let isTopThree = rank <= 3
             let isCurrentUser = leaderboardUser.name == user.username
@@ -126,13 +101,12 @@ struct DataView: View {
             )
             .scaleEffect(isCurrentUser ? 1.02 : 1.0)
         }
-        .onAppear {
-            fixUsers()
-        }
     }
 }
 
+// MARK: - Preview
 #Preview {
     LeaderboardView()
         .environmentObject(User())
+        .environmentObject(LeaderboardData())
 }
