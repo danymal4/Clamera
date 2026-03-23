@@ -11,6 +11,7 @@ import SwiftUI
 struct ClameraApp: App {
     
     @StateObject var user = User()
+    @StateObject var leaderboard = LeaderboardData()
     
     var body: some Scene {
         WindowGroup {
@@ -18,6 +19,7 @@ struct ClameraApp: App {
               
                 HomerView()   // ← just reference it
                     .environmentObject(user)
+                    .environmentObject(leaderboard)
         }
     }
 }

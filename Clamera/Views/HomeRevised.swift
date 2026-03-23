@@ -67,20 +67,19 @@ struct HomeRevised: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 40)
-                    
-                    // MARK: - Catch of the Week Card
+                  
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 30)
                             .fill(
                                 LinearGradient(
-                                    colors: [
-                                        Color.cyan.opacity(0.7),
-                                        Color.blue.opacity(0.25)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                                                                   colors: [
+                                                                    Color(red: 0.0, green: 0.75, blue: 0.85).opacity(0.75),
+                                                                    Color(red: 0.0, green: 0.45, blue: 0.65).opacity(0.75)
+                                                                   ],
+                                                                   startPoint: .topLeading,
+                                                                   endPoint: .bottomTrailing
+                                                               )
                             )
                             .overlay(
                                 LinearGradient(
@@ -206,12 +205,16 @@ struct HomeRevised: View {
                            let species = user.speciesStore.speciesList.first(where: { $0.name == fish.speciesName }) {
                             
                             NavigationLink(destination:
-                                SpeciesListView(aquarium: user.aquarium, species: species)
+                                            SpeciesListView(
+                                                   aquarium: user.aquarium,
+                                                   species: species,
+                                                   startWithPinnedOnly: true   
+                                               )
                                     .navigationBarTitleDisplayMode(.inline)
                             ) {
                                 RoundedRectangle(cornerRadius: 25)
                                     .foregroundStyle(.cyan)
-                                    .opacity(0.25)
+                                    .opacity(0.35)
                                     .frame(width: ui.width * 0.9, height: ui.width * 0.35).scaleEffect(floatUpDown ? 1.01 : 0.99) // subtle "breathing" effect
                                     .shadow(color: Color.cyan.opacity(floatUpDown ? 0.4 : 0.2), radius: 10, x: 0, y: 5)
                                     .animation(
@@ -227,7 +230,6 @@ struct HomeRevised: View {
                                         HStack(spacing: 16) {
                                             Image(fishPhoto : fish.photo)
                                                 .resizable()
-                                                .scaledToFill()
                                                 .frame(width: 90, height: 90)
                                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                                                 .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
@@ -252,7 +254,12 @@ struct HomeRevised: View {
                                             }
                                             
                                             Spacer()
-                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundColor(.white.opacity(0.8))
+                                                .padding(10)
+                                                .background(Color.black.opacity(0.2))
+                                                .clipShape(Circle())
                                         
                                         }
                                         .padding(.horizontal, 20)
@@ -274,7 +281,6 @@ struct HomeRevised: View {
                                 HStack(spacing: 16) {
                                     Image("opahCatch")
                                         .resizable()
-                                        .scaledToFill()
                                         .frame(width: 90, height: 90)
                                         .clipShape(RoundedRectangle(cornerRadius: 16))
                                         .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
@@ -317,7 +323,7 @@ struct HomeRevised: View {
         )
     }
     
-    // MARK: - Stat Card Helper
+    
     func statCard(title: String, value: String) -> some View {
         VStack(spacing: 6) {
             Text(value)

@@ -17,12 +17,13 @@ final class TabRouter: ObservableObject {
 
 struct HomerView: View {
     @EnvironmentObject var user: User
+    @EnvironmentObject var leaderboard: LeaderboardData
 
     @StateObject private var tabRouter = TabRouter()
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
     
-    // Popup state
+
     @State private var showCatchSavedPopup: Bool = false
     @State private var catchSavedMessage: String = ""
     @State private var popupColor: Color = .cyan
@@ -31,6 +32,7 @@ struct HomerView: View {
     @State private var showAquariumBottomBar: Bool = true
     @State private var bottomBarWorkItem: DispatchWorkItem?
 
+   
     @State private var bubblePlayer: AVAudioPlayer?
     @State private var fadeTimer: Timer?
 
@@ -68,6 +70,7 @@ struct HomerView: View {
             .environmentObject(tabRouter)
             .environmentObject(user)
 
+   
             HStack(spacing: 0) {
                 customTabIcon(systemImage: "house", tab: .home)
                 customTabIcon(systemImage: "fish", tab: .caught)
@@ -264,5 +267,5 @@ struct HomerView: View {
 #Preview {
     HomerView()
         .environmentObject(User())
-        .environmentObject(SpeciesStore())
+        .environmentObject(SpeciesStore())  .environmentObject(LeaderboardData())
 }
