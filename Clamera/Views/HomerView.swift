@@ -39,7 +39,7 @@ struct HomerView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             
-            // MARK: - Main Content
+
             Group {
                 switch tabRouter.viewState {
                 case .home: NavigationStack { HomeRevised() }
@@ -87,8 +87,7 @@ struct HomerView: View {
             .offset(y: tabRouter.viewState == .aquarium && !showAquariumBottomBar ? 120 : 0)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: showAquariumBottomBar)
             .ignoresSafeArea(edges: .bottom)
-            
-            // MARK: - Animated Popup
+  
             VStack {
                 Spacer()
                 
@@ -133,7 +132,7 @@ struct HomerView: View {
             bottomBarWorkItem?.cancel()
             stopBubbleSound()
         }
-        // MARK: - Observe speciesStore.popupType
+   
         .onReceive(user.speciesStore.$popupType) { newValue in
             guard newValue > 0 else { return }
             var message = ""
@@ -152,7 +151,7 @@ struct HomerView: View {
             }
             triggerCatchPopup(message: message, color: color)
         }
-        // MARK: - Tab change logic
+       
         .onChange(of: tabRouter.viewState) { newState in
             if newState == .aquarium {
                 lastUpdate = Date()
@@ -167,16 +166,14 @@ struct HomerView: View {
             } else { stopBubbleSound() }
         }
     }
-    
-    // MARK: - Trigger Popup Animation
+   
     private func triggerCatchPopup(message: String, color: Color) {
         popupOffset = 150
         catchSavedMessage = message
         popupColor = color
         showCatchSavedPopup = true
     }
-    
-    // MARK: - Custom Tab Icon Helpers
+
     private func customTabIcon(systemImage: String, tab: ViewState) -> some View {
         Button(action: { tabRouter.viewState = tab; if tab == .aquarium { resetBottomBarTimer() } }) {
             Image(systemName: systemImage)
@@ -202,7 +199,7 @@ struct HomerView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Clean Timer
+
     private func startCleanTimer() {
         cleanTimer?.invalidate()
         let totalDuration: TimeInterval = 60 * 60
@@ -226,7 +223,7 @@ struct HomerView: View {
         }
     }
 
-    // MARK: - Bottom Bar Timer
+  
     func resetBottomBarTimer() {
         bottomBarWorkItem?.cancel()
         withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { showAquariumBottomBar = true }
@@ -237,7 +234,7 @@ struct HomerView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
-    // MARK: - Bubble Audio
+ 
     private func startBubbleSound() {
         guard bubblePlayer == nil else { return }
         guard let url = Bundle.main.url(forResource: "bubble", withExtension: "wav") else { return }
