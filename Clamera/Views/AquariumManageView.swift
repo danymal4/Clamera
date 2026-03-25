@@ -9,6 +9,7 @@ struct AquariumManageView: View {
     @State private var delay: Bool = false
     @State private var refreshID = UUID()
     @State private var swipedIndex: Int? = nil
+    @State private var showClearConfirm = false
 
 
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
@@ -64,7 +65,6 @@ struct AquariumManageView: View {
                         }.padding(.top, -200).padding(.horizontal, -165)
                         
                     }.padding(.top, 230)
-                    
                     
                     
                     
@@ -165,32 +165,27 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Spacer()
                                         Spacer()
-                                
 
+                                        
                                         if fish.isActive {
-                                            Toggle("", isOn: Binding(
-                                                get: { fish.isShown },
-                                                set: { newValue in
-                                                    let updatedFish = fish
-                                                    updatedFish.isShown = newValue
-                                                    user.aquarium.fish[i] = updatedFish
-                                                    
+                                            Toggle("", isOn: $user.aquarium.fish[i].isShown)
+                                                .labelsHidden()
+                                                .tint(.green)
+                                                .onChange(of: user.aquarium.fish[i].isShown) { oldValue, newValue in
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
                                                     }
                                                 }
-                                            ))
-                                            .labelsHidden()   .tint(.green)
                                         }
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
 
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
                                     }
                                     .padding(.horizontal, -210)
                                     .offset(y: isDropdown
@@ -273,7 +268,7 @@ struct AquariumManageView: View {
                                                 withAnimation(.easeInOut) {
                                                     if let speciesID = fish.speciesID,
                                                        let species = user.speciesStore.speciesList.first(where: { $0.id == speciesID }) {
-                                                        
+
                                                         if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
                                                             fishToRemove.isAquarium = false
                                                         }
@@ -312,14 +307,14 @@ struct AquariumManageView: View {
                                 .padding(.horizontal, 60)
                             }
                         }
-                        .padding(.bottom, -10)  .frame(
+                        .padding(.bottom, -10)
+                        .frame(
                             width: min(UIScreen.main.bounds.width * 0.9, 2000),
                             height: isDropdown ? collapsedHeight : expandedHeight
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 30))
                     }
-                    
-                 
+
                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
                   
                     
@@ -433,7 +428,7 @@ struct AquariumManageView: View {
                             .cornerRadius(30)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.9, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.45, 2000)
+                                height: min(UIScreen.main.bounds.width * 0.44, 2000)
                             )
                             .shadow(color: .black.opacity(0.1), radius: 10)
                         
@@ -441,7 +436,7 @@ struct AquariumManageView: View {
                     
                         
                         
-                        VStack(spacing: 8){
+                        VStack(spacing: 10){
                            
                             
                             
@@ -520,10 +515,8 @@ struct AquariumManageView: View {
                     ZStack{
                         
  
-
                         Button {
-                            user.aquarium.toggleAll()               // your existing logic
-                            refreshID = UUID()                  // triggers SwiftUI to re-render the view
+                            showClearConfirm = true
                         } label: {
                             Rectangle()
                                 .opacity(1)
@@ -535,7 +528,18 @@ struct AquariumManageView: View {
                                 )
                                 .shadow(color: .black.opacity(0.1), radius: 10)
                         }
-                        .id(refreshID)   // <-- forces this view (and its subtree) to refresh
+                        .id(refreshID)
+                        .confirmationDialog("Are you sure?",
+                                            isPresented: $showClearConfirm,
+                                            titleVisibility: .visible) {
+
+                            Button("Yes", role: .destructive) {
+                                user.aquarium.toggleAll()
+                                refreshID = UUID()
+                            }
+
+                            Button("Cancel", role: .cancel) { }
+                        }
                         
                         HStack{
                             Text("Clear Aquarium").foregroundStyle(.red)

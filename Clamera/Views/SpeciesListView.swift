@@ -12,6 +12,8 @@ struct SpeciesListView: View {
     @ObservedObject var aquarium: AquariumFishList
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
+    
+    var startWithPinnedOnly: Bool = false
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case oldest = "Oldest"
@@ -195,7 +197,8 @@ struct SpeciesListView: View {
                             FishGridItem(
                                 fish: fish,
                                 species: species,
-                                clickable: true
+                                clickable: true,
+                                showPinnedOnly: $showPinnedOnly
                             ) {
                                 fish.isPinned.toggle()
                             }
@@ -208,6 +211,7 @@ struct SpeciesListView: View {
             }
         }.onAppear {
             user.speciesStore.refresh()
+            showPinnedOnly = startWithPinnedOnly
         }
         .background(Color.blue.opacity(0.01))
     }
@@ -236,13 +240,15 @@ struct SpeciesListView: View {
     }
 }
 
-// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed 
+// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed
 struct FishGridItem: View {
 
     @EnvironmentObject var speciesStore: SpeciesStore
     @ObservedObject var fish: Fish
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
+    @State private var showDeleteFishConfirm = false
+    @Binding var showPinnedOnly: Bool
     
 
     let clickable: Bool
@@ -251,17 +257,56 @@ struct FishGridItem: View {
     private var cardWidth: CGFloat { UIScreen.main.bounds.width - 32 }
     private var cardHeight: CGFloat { cardWidth * 0.35 }
 
+    
+    init(fish: Fish,
+           species: Species,
+           clickable: Bool,
+           showPinnedOnly: Binding<Bool>,
+           onTogglePinned: (() -> Void)? = nil) {
+          self.fish = fish
+          self.species = species
+          self.clickable = clickable
+          self._showPinnedOnly = showPinnedOnly
+          self.onTogglePinned = onTogglePinned
+      }
+
+    
+    
+    
     var body: some View {
 
         ZStack {
 
             RoundedRectangle(cornerRadius: 25)
-                .fill(Color.white)
+                .fill(
+                    LinearGradient(
+                        colors: fish.isPinned
+                            ? [
+                                Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.28),
+                                Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.12)
+                            ]
+                            : [Color.white, Color.white],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .frame(width: cardWidth, height: cardWidth * 0.45)
-                .shadow(color: .black.opacity(0.06), radius: 12, y: 6)
+                // Premium shadow for pinned cards
+                .shadow(
+                    color:
+                         Color.black.opacity(0.06),
+                    radius: 16,
+                    y: 6
+                )
+                // Thin glow/border for pinned cards
                 .overlay(
                     RoundedRectangle(cornerRadius: 25)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(
+                            fish.isPinned
+                                ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.2)
+                                : Color.black.opacity(0.04),
+                            lineWidth: 2
+                        )
                 )
 
             HStack(spacing: 20) {
@@ -269,15 +314,13 @@ struct FishGridItem: View {
                 VStack {
 
                     Image(fishPhoto: fish.photo)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: cardHeight, height: cardHeight)
+                        .resizable() // allows resizing
+                        .frame(width: cardHeight, height: cardHeight) // forces square size
                         .cornerRadius(16)
                         .clipped()
                         .opacity(clickable ? 1 : 0.4)
                         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                         .padding(.top, 11)
-
                     Spacer()
                 }
 
@@ -308,6 +351,10 @@ struct FishGridItem: View {
                         Button {
                             onTogglePinned?()
                             user.speciesStore.assignPinnedDisplay()
+                            
+                            if showPinnedOnly {
+                                user.aquarium.refresh()
+                            }
                         } label: {
 
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")
@@ -318,6 +365,14 @@ struct FishGridItem: View {
                                 )
                                 .scaleEffect(fish.isPinned ? 1 : 0.95)
                                 .opacity(fish.isPinned ? 1 : 0.8)
+                                .shadow(
+                                    color: fish.isPinned
+                                        ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.7)
+                                        : Color.clear,
+                                    radius: fish.isPinned ? 4 : 0,
+                                    x: 0,
+                                    y: 0
+                                )
                         }
                         .padding(.top)
                     }
@@ -335,39 +390,41 @@ struct FishGridItem: View {
 
                         if species.fishList.count > 1 {
                             Button {
-
-                                let targetSize = fish.getSize()
-
-                                if fish == user.speciesStore.pinnedDisplay {
-                                    fish.isPinned.toggle()
-                                    user.speciesStore.assignPinnedDisplay()
-                                }
-                                
-                                
-                                if fish.isAquarium {
-                                    user.aquarium.removeFish(
-                                         with: "\(species.name)Icon",
-                                         targetSize: targetSize
-                                     )
-
-                                    user.aquarium.refresh()
-                                 }
-                                
-                                
-                              
-                                species.fishList.removeAll { $0.id == fish.id }
-
-                           
-                              
-
+                                showDeleteFishConfirm = true
                             } label: {
                                 Image(systemName: "trash.fill")
-                                    .foregroundColor(.red.opacity(0.85))
+                                    .foregroundColor(.red.opacity(0.85)).shadow(color: Color.red.opacity(0.3), radius: 2, x: 0, y: 1)
                             }
                             .padding(.bottom)
+                            
+                            .confirmationDialog("Delete this fish? This cannot be undone.",
+                                                isPresented: $showDeleteFishConfirm,
+                                                titleVisibility: .visible) {
+                                
+                                Button("Delete", role: .destructive) {
+                                    
+                                    let targetSize = fish.getSize()
+
+                                    if fish == user.speciesStore.pinnedDisplay {
+                                        fish.isPinned.toggle()
+                                        user.speciesStore.assignPinnedDisplay()
+                                    }
+                                    
+                                    if fish.isAquarium {
+                                        user.aquarium.removeFish(
+                                            with: "\(species.name)Icon",
+                                            targetSize: targetSize
+                                        )
+                                        user.aquarium.refresh()
+                                    }
+                                    
+                                    species.fishList.removeAll { $0.id == fish.id }
+                                }
+                                
+                                Button("Cancel", role: .cancel) { }
+                            }
 
                         } else {
-
                             Image(systemName: "trash.fill")
                                 .foregroundColor(.gray.opacity(0.85))
                                 .padding(.bottom)
