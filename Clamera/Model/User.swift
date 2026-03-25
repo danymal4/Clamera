@@ -8,14 +8,13 @@
 import SwiftUI
 
 class User: ObservableObject {
+    @Published var id: String
     @Published var username: String
     @Published var email: String
-    @Published var password: String
     @Published var profilePicture: String
     @Published var aquarium: AquariumFishList
     @Published var speciesStore: SpeciesStore
     @Published var aquariumState: AquariumState
-
     @Published var leaderboardUser: LeaderboardUser
 
     let fishingUsernames = [
@@ -31,9 +30,8 @@ class User: ObservableObject {
         "PikePatrol", "SnapperSurfer", "RodRider", "ChumChaser", "FishFiend"
     ]
 
-    init(username: String? = nil,
+    init(id: String = "", username: String? = nil,
          email: String = "default@default.com",
-         password: String = "DefaultPassword",
          profilePicture: String = "fisherman",
          aquarium: AquariumFishList = AquariumFishList(),
          speciesStore: SpeciesStore = SpeciesStore(),
@@ -41,9 +39,9 @@ class User: ObservableObject {
 
 
         let finalUsername = username ?? fishingUsernames.randomElement() ?? "FishHunter5"
+        self.id = id
         self.username = finalUsername
         self.email = email
-        self.password = password
         self.profilePicture = profilePicture
         self.aquarium = aquarium
         self.speciesStore = speciesStore

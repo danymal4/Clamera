@@ -267,5 +267,5 @@ struct HomerView: View {
 #Preview {
     HomerView()
         .environmentObject(User())
-        .environmentObject(SpeciesStore())  .environmentObject(LeaderboardData())
+        .environmentObject(LeaderboardData())
 }

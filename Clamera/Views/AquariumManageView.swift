@@ -166,12 +166,12 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Spacer()
 
-                                        // ✅ Updated Toggle
+                                        
                                         if fish.isActive {
                                             Toggle("", isOn: $user.aquarium.fish[i].isShown)
                                                 .labelsHidden()
                                                 .tint(.green)
-                                                .onChange(of: user.aquarium.fish[i].isShown) { newValue in
+                                                .onChange(of: user.aquarium.fish[i].isShown) { oldValue, newValue in
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
                                                     }
