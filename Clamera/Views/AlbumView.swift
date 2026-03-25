@@ -40,7 +40,7 @@ struct AlbumView: View {
         var id: String { rawValue }
     }
 
-    @State private var selectedFilter: FilterOption = .alphabetical
+    @State private var selectedFilter: FilterOption = .caught
     
     var filteredSpecies: [Species] {
         var filtered = user.speciesStore.speciesList
@@ -78,7 +78,7 @@ struct AlbumView: View {
             ScrollView {
                 ZStack(alignment: .top) {
                     Color.clear.frame(height: UIScreen.main.bounds.height)
-                 
+                    
                     
                     VStack(spacing: 25) {
                         Text("Album")
@@ -100,26 +100,57 @@ struct AlbumView: View {
                         }
                         
                         LazyVGrid(columns: columns, spacing: 15) {
-                            ForEach(filteredSpecies) { item in
-                                let hasFish = item.fishList.isEmpty
-                                
-                                if !hasFish {
-                                    if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
-                                        NavigationLink(
-                                            destination: SpeciesListView(
-                                                aquarium: user.aquarium,
-                                                species: user.speciesStore.speciesList[index]
-                                            ).navigationBarTitleDisplayMode(.inline)
-                                               
-                                        )   {
-                                            SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
-                                        }
+                            if filteredSpecies.isEmpty && selectedFilter == .caught {
+                                // Placeholder as a proper grid item, matches normal card layout
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .fill(Color(.systemGray5).opacity(0.25))
+                                        .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
+
+                                    VStack(spacing: 8) {
+                                        Spacer()
+                                        
+                                        Image(systemName: "fish")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 50, height: 50)
+                                            .foregroundColor(.cyan.opacity(0.7))
+                                            .padding(.bottom, 4)
+                                        
+                                        Text("No fish caught yet")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                        
+                                        Spacer()
                                     }
-                                } else {
-                                    SpeciesGridItem(species: item, clickable: false)
+                                    .padding(.horizontal, 10)
+                                }
+                                .frame(height: UIScreen.main.bounds.width * 0.45) // same as normal cards
+                                .frame(maxWidth: .infinity)
+                            } else {
+                                // Normal species grid
+                                ForEach(filteredSpecies) { item in
+                                    let hasFish = !item.fishList.isEmpty
+
+                                    if hasFish {
+                                        if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
+                                            NavigationLink(
+                                                destination: SpeciesListView(
+                                                    aquarium: user.aquarium,
+                                                    species: user.speciesStore.speciesList[index]
+                                                ).navigationBarTitleDisplayMode(.inline)
+                                            ) {
+                                                SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
+                                            }
+                                        }
+                                    } else {
+                                        SpeciesGridItem(species: item, clickable: false)
+                                    }
                                 }
                             }
-                        }.padding(.horizontal, 15)
+                        }
+                        .padding(.horizontal, 15)
                     }
                 }
             }
@@ -144,7 +175,7 @@ struct AlbumView: View {
                             }
                         Spacer()
                     }.padding(.horizontal, 15)
-                  
+                    
                     
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -153,7 +184,7 @@ struct AlbumView: View {
                         }
                     } label: {
                         ZStack {
-                           
+                            
                             Circle()
                                 .fill(Color.white)
                                 .frame(width: 55, height: 55) // adjust size to your liking
@@ -162,9 +193,9 @@ struct AlbumView: View {
                             Image(systemName: "magnifyingglass")
                                 .font(.system(size: 28))
                                 .foregroundColor(.cyan)
-                               
+                            
                                 .shadow(color: Color.cyan.opacity(0.2), radius: 3, x: 0, y: 1)
-                                
+                            
                         }.onAppear {
                             withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
                                 showHint.toggle()
@@ -174,9 +205,15 @@ struct AlbumView: View {
                     .padding(.trailing, 20)
                     .padding(.bottom, 70)
                 }
+                
             }
+       
         }
         .background(Color.blue.opacity(0.01))
+      
+        // Top fog
+       
+        
     }
     
     @ViewBuilder
@@ -208,20 +245,32 @@ struct SpeciesGridItem: View {
           
             // special package I added from chat since I couldnt get the data to load consistently well (KF caches image data so it only has to load once per usage of the app)
             ZStack {
+             
+                if clickable {
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color(.systemGray5).opacity(0.1)) .frame(width: cardWidth * 0.95, height: cardHeight * 0.95) .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                }
+                
+                
+                
                 // MARK: - Blurred Background
-                KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
-                    .placeholder {
-                        Image("stockPhoto")
-                            .resizable()
-                            .scaledToFill()
-                    }
-                    .retry(maxCount: 3, interval: .seconds(5))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
-                    .blur(radius: 10)
-                    .opacity(0.45)
-                    .clipped()
+               
+                if !clickable {
+                    KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
+                        .placeholder {
+                            Image("stockPhoto")
+                                .resizable()
+                                .scaledToFill()
+                        }
+                        .retry(maxCount: 3, interval: .seconds(5))
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
+                        .blur(radius: 10)
+                        .opacity(0.45)
+                        .clipped()
+                    
+                }
                 
                 // MARK: - Fish Image (stretched to fill frame)
                 KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
@@ -239,7 +288,7 @@ struct SpeciesGridItem: View {
            
             .clipShape(RoundedRectangle(cornerRadius: 25)).saturation(clickable ? 1 : 0)
             .opacity(clickable ? 1.0 : 0.6)
-            .brightness(clickable ? -0.15 : 0)
+            .brightness(clickable ? -0.1 : 0)
                 
             if !clickable {
                 RoundedRectangle(cornerRadius: 25)

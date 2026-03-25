@@ -15,6 +15,9 @@ class User: ObservableObject {
     @Published var aquarium: AquariumFishList
     @Published var speciesStore: SpeciesStore
     @Published var aquariumState: AquariumState
+
+    @Published var leaderboardUser: LeaderboardUser
+
     let fishingUsernames = [
         "FishHunter5", "AnglerAce", "ReelMaster", "HookedUp", "BassBoss",
         "TroutTrooper", "CastingKing", "LureLegend", "SalmonSeeker", "CatchCraze",
@@ -27,11 +30,7 @@ class User: ObservableObject {
         "DriftKing", "TackleTamer", "GuppyGlider", "MarlinMaven", "ReelReaper",
         "PikePatrol", "SnapperSurfer", "RodRider", "ChumChaser", "FishFiend"
     ]
-    
-    var leaderboardUser: LeaderboardUser {
-        return LeaderboardUser(name: self.username, points: speciesStore.totalClamPoints)
-    }
-    
+
     init(username: String? = nil,
          email: String = "default@default.com",
          password: String = "DefaultPassword",
@@ -39,15 +38,18 @@ class User: ObservableObject {
          aquarium: AquariumFishList = AquariumFishList(),
          speciesStore: SpeciesStore = SpeciesStore(),
          aquariumState: AquariumState = AquariumState()) {
-        
-        // pick a random username if nil is provided
-        self.username = username ?? fishingUsernames.randomElement() ?? "FishHunter5"
-        
+
+
+        let finalUsername = username ?? fishingUsernames.randomElement() ?? "FishHunter5"
+        self.username = finalUsername
         self.email = email
         self.password = password
         self.profilePicture = profilePicture
         self.aquarium = aquarium
         self.speciesStore = speciesStore
         self.aquariumState = aquariumState
+
+      
+        self.leaderboardUser = LeaderboardUser(name: finalUsername, points: speciesStore.totalClamPoints)
     }
 }
