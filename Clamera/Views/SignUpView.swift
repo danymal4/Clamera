@@ -11,6 +11,7 @@ struct SignUpView: View {
     
     @State var email = ""
     @State var password = ""
+    @State var username = ""
     
     var body: some View{
         
@@ -31,12 +32,12 @@ struct SignUpView: View {
                         .font(.custom("HelveticaNeue-Thin", size: 20))
                         .bold()
                     
-                }.position(x: 200,y:50)
+                }.position(x: 200,y:60)
                 HStack {
                     Text("Enter your email to sign up for this app")
                         .font(.custom("HelveticaNeue-Thin", size: 18))
                     
-                } .position(x: 200, y:25)
+                } .position(x: 200, y:45)
                 
             }
             
@@ -49,11 +50,23 @@ struct SignUpView: View {
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
                 
+            TextField("username", text: $username)
+                .foregroundStyle(.gray)
+                .bold()
+                .padding(.leading, 40)
+        }.position(x: 200, y: -40)
+        
+        ZStack{
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 2)
+                .foregroundStyle(.white)
+                .frame(width: 350, height: 50)
+                
             TextField("email@​domain.com", text: $email)
                 .foregroundStyle(.gray)
                 .bold()
                 .padding(.leading, 40)
-        }.position(x: 200, y: -90)
+        }.position(x: 200, y: -110)
         
         ZStack{
             RoundedRectangle(cornerRadius: 10)
@@ -77,7 +90,7 @@ struct SignUpView: View {
             
             Button("Sign up"){
                 Task{
-                    await AuthManager.shared.signUp(email: email, password: password)
+                    await AuthManager.shared.signUp(username: username, email: email, password: password)
                 }
             }
             .foregroundStyle(.white)

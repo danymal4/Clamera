@@ -29,6 +29,13 @@ final class SpeciesStore: ObservableObject {
         assignCatchOfTheWeek()
     }
     
+    func getDictionary() -> [String:[[String:String]]] {
+        var species: [String:[[String:String]]] = [:]
+        for s in speciesList {
+            species.updateValue(s.getArray(), forKey: s.name)
+        }
+        return species
+    }
     
     // declares url from fish data json
     

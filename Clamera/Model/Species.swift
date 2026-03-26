@@ -29,7 +29,18 @@ class Species: ObservableObject, Identifiable, Hashable {
         self.icon = icon
         self.fishList = fishList
     }
+    
+    func update(fishArray: [[String:String]]) {
+        self.fishList = fishList
+    }
 
+    func getArray() -> [[String:String]] {
+        var fishArr: [[String:String]] = [[:]]
+        for fish in fishList {
+            fishArr.append(fish.getDictionary())
+        }
+        return fishArr
+    }
     // MARK: - Hashable
     static func == (lhs: Species, rhs: Species) -> Bool {
         lhs.id == rhs.id

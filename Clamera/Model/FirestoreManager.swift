@@ -30,7 +30,9 @@ class FirestoreManager: ObservableObject{
             try await db.collection("users").document(user.id).setData([
                 "username": user.username,
                 "email": user.email,
-                "profile picture": user.profilePicture
+                "profile picture": user.profilePicture,
+                "species list": user.speciesStore.getDictionary(),
+                "clampoints": user.speciesStore.totalClamPoints,
             ])
             print("user saved")
         } catch {
@@ -53,6 +55,7 @@ class FirestoreManager: ObservableObject{
                     user.username = data["username"] as? String ?? ""
                     user.email = data["email"] as? String ?? ""
                     user.profilePicture = data["profile picture"] as? String ?? ""
+                    // user.speciesStore.getDictionary() = data["species list"] as? [String:[[String:String]]] ?? [:]
                 }
             }
             print("user fetched")
