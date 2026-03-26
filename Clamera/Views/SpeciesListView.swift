@@ -53,7 +53,7 @@ struct SpeciesListView: View {
                         VStack(alignment: .leading, spacing: 4) {
 
                             Text(species.name)
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 20, weight: .bold)).lineLimit(2)
 
                             Text("\(species.fishList.count) Fish")
                                 .font(.system(size: 14))
