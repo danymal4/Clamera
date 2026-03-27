@@ -36,6 +36,33 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.fishWeight = fishWeight
     }
     
+    init(dictionary: [String: String]) {
+        self.photo = dictionary["photo"] ?? ""
+        self.speciesName = dictionary["speciesName"] ?? ""
+        self.description = dictionary["description"] ?? ""
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        self.dateCaught = dateFormatter.date(from: dictionary["date"] ?? "") ?? Date()
+        self.isPinned = Bool(dictionary["isPinned"] ?? "false") ?? false
+        self.isDeleted = Bool(dictionary["isDeleted"] ?? "false") ?? false
+        self.fishWeight = nil
+        self.isAquarium = false
+    }
+    
+    func getDictionary() -> [String : String] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        var dict: [String : String] =
+        ["photo":self.photo,
+         "speciesName":self.speciesName,
+         "description":self.description,
+         "dateCaught":dateFormatter.string(from: self.dateCaught),
+         "isPinned":String(isPinned),
+         "isDeleted":String(isDeleted)
+        ]
+        return dict
+    }
+    
     // Hashable conformance
     static func == (lhs: Fish, rhs: Fish) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

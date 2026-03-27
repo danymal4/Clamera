@@ -21,7 +21,7 @@ class AuthManager: ObservableObject{
     @Published var user: User?
 
     @MainActor
-    func signUp(email: String, password: String) async {
+    func signUp(username: String, email: String, password: String) async {
 
         // Auth.auth() returns the Firebase Auth singleton (similar to how we use our own singleton).
         // createUser is async — it sends a request to Firebase servers to register a new account.
@@ -33,7 +33,7 @@ class AuthManager: ObservableObject{
         // Setting user triggers @Published, which tells SwiftUI to re-render.
         // This is what causes ContentView to switch from LoginView to ProfileView.
         
-        user = User(id: result.user.uid, email: result.user.email ?? "")
+        user = User(id: result.user.uid, username: username, email: result.user.email ?? "")
     }
 
     @MainActor

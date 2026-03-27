@@ -20,8 +20,6 @@ struct ClameraApp: App {
     
     var body: some Scene {
         WindowGroup {
-            
-              
                 SignUpView()
                     .environmentObject(user)
                     .environmentObject(leaderboard)
