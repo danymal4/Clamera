@@ -55,7 +55,8 @@ class FirestoreManager: ObservableObject{
                     user.username = data["username"] as? String ?? ""
                     user.email = data["email"] as? String ?? ""
                     user.profilePicture = data["profile picture"] as? String ?? ""
-                    // user.speciesStore.getDictionary() = data["species list"] as? [String:[[String:String]]] ?? [:]
+                    user.speciesStore.update(speciesList: data["species list"] as? [String:[[String:String]]] ?? [:],
+                                             clamPoints: data["clampoints"] as? Int ?? 0)
                 }
             }
             print("user fetched")

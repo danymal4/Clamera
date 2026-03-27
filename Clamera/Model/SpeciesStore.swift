@@ -37,6 +37,18 @@ final class SpeciesStore: ObservableObject {
         return species
     }
     
+    func update(speciesList:[String:[[String:String]]], clamPoints: Int) {
+        self.totalClamPoints = clamPoints
+        for (name, species) in speciesList{
+            for i in 0..<self.speciesList.count {
+                if self.speciesList[i].name == name {
+                    self.speciesList[i].update(fishArray: species)
+                }
+            }
+        }
+        
+    }
+    
     // declares url from fish data json
     
     private func loadFromJSON() {
