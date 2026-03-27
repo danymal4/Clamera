@@ -8,13 +8,17 @@
 import SwiftUI
 
 struct SignInView: View {
+    
+    @State var email = ""
+    @State var password = ""
+    @State var username = ""
+    
     var body: some View{
         
         WaterView()
-            .position(x: 200, y: 480).opacity(0)
+            .position(x: 200, y: 650).opacity(0.6)
         
         HStack {
-            
             VStack{
                 HStack {
                     Text("Clamera")
@@ -24,74 +28,108 @@ struct SignInView: View {
                     
                 }.position(x: 200, y: 40)
                 HStack {
-                    Text("Log In")
+                    Text("Sign In To Your Account")
                         .font(.custom("HelveticaNeue-Thin", size: 20))
                         .bold()
                     
-                }.position(x: 200,y:50)
+                }.position(x: 200,y:70)
                 HStack {
-                    Text("Enter your email and password to log in")
+                    Text("Enter your email and password to sign in")
                         .font(.custom("HelveticaNeue-Thin", size: 18))
                     
-                } .position(x: 200, y:20)
-                
-                
+                } .position(x: 200, y:50)
                 
             }
-            .position(x: 200, y: 200)
             
             
         } .position(x:200, y:-40)
         
         ZStack{
-            Text("<")
-                .font(.custom("HelveticaNeue-Thin", size: 40))
-                .bold()
-                .position(x: 40, y: -160)
-                
-            
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.gray, lineWidth: 2)
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
                 
-            Text("email@​domain.com")
+            TextField("email@​domain.com", text: $email)
                 .foregroundStyle(.gray)
                 .bold()
-                .padding(.trailing, 170)
-            
+                .padding(.leading, 40)
+        }.position(x: 200, y: -65)
+        
+        ZStack{
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.gray, lineWidth: 2)
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
-                .position(x: 200, y:160)
                 
-            Text("Password123")
+            SecureField("Password", text: $password)
                 .foregroundStyle(.gray)
                 .bold()
-                .padding(.trailing, 220)
-                .position(x: 200, y:160)
-            
-        }.position(x: 200, y: -120)
-        
-        
+                .padding(.leading, 40)
+        }.position(x: 200, y: -160)
         
         ZStack{
             Rectangle()
                 .foregroundStyle(.blue)
                 .frame(width: 350, height: 50)
                 .cornerRadius(10)
-                .position(x: 200, y:-185)
+                .position(x: 200, y:-250)
             
             
-            Text("Continue")
+            Button("Sign In"){
+                Task{
+                    await AuthManager.shared.signIn(email: email, password: password)
+                }
+            }
+            .foregroundStyle(.white)
+            .bold()
+            .position(x: 200, y:-250)
+            
+            Rectangle()
+                .foregroundStyle(.gray)
+                .frame(width: 350, height: 50)
+                .cornerRadius(10)
+                .position(x: 200, y:-150)
+            
+            Text("⎯⎯⎯⎯⎯⎯⎯⎯      or      ⎯⎯⎯⎯⎯⎯⎯⎯")
+                .foregroundStyle(.gray)
+                .bold()
+                .position(x: 200, y:-200)
+            
+            
+            Text("Sign Up With Email and Password")
                 .foregroundStyle(.white)
                 .bold()
-                .position(x: 200, y:-185)
+                .position(x: 200, y:-150)
+            
+            Rectangle()
+                .foregroundStyle(.gray)
+                .frame(width: 350, height: 50)
+                .cornerRadius(10)
+                .position(x: 200, y:-90)
+            
+            
+            Text("Continue With Google")
+                .foregroundStyle(.white)
+                .bold()
+                .position(x: 200, y:-90)
+            
+            
+            Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
+                .foregroundStyle(.gray)
+                .bold()
+                .font(.custom("HelveticaNeue-Thin", size: 14))
+                .padding(.leading, 40)
+                .padding(.trailing, 40)
+                .position(x: 200, y: -30)
             
         }
+
     }
-    }
+}
+
+
+
 #Preview {
     SignInView()
 }

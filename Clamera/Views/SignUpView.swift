@@ -16,7 +16,7 @@ struct SignUpView: View {
     var body: some View{
         
         WaterView()
-            .position(x: 200, y: 650).opacity(0)
+            .position(x: 200, y: 650).opacity(0.6)
         
         HStack {
             VStack{
@@ -34,7 +34,7 @@ struct SignUpView: View {
                     
                 }.position(x: 200,y:60)
                 HStack {
-                    Text("Enter your email to sign up for this app")
+                    Text("Enter your email and password to sign up for this app")
                         .font(.custom("HelveticaNeue-Thin", size: 18))
                     
                 } .position(x: 200, y:45)
@@ -109,7 +109,7 @@ struct SignUpView: View {
                 .position(x: 200, y:-200)
             
             
-            Text("Login With Username & Password")
+            Text("Sign In With Username & Password")
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-150)
