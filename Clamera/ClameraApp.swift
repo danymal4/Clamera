@@ -11,7 +11,6 @@ import Firebase
 @main
 struct ClameraApp: App {
     @StateObject var auth = AuthManager.shared
-    //@StateObject var user = User()
     @StateObject var leaderboard = LeaderboardData()
 
     init(){
