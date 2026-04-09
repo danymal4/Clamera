@@ -53,7 +53,7 @@ struct SpeciesListView: View {
                         VStack(alignment: .leading, spacing: 4) {
 
                             Text(species.name)
-                                .font(.system(size: 20, weight: .bold)).lineLimit(2)
+                                .font(.system(size: 20, weight: .bold)).lineLimit(2).minimumScaleFactor(0.7)
 
                             Text("\(species.fishList.count) Fish")
                                 .font(.system(size: 14))
@@ -152,43 +152,38 @@ struct SpeciesListView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
 
-               
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 10) {
 
                         Text("Catch Log")
                             .font(.title2)
                             .fontWeight(.bold)
 
-                        ZStack {
+                        HStack(spacing: 10) {
 
-                            Rectangle()
-                                .colorInvert()
-                                .cornerRadius(27.5)
-                                .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-                                .padding(.vertical, -5)
-                                .padding(.horizontal, 13)
+                            // Segmented control (main filter)
+                            Picker("", selection: $selectedFilter) {
+                                Text("Newest").tag(FilterOption.newest)
+                                Text("Oldest").tag(FilterOption.oldest)
+                            }
+                            .pickerStyle(.segmented)
 
-                            HStack {
-
-                              
-                                filterButton(title: "Newest", selected: selectedFilter == .newest) {
-                                    selectedFilter = .newest
-                                }
-                                
-                                filterButton(title: "Oldest", selected: selectedFilter == .oldest) {
-                                    selectedFilter = .oldest
-                                }
-
-
-                                filterButton(title: "Pinned", selected: showPinnedOnly) {
-                                    showPinnedOnly.toggle()
-                                }
+                            // Small pinned toggle (blends in, not a second bar)
+                            Button {
+                                showPinnedOnly.toggle()
+                            } label: {
+                                Image(systemName: showPinnedOnly ? "pin.fill" : "pin")
+                                    .foregroundColor(showPinnedOnly ? .cyan : .secondary)
+                                    .frame(width: 36, height: 36)
+                                    .background(
+                                        Circle()
+                                            .fill(showPinnedOnly ? Color.cyan.opacity(0.15) : Color.gray.opacity(0.1))
+                                    )
                             }
                         }
                     }
                     .padding(.horizontal, 15)
                     .padding(.top, 15)
-                    .padding(.vertical, 6)
+                    .padding(.bottom, 6)
 
                 
                     VStack(spacing: 10) {
