@@ -20,54 +20,46 @@ struct FishData: Codable, Identifiable {
     }
 }
 
+import SwiftUI
+
 struct AlbumView: View {
     
     @EnvironmentObject var user: User
+    
     @State private var searchText: String = ""
-    @State private var showSuggestions: Bool = false
     @State private var showSearch: Bool = false
     @State private var showHint: Bool = false
 
-    let columns = [
-        GridItem(.flexible(), spacing: 4),
-        GridItem(.flexible(), spacing: 4)
-    ]
-    
     enum FilterOption: String, CaseIterable, Identifiable {
-        case alphabetical = "Alphabetical"
-        case caught = "Caught Fish"
-        case notCaught = "Not Caught Fish"
+        case alphabetical = "Species"
+        case caught = "Caught"
+        case notCaught = "Uncaught"
         var id: String { rawValue }
     }
 
     @State private var selectedFilter: FilterOption = .caught
     
+    // MARK: - Filtering
     var filteredSpecies: [Species] {
         var filtered = user.speciesStore.speciesList
 
         if !searchText.isEmpty {
-            filtered = filtered.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+            filtered = filtered.filter {
+                $0.name.lowercased().contains(searchText.lowercased())
+            }
         }
 
         switch selectedFilter {
         case .alphabetical:
             filtered.sort { $0.name < $1.name }
+            
         case .caught:
             filtered = filtered.filter { !$0.fishList.isEmpty }
             filtered.sort { $0.name < $1.name }
+            
         case .notCaught:
             filtered = filtered.filter { $0.fishList.isEmpty }
             filtered.sort { $0.name < $1.name }
-        }
-
-        var seen = Set<String>()
-        filtered = filtered.filter { species in
-            if seen.contains(species.name) {
-                return false
-            } else {
-                seen.insert(species.name)
-                return true
-            }
         }
 
         return filtered
@@ -75,256 +67,163 @@ struct AlbumView: View {
 
     var body: some View {
         ZStack {
+            
             ScrollView {
-                ZStack(alignment: .top) {
-                    Color.clear.frame(height: UIScreen.main.bounds.height)
+                VStack(spacing: 18) {
                     
+                    // TITLE
+                    Text("Album")
+                        .font(.system(size: 34, weight: .bold))
+                        .padding(.top, 20)
                     
-                    VStack(spacing: 25) {
-                        Text("Album")
-                            .font(.system(size: 34, weight: .bold))
-                            .padding(.top, 20)
-                        
-                        ZStack {
-                            HStack {}.background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .colorInvert()
-                                    .frame(width: UIScreen.main.bounds.width * 0.8575, height: UIScreen.main.bounds.width * 0.13)
-                                    .shadow(color: .black.opacity(0.1), radius: 10)
-                            )
-                            HStack {
-                                filterButton(title: "Species", filter: .alphabetical)
-                                filterButton(title: "Caught", filter: .caught)
-                                filterButton(title: "Uncaught", filter: .notCaught)
-                            }
+                    // ✅ SEGMENTED CONTROL (NEW)
+                    Picker("", selection: $selectedFilter) {
+                        ForEach(FilterOption.allCases) { option in
+                            Text(option.rawValue).tag(option)
                         }
-                        
-                        LazyVGrid(columns: columns, spacing: 15) {
-                            if filteredSpecies.isEmpty && selectedFilter == .caught {
-                                // Placeholder as a proper grid item, matches normal card layout
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(Color(.systemGray5).opacity(0.25))
-                                        .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
-
-                                    VStack(spacing: 8) {
-                                        Spacer()
-                                        
-                                        Image(systemName: "fish")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 50, height: 50)
-                                            .foregroundColor(.cyan.opacity(0.7))
-                                            .padding(.bottom, 4)
-                                        
-                                        Text("No fish caught yet")
-                                            .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(.secondary)
-                                            .multilineTextAlignment(.center)
-                                        
-                                        Spacer()
-                                    }
-                                    .padding(.horizontal, 10)
-                                }
-                                .frame(height: UIScreen.main.bounds.width * 0.45) // same as normal cards
-                                .frame(maxWidth: .infinity)
-                            } else {
-                                // Normal species grid
-                                ForEach(filteredSpecies) { item in
-                                    let hasFish = !item.fishList.isEmpty
-
-                                    if hasFish {
-                                        if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == item.id }) {
-                                            NavigationLink(
-                                                destination: SpeciesListView(
-                                                    aquarium: user.aquarium,
-                                                    species: user.speciesStore.speciesList[index]
-                                                ).navigationBarTitleDisplayMode(.inline)
-                                            ) {
-                                                SpeciesGridItem(species: user.speciesStore.speciesList[index], clickable: true)
-                                            }
-                                        }
-                                    } else {
-                                        SpeciesGridItem(species: item, clickable: false)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 15)
                     }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 20)
+
+                    // LIST
+                    VStack(spacing: 14) {
+                        
+                        if filteredSpecies.isEmpty {
+                            Text("No fish found")
+                                .foregroundColor(.secondary)
+                                .padding(.top, 40)
+                        } else {
+                            
+                            ForEach(filteredSpecies) { species in
+                                
+                                if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
+                                    
+                                    NavigationLink(
+                                        destination: SpeciesListView(
+                                            aquarium: user.aquarium,
+                                            species: user.speciesStore.speciesList[index]
+                                        )
+                                    ) {
+                                        SpeciesRow(species: user.speciesStore.speciesList[index])
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
                 }
+                .padding(.bottom, 120)
             }
             
+            // SEARCH BAR (UNCHANGED)
             VStack {
-                Spacer()
                 Spacer()
                 
                 ZStack(alignment: .trailing) {
+                    
                     HStack {
                         TextField("Search", text: $searchText)
-                            .foregroundColor(.black)
-                            .padding(.leading, 5)
+                            .padding(.leading, 10)
                             .frame(height: 55)
-                            .background(Color.white.opacity(1))
-                            .shadow(color: .black.opacity(0.1), radius: 10)
+                            .background(Color.white)
                             .cornerRadius(40)
+                            .shadow(color: .black.opacity(0.1), radius: 8)
                             .offset(y: showSearch ? -35 : 100)
-                            .animation(.easeInOut(duration: 0.3), value: showSearch)
-                            .onChange(of: searchText) { oldState, newValue in
-                                showSuggestions = !newValue.isEmpty
-                            }
+                            .animation(.easeInOut, value: showSearch)
+                        
                         Spacer()
-                    }.padding(.horizontal, 15)
-                    
+                    }
+                    .padding(.horizontal, 15)
                     
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation {
                             showSearch.toggle()
                             searchText = ""
                         }
                     } label: {
                         ZStack {
-                            
                             Circle()
                                 .fill(Color.white)
-                                .frame(width: 55, height: 55) // adjust size to your liking
-                                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2).opacity(showSearch ? 0: 1)
+                                .frame(width: 55, height: 55)
+                                .shadow(color: .black.opacity(0.08), radius: 4)
+                                .opacity(showSearch ? 0 : 1)
                             
                             Image(systemName: "magnifyingglass")
-                                .font(.system(size: 28))
+                                .font(.system(size: 24))
                                 .foregroundColor(.cyan)
-                            
-                                .shadow(color: Color.cyan.opacity(0.2), radius: 3, x: 0, y: 1)
-                            
-                        }.onAppear {
+                        }
+                        .scaleEffect(showHint ? 1.05 : 1)
+                        .onAppear {
                             withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
                                 showHint.toggle()
                             }
-                        } .scaleEffect(showHint ? 1.06 : 1.0)
+                        }
                     }
                     .padding(.trailing, 20)
                     .padding(.bottom, 70)
                 }
-                
-            }
-       
-        }
-        .background(Color.blue.opacity(0.01))
-      
-        // Top fog
-       
-        
-    }
-    
-    @ViewBuilder
-    private func filterButton(title: String, filter: FilterOption) -> some View {
-        Button {
-            selectedFilter = filter
-        } label: {
-            ZStack {
-                if selectedFilter == filter { SmallRoundedCard() }
-                else { SmallRoundedCard().opacity(0.0) }
-                Text(title)
-                    .foregroundStyle(selectedFilter == filter ? .cyan : .secondary) // active = cyan, inactive = subtle gray
-                    .fontWeight(selectedFilter == filter ? .semibold : .regular)
             }
         }
+        .background(Color.blue.opacity(0.02))
     }
 }
 
-// grid that's passed a species for each item 
-struct SpeciesGridItem: View {
-    @ObservedObject var species: Species
-    let clickable: Bool
+
+// grid that's passed a species for each item
+struct SpeciesRow: View {
     
-    private var cardWidth: CGFloat { UIScreen.main.bounds.width * 0.45 }
-    private var cardHeight: CGFloat { cardWidth }
+    @ObservedObject var species: Species
     
     var body: some View {
-        ZStack {
-          
-            // special package I added from chat since I couldnt get the data to load consistently well (KF caches image data so it only has to load once per usage of the app)
-            ZStack {
-             
-                if clickable {
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color(.systemGray5).opacity(0.1)) .frame(width: cardWidth * 0.95, height: cardHeight * 0.95) .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                }
-                
-                
-                
-                // MARK: - Blurred Background
-               
-                if !clickable {
-                    KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
-                        .placeholder {
-                            Image("stockPhoto")
-                                .resizable()
-                                .scaledToFill()
-                        }
-                        .retry(maxCount: 3, interval: .seconds(5))
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
-                        .blur(radius: 10)
-                        .opacity(0.45)
-                        .clipped()
-                    
-                }
-                
-                // MARK: - Fish Image (stretched to fill frame)
-                KFImage(URL(string: species.imageName.trimmingCharacters(in: .whitespacesAndNewlines)))
-                    .placeholder {
-                        Image("stockPhoto")
-                            .resizable()
-                    }
-                    .retry(maxCount: 3, interval: .seconds(5))
-                    .resizable()
-                    .frame(width: cardWidth * 0.95, height: cardHeight * 0.95) // forces the frame
-                    .clipped()
-                    .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-            }
-            .frame(width: cardWidth * 0.95, height: cardHeight * 0.95)
-           
-            .clipShape(RoundedRectangle(cornerRadius: 25)).saturation(clickable ? 1 : 0)
-            .opacity(clickable ? 1.0 : 0.6)
-            .brightness(clickable ? -0.1 : 0)
-                
-            if !clickable {
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color(.systemGray5).opacity(0.3)) .frame(width: cardWidth * 0.95, height: cardHeight * 0.95) .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-            }
+        let hasFish = species.fishList.count > 0
+        
+        HStack(spacing: 16) {
             
-           
+            Image("\(species.name)Icon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 55, height: 55)
+                .clipShape(Circle())
+                .overlay(
+                    Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+                .shadow(color: Color.cyan.opacity(hasFish ? 0.08 : 0.03), radius: 2, x: 0, y: 1)
             
-            HStack(spacing: 4) {
-                let imageName = "\(species.name)Icon"
-                let imageExists = UIImage(named: imageName) != nil
-
+            VStack(alignment: .leading, spacing: 4) {
+                
                 Text(species.name)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(imageExists ? .white : .white)
-                    .shadow(color: clickable ? Color.cyan.opacity(0.6) : .clear, radius: 4, x: 0, y: 0)
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(2)
-                    .allowsTightening(true)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(hasFish ? .primary : .secondary)
                 
-                if clickable {
-                    Text("(\(species.fishList.count))")
-                        .foregroundStyle(.white)
-                        .font(.system(size: UIScreen.main.bounds.width * 0.035))
+                Text("\(species.fishList.count) Fish")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                
+                if let heaviest = species.fishList.max(by: {
+                    ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0)
+                }) {
+                    Text("Heaviest: \(heaviest.fishWeight ?? 0) lbs")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
                 }
-                
-                Spacer()
             }
-            .padding(.top, 135)
-            .padding(.horizontal, 30)
+            
+            Spacer()
         }
-        .shadow(color: .black.opacity(0.1), radius: 20)
+        .contentShape(Rectangle())
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 22)
+                .foregroundStyle(hasFish ? Color.cyan.opacity(0.2) : Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22)
+                        .stroke(Color.cyan.opacity(hasFish ? 0.15 : 0.08))
+                )
+                .shadow(color: Color.cyan.opacity(hasFish ? 0.05 : 0.02), radius: 3, y: 1)
+        )
     }
 }
-
-
 #Preview {
     AlbumView()
         .environmentObject(User())
