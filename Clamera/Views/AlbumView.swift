@@ -174,7 +174,9 @@ struct SpeciesRow: View {
         
         HStack(spacing: 16) {
             
-            Image("\(species.name)Icon")
+       
+                
+            Image(UIImage(named: "\(species.name)Icon") != nil ? "\(species.name)Icon" : "Atlantic CodIcon")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 55, height: 55)
@@ -183,6 +185,7 @@ struct SpeciesRow: View {
                     Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1)
                 )
                 .shadow(color: Color.cyan.opacity(hasFish ? 0.08 : 0.03), radius: 2, x: 0, y: 1)
+            
             
             VStack(alignment: .leading, spacing: 4) {
                 
