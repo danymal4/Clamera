@@ -52,7 +52,7 @@ class Fish: Identifiable, ObservableObject, Hashable {
     func getDictionary() -> [String : String] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        var dict: [String : String] =
+        let dict: [String : String] =
         ["photo":self.photo,
          "speciesName":self.speciesName,
          "description":self.description,
