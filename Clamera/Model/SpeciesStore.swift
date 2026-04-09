@@ -29,6 +29,25 @@ final class SpeciesStore: ObservableObject {
         assignCatchOfTheWeek()
     }
     
+    func getDictionary() -> [String:[[String:String]]] {
+        var species: [String:[[String:String]]] = [:]
+        for s in speciesList {
+            species.updateValue(s.getArray(), forKey: s.name)
+        }
+        return species
+    }
+    
+    func update(speciesList:[String:[[String:String]]], clamPoints: Int) {
+        self.totalClamPoints = clamPoints
+        for (name, species) in speciesList{
+            for i in 0..<self.speciesList.count {
+                if self.speciesList[i].name == name {
+                    self.speciesList[i].update(fishArray: species)
+                }
+            }
+        }
+        
+    }
     
     // declares url from fish data json
     

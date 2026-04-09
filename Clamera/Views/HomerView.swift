@@ -23,7 +23,7 @@ struct HomerView: View {
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
     
-    // Popup state
+
     @State private var showCatchSavedPopup: Bool = false
     @State private var catchSavedMessage: String = ""
     @State private var popupColor: Color = .cyan
@@ -152,7 +152,7 @@ struct HomerView: View {
             triggerCatchPopup(message: message, color: color)
         }
        
-        .onChange(of: tabRouter.viewState) { newState in
+        .onChange(of: tabRouter.viewState) { oldState, newState in
             if newState == .aquarium {
                 lastUpdate = Date()
                 user.aquariumState.commitPendingClean()
@@ -265,5 +265,5 @@ struct HomerView: View {
 #Preview {
     HomerView()
         .environmentObject(User())
-        .environmentObject(SpeciesStore())  .environmentObject(LeaderboardData())
+        .environmentObject(LeaderboardData())
 }

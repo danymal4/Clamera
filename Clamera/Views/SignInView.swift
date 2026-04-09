@@ -1,17 +1,22 @@
 //
-//  SignInView.swift
+//  LogInView.swift
 //  Clamera
 //
-//  Created by Dany Malaeb (student LM) on 1/28/26.
+//  Created by Dany Malaeb (student LM) on 2/3/26.
 //
 
 import SwiftUI
 
 struct SignInView: View {
+    
+    @State var email = ""
+    @State var password = ""
+    @State var username = ""
+    
     var body: some View{
         
         WaterView()
-            .position(x: 200, y: 650).opacity(0)
+            .position(x: 200, y: 650).opacity(0.6)
         
         HStack {
             VStack{
@@ -23,16 +28,16 @@ struct SignInView: View {
                     
                 }.position(x: 200, y: 40)
                 HStack {
-                    Text("Create an account")
+                    Text("Sign In To Your Account")
                         .font(.custom("HelveticaNeue-Thin", size: 20))
                         .bold()
                     
-                }.position(x: 200,y:50)
+                }.position(x: 200,y:70)
                 HStack {
-                    Text("Enter your email to sign up for this app")
+                    Text("Enter your email and password to sign in")
                         .font(.custom("HelveticaNeue-Thin", size: 18))
                     
-                } .position(x: 200, y:20)
+                } .position(x: 200, y:50)
                 
             }
             
@@ -45,11 +50,23 @@ struct SignInView: View {
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
                 
-            Text("email@​domain.com")
+            TextField("email@​domain.com", text: $email)
                 .foregroundStyle(.gray)
                 .bold()
-                .padding(.trailing, 170)
-        }.position(x: 200, y: -120)
+                .padding(.leading, 40)
+        }.position(x: 200, y: -65)
+        
+        ZStack{
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray, lineWidth: 2)
+                .foregroundStyle(.white)
+                .frame(width: 350, height: 50)
+                
+            SecureField("Password", text: $password)
+                .foregroundStyle(.gray)
+                .bold()
+                .padding(.leading, 40)
+        }.position(x: 200, y: -160)
         
         ZStack{
             Rectangle()
@@ -59,10 +76,14 @@ struct SignInView: View {
                 .position(x: 200, y:-250)
             
             
-            Text("Continue")
-                .foregroundStyle(.white)
-                .bold()
-                .position(x: 200, y:-250)
+            Button("Sign In"){
+                Task{
+                    await AuthManager.shared.signIn(email: email, password: password)
+                }
+            }
+            .foregroundStyle(.white)
+            .bold()
+            .position(x: 200, y:-250)
             
             Rectangle()
                 .foregroundStyle(.gray)
@@ -76,7 +97,7 @@ struct SignInView: View {
                 .position(x: 200, y:-200)
             
             
-            Text("Login With Username & Password")
+            Text("Sign Up With Email and Password")
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-150)
