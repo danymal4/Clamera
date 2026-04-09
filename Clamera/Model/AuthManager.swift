@@ -45,6 +45,7 @@ class AuthManager: ObservableObject{
 
             // Same as signUp — setting user triggers the UI to switch to ProfileView
             user = User(id: result.user.uid, email: result.user.email ?? "")
+            await FirestoreManager.shared.fetchUser(user: user ?? User())
             print("signed in")
 
         } catch {

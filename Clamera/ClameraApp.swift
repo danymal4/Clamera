@@ -11,7 +11,7 @@ import Firebase
 @main
 struct ClameraApp: App {
     @StateObject var auth = AuthManager.shared
-    @StateObject var user = User()
+    //@StateObject var user = User()
     @StateObject var leaderboard = LeaderboardData()
 
     init(){
@@ -20,9 +20,13 @@ struct ClameraApp: App {
     
     var body: some Scene {
         WindowGroup {
-                SignUpView()
+            if let user = auth.user {
+                HomerView()
                     .environmentObject(user)
                     .environmentObject(leaderboard)
+            } else {
+                SignUpView()
+            }
         }
     }
 }
