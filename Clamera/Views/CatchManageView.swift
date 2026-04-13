@@ -179,7 +179,9 @@ struct CatchManageView: View {
                 
                 // Confirm Button
                 Button("Confirm") {
-                    saveCatch()
+                    Task{
+                        await saveCatch()
+                    }
                  
                
                 }
@@ -228,7 +230,7 @@ struct CatchManageView: View {
         else { return .gray.opacity(0.6) }
     }
     
-    func saveCatch() {
+    func saveCatch() async {
         guard let index = user.speciesStore.speciesList.firstIndex(where: {
             $0.name.lowercased() ==
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -289,7 +291,7 @@ struct CatchManageView: View {
                 user.speciesStore.popupType = 1 // normal fish
             }
         }
-        
+        await FirestoreManager.shared.saveUser(user: user)
         
       
     }
