@@ -34,12 +34,6 @@ struct SignInView: View {
                         .bold()
                     
                 }.position(x: 200,y:70)
-                HStack {
-                    Text("Enter your email and password to sign in")
-                        .font(.custom("HelveticaNeue-Thin", size: 18))
-                    
-                } .position(x: 200, y:50)
-                
             }
             
             
@@ -116,22 +110,9 @@ struct SignInView: View {
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-90)
-            
-            
-            Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
-                .foregroundStyle(.gray)
-                .bold()
-                .font(.custom("HelveticaNeue-Thin", size: 14))
-                .padding(.leading, 40)
-                .padding(.trailing, 40)
-                .position(x: 200, y: -30)
-            
         }
-
     }
 }
-
-
 
 #Preview {
     SignInView(editState: Binding.constant(.editing))

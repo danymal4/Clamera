@@ -34,11 +34,7 @@ struct SignUpView: View {
                             .bold()
                         
                     }.position(x: 200,y:70)
-                    
-                    
                 }
-                
-                
             } .position(x:200, y:-40)
             
             ZStack{
