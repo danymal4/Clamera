@@ -12,6 +12,7 @@ struct SignInView: View {
     @State var email = ""
     @State var password = ""
     @State var username = ""
+    @Binding var editState: EditState
     
     var body: some View{
         
@@ -97,7 +98,9 @@ struct SignInView: View {
                 .position(x: 200, y:-200)
             
             
-            Text("Sign Up With Email and Password")
+            Button("Sign Up With Email and Password"){
+                editState = .notEditing
+            }
                 .foregroundStyle(.white)
                 .bold()
                 .position(x: 200, y:-150)
@@ -131,5 +134,5 @@ struct SignInView: View {
 
 
 #Preview {
-    SignInView()
+    SignInView(editState: Binding.constant(.editing))
 }

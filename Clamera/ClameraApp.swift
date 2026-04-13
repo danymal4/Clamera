@@ -26,6 +26,7 @@ struct ClameraApp: App {
             } else {
                 SignUpView()
             }
+            
         }
     }
 }
