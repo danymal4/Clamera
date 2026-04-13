@@ -126,6 +126,11 @@ struct FishDetailsView: View {
                     Spacer()
                     Button {
                         binding.isPinned.wrappedValue.toggle()
+                        Task{
+                            if let user = AuthManager.shared.user{
+                                await FirestoreManager.shared.saveUser(user: user)
+                            }
+                        }
                     } label: {
                         Image(fish.isPinned ? "anchorUnpinned" : "anchor")
                             .resizable()

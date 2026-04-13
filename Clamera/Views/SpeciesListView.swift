@@ -350,6 +350,12 @@ struct FishGridItem: View {
                             if showPinnedOnly {
                                 user.aquarium.refresh()
                             }
+                            Task{
+                                if let user = AuthManager.shared.user{
+                                    await FirestoreManager.shared.saveUser(user: user)
+                                }
+                            }
+    
                         } label: {
 
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")
@@ -414,6 +420,11 @@ struct FishGridItem: View {
                                     }
                                     
                                     species.fishList.removeAll { $0.id == fish.id }
+                                    Task{
+                                        if let user = AuthManager.shared.user {
+                                            await FirestoreManager.shared.saveUser(user: user)
+                                        }
+                                    }
                                 }
                                 
                                 Button("Cancel", role: .cancel) { }
