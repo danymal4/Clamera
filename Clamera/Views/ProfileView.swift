@@ -61,7 +61,7 @@ struct ProfileView: View {
                 
                 // MARK: - Logout Button
                 Button {
-                    // Logout action
+                    AuthManager.shared.signOut()
                 } label: {
                     Text("Logout")
                         .font(.system(size: 18, weight: .semibold))
