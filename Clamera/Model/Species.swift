@@ -33,7 +33,9 @@ class Species: ObservableObject, Identifiable, Hashable {
     func update(fishArray: [[String:String]]) {
         var fishList: [Fish] = []
         for fish in fishArray {
-            fishList.append(Fish(dictionary: fish))
+            if fish != [:] {
+                fishList.append(Fish(dictionary: fish))
+            }
         }
         self.fishList = fishList
     }
