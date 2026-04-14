@@ -15,7 +15,7 @@ struct ProfileView: View {
         ScrollView {
             VStack(spacing: 30) {
                 
-                // MARK: - Header
+                
                 VStack(spacing: 10) {
         
                     
@@ -36,7 +36,7 @@ struct ProfileView: View {
                 }
                 .padding(.top, 40)
                 
-                // MARK: - Info Section
+                
                 VStack(spacing: 0) {
                     
                     infoRow(title: "Email", value: user.email)
@@ -59,7 +59,7 @@ struct ProfileView: View {
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
                 .padding(.horizontal)
                 
-                // MARK: - Logout Button
+                
                 Button {
                     AuthManager.shared.signOut()
                 } label: {
@@ -81,7 +81,7 @@ struct ProfileView: View {
         .edgesIgnoringSafeArea(.bottom)
     }
     
-    // MARK: - Info Row Helper
+    
     private func infoRow(title: String, value: String) -> some View {
         HStack {
             Text(title)
@@ -96,7 +96,7 @@ struct ProfileView: View {
         .padding(.vertical, 15)
     }
     
-    // MARK: - Divider Helper
+    
     private func divider() -> some View {
         Rectangle()
             .fill(Color.black.opacity(0.05))
