@@ -121,9 +121,9 @@ struct HomerView: View {
                                 }
                             }
                         }
+                    }
                 }
             }
-        }
         .edgesIgnoringSafeArea(.bottom)
         .onAppear { startCleanTimer() }
         .onDisappear {
