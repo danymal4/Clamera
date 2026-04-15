@@ -68,7 +68,7 @@ class AuthManager: ObservableObject{
         // 2. Find the "Presenting View Controller" (the window currently on screen)
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
-            print("Could not find root view controller")
+            print("AuthManager Line 69: Could not find root view controller")
             return
         }
         
@@ -77,7 +77,10 @@ class AuthManager: ObservableObject{
         
         // 4. Get the tokens from the Google User
         let user = result.user
-        guard let idToken = user.idToken?.tokenString else { return }
+        guard let idToken = user.idToken?.tokenString else {
+            print("AuthManager Line 80: idToken not found")
+            return
+        }
         
         // 5. Create the Firebase Credential
         let credential = GoogleAuthProvider.credential(withIDToken: idToken,
@@ -85,7 +88,12 @@ class AuthManager: ObservableObject{
         
         // 6. Sign in to Firebase with that credential
         let authResult = try await Auth.auth().signIn(with: credential)
+        
+        self.user = User(id: authResult.user.uid, email: authResult.user.email ?? "")
+        await FirestoreManager.shared.fetchUser(user: self.user ?? User())
+        
         print("Successfully signed in! User: \(authResult.user.uid)")
+        
     }
     
     func signOut(){

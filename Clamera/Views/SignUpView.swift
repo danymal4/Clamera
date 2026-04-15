@@ -116,7 +116,7 @@ struct SignUpView: View {
                     .position(x: 200, y:-90)
                 
                 
-                Button(action: {
+                Button("Continue With Google") {
                     Task {
                         do {
                             try await AuthManager.shared.signInWithGoogle()
@@ -124,13 +124,10 @@ struct SignUpView: View {
                             print("Google Sign-In failed: \(error.localizedDescription)")
                         }
                     }
-                }) {
-                    
-                    Text("Continue With Google")
-                        .foregroundStyle(.white)
-                        .bold()
-                        .position(x: 200, y:-90)
                 }
+                .foregroundStyle(.white)
+                .bold()
+                .position(x: 200, y:-90)
                 
             }
         }
