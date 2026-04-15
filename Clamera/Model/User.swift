@@ -24,7 +24,7 @@ class User: ObservableObject {
         "TackleTitan", "MarlinManiac", "GuppyGuru", "HookLine", "DriftDude",
         "SnapperSniper", "PikePirate", "RodRuler", "ChumChampion", "GillGrinder",
         "FisherFrenzy", "AnglingAce", "BassBuster", "CodCommander", "ReelRanger",
-        "SeaSnatcher", "MinnowMaster", "TroutTracker", "HookHustler", "BaitBrawler",
+        "SeaSnatcher", "MinnowMaster", "TroutTracker", "HookerHustler", "BaitBrawler",
         "SalmonSage", "CatchCaptain", "LureLover", "OceanOutlaw", "FinFinder",
         "DriftKing", "TackleTamer", "GuppyGlider", "MarlinMaven", "ReelReaper",
         "PikePatrol", "SnapperSurfer", "RodRider", "ChumChaser", "FishFiend"

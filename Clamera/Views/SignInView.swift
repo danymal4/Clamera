@@ -44,7 +44,7 @@ struct SignInView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
-                
+            
             TextField("email@​domain.com", text: $email)
                 .foregroundStyle(.gray)
                 .bold()
@@ -56,7 +56,7 @@ struct SignInView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
-                
+            
             SecureField("Password", text: $password)
                 .foregroundStyle(.gray)
                 .bold()
@@ -95,9 +95,9 @@ struct SignInView: View {
             Button("Sign Up With Email and Password"){
                 editState = .notEditing
             }
-                .foregroundStyle(.white)
-                .bold()
-                .position(x: 200, y:-150)
+            .foregroundStyle(.white)
+            .bold()
+            .position(x: 200, y:-150)
             
             Rectangle()
                 .foregroundStyle(.gray)
@@ -105,11 +105,21 @@ struct SignInView: View {
                 .cornerRadius(10)
                 .position(x: 200, y:-90)
             
-            
-            Text("Continue With Google")
-                .foregroundStyle(.white)
-                .bold()
-                .position(x: 200, y:-90)
+            Button(action: {
+                Task {
+                    do {
+                        try await AuthManager.shared.signInWithGoogle()
+                    } catch {
+                        print("Google Sign-In failed: \(error.localizedDescription)")
+                    }
+                }
+            }) {
+                
+                Text("Continue With Google")
+                    .foregroundStyle(.white)
+                    .bold()
+                    .position(x: 200, y:-90)
+            }
         }
     }
 }

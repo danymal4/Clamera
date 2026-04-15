@@ -18,28 +18,20 @@ final class TabRouter: ObservableObject {
 struct HomerView: View {
     @EnvironmentObject var user: User
     @EnvironmentObject var leaderboard: LeaderboardData
-
     @StateObject private var tabRouter = TabRouter()
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
-    
-
     @State private var showCatchSavedPopup: Bool = false
     @State private var catchSavedMessage: String = ""
     @State private var popupColor: Color = .cyan
     @State private var popupOffset: CGFloat = 150
-    
     @State private var showAquariumBottomBar: Bool = true
     @State private var bottomBarWorkItem: DispatchWorkItem?
-
-   
     @State private var bubblePlayer: AVAudioPlayer?
     @State private var fadeTimer: Timer?
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            
-
             Group {
                 switch tabRouter.viewState {
                 case .home: NavigationStack { HomeRevised() }
