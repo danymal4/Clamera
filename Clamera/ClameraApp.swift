@@ -6,26 +6,26 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
 struct ClameraApp: App {
-    
-    @StateObject var aquarium = AquariumFishList()
-    @StateObject var speciesStore = SpeciesStore()
-    @StateObject var aquariumState = AquariumState()
-    @StateObject var user = User()
+    @StateObject var auth = AuthManager.shared
     @StateObject var leaderboard = LeaderboardData()
+
+    init(){
+        FirebaseApp.configure()
+    }
     
     var body: some Scene {
         WindowGroup {
-            
-              
-                HomerView()   // ← just reference it
-                    .environmentObject(aquarium)
-                    .environmentObject(speciesStore)
-                    .environmentObject(aquariumState)
+            if let user = auth.user {
+                HomerView()
                     .environmentObject(user)
                     .environmentObject(leaderboard)
+            } else {
+                SignUpView()
+            }
         }
     }
 }

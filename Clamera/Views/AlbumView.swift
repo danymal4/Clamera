@@ -7,12 +7,17 @@
 import SwiftUI
 import Kingfisher
 
-// codable since it absorbs data directly from fish data json
 struct FishData: Codable, Identifiable {
     let id = UUID()
-    let Species: String        // Scientific name
-    let CommonName: String     // Human-friendly name
-    let Image: String          // URL of image
+    let Species: String
+    let CommonName: String
+    let Image: String
+
+    enum CodingKeys: String, CodingKey {
+        case Species
+        case CommonName
+        case Image
+    }
 }
 
 import SwiftUI
