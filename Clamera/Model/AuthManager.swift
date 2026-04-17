@@ -57,36 +57,36 @@ class AuthManager: ObservableObject{
     
     @MainActor
     func signInWithGoogle() async throws {
-        // 1. Get the Client ID from Firebase configuration
+        // Get the Client ID from Firebase configuration
         guard let clientID = FirebaseApp.app()?.options.clientID else {
-            print("AuthManager Line 61: Could not retrieve client ID from Firebase configuration.")
+            print("AuthManager: Could not retrieve client ID from Firebase configuration.")
             return
         }
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
         
-        // 2. Find the "Presenting View Controller" (the window currently on screen)
+        // Find the "Presenting View Controller" (the window currently on screen)
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
-            print("AuthManager Line 69: Could not find root view controller")
+            print("AuthManager: Could not find root view controller")
             return
         }
         
-        // 3. Start the Google Sign-In flow
+        // Start the Google Sign-In flow
         let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
         
-        // 4. Get the tokens from the Google User
+        // Get the tokens from the Google User
         let user = result.user
         guard let idToken = user.idToken?.tokenString else {
             print("AuthManager Line 80: idToken not found")
             return
         }
         
-        // 5. Create the Firebase Credential
+        // Create the Firebase Credential
         let credential = GoogleAuthProvider.credential(withIDToken: idToken,
                                                        accessToken: user.accessToken.tokenString)
         
-        // 6. Sign in to Firebase with that credential
+        // Sign in to Firebase with that credential
         let authResult = try await Auth.auth().signIn(with: credential)
         
         self.user = User(id: authResult.user.uid, email: authResult.user.email ?? "")
