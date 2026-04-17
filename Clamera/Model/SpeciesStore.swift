@@ -11,9 +11,10 @@ final class SpeciesStore: ObservableObject {
     @Published var speciesList: [Species] = []
     @Published var totalClamPoints: Int = 40
     
-
+    @Published var pinnedDisplay: Fish?
     @Published var catchOfTheWeek: Species?
     @Published var catchOfTheWeekPoints: Int = Int.random(in: 30...40) * 5
+    @Published var popupType: Int = 0
     
     init() {
        
@@ -65,7 +66,20 @@ final class SpeciesStore: ObservableObject {
         }
     }
     
-  
+    func assignPinnedDisplay() {
+        var pinnedFish: [Fish] = []
+
+        for species in speciesList {
+            for fish in species.fishList {
+                if fish.isPinned {
+                    pinnedFish.append(fish)
+                }
+            }
+        }
+
+        pinnedDisplay = pinnedFish.randomElement()
+    }
+    
     func assignCatchOfTheWeek() {
         let validSpecies = speciesList.filter { species in
             let imageName = "\(species.name)Icon"

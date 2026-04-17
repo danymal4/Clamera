@@ -8,131 +8,104 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var speciesStore: SpeciesStore
+    
+    @EnvironmentObject var user: User
     
     var body: some View {
+        ScrollView {
+            VStack(spacing: 30) {
+                
+                // MARK: - Header
+                VStack(spacing: 10) {
         
-        ZStack{
-        
-        
-
-            
-            VStack{
-                
-                
-                
-                
-                Text("Profile")                         .font(.system(size: 42, weight: .bold))
-                    .foregroundColor(.black)
-                    .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1).padding().padding(.bottom, -55)
-                
-                Image("fisherman")
-                    .resizable().aspectRatio(contentMode: .fit) .clipShape(Circle()).overlay(Circle().stroke(Color.blue, lineWidth: 5).opacity(0.2)).frame(width: min(UIScreen.main.bounds.width * 0.9, 2000),
-                                                                                                                                                            height: min(UIScreen.main.bounds.width * 0.9, 2000)).padding(.bottom, -10)
-                
-                Text("Ellis").padding(.top, -38).font(.system(size: UIScreen.main.bounds.width * 0.06)).opacity(0.8).bold().padding(.top, 10).opacity(0.9)
-                
-                
-             
-                ZStack {
                     
-                    HStack{
-                        Spacer()
-                        Rectangle().colorInvert()
-                            .cornerRadius(30)
-                        
-                            .opacity(0.5)
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.54, 390)
-                            ) .shadow(color: .black.opacity(0.1), radius: 10)
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                    }.padding(.top, -20)
-                    HStack(){
-                        
-                        VStack{
-                            Text("email:     s019204@gmail.com ")
-                                .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                .opacity(0.8)
-                                .bold().padding(.bottom).frame(
-                                    width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                    alignment: .leading
-                                )
-                            
-                            
-                            Text("password:   ******")
-                                .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                .opacity(0.8)
-                                .bold().padding(.bottom).frame(
-                                    width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                    alignment: .leading
-                                )
-                            
-                            Text("Fish Caught:   \(speciesStore.getFish())")
-                                .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                .opacity(0.8)
-                                .bold().padding(.bottom).frame(
-                                    width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                    alignment: .leading
-                                )
-                            
-                            Text("Species Caught:  \(speciesStore.getSpecies())/\(speciesStore.speciesList.count)")
-                                .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                .opacity(0.8)
-                                .bold().padding(.bottom).frame(
-                                    width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                    alignment: .leading
-                                )
-                            
-                            HStack{
-                                Text("Clam Points:   \(speciesStore.totalClamPoints)")
-                                    .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                                    .opacity(0.8)
-                                    .bold().padding(.bottom, 4).frame(
-                                        width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                                        alignment: .leading
-                                    )
-                                
-                                
-                            }
-                        }  .padding(.top, -10).padding()
-                        
-                        Spacer()
-                        
-                        
-                    }.padding(.leading, 23)
+                    // Profile picture
+                    Image(user.profilePicture)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 140, height: 140)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
+                        .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
                     
-                    HStack {
-                       Spacer()
-                        Button{
-                            
-                        }
-                        label: {
-                            Text("Logout").opacity(0.8)
-                        }.padding(.bottom, 5)
-                    }.padding(.top, 230).padding(.horizontal)
+                    // Username
+                    Text(user.username)
+                        .font(.title2)
+                        .bold()
+                        .foregroundColor(.black.opacity(0.85))
                 }
+                .padding(.top, 40)
                 
+                // MARK: - Info Section
+                VStack(spacing: 0) {
+                    
+                    infoRow(title: "Email", value: user.email)
+                    divider()
+                    
+                    infoRow(title: "Password", value: "*****")
+                    divider()
+                    
+                    infoRow(title: "Fish Caught", value: "\(user.speciesStore.getFish())")
+                    divider()
+                    
+                    infoRow(title: "Species Caught", value: "\(user.speciesStore.getSpecies())/\(user.speciesStore.speciesList.count)")
+                    divider()
+                    
+                    infoRow(title: "Clam Points", value: "\(user.speciesStore.totalClamPoints)")
+                    
+                }
+                .background(RoundedRectangle(cornerRadius: 25)
+                    .fill(Color(.systemGray6))
+                    .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
+                .padding(.horizontal)
                 
+                // MARK: - Logout Button
+                Button {
+                    // Logout action
+                } label: {
+                    Text("Logout")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.red.opacity(0.7), lineWidth: 1))
+                }
+                .padding(.horizontal)
+                .padding(.top, 20)
                 
-            }.padding(.bottom, 60)
-            VStack {
-                          Spacer()
-                          Rectangle()
-                              .fill(Color.white.opacity(0.6))
-                              .frame(height: 83).shadow(color: .black.opacity(0.1), radius: 10)
-                     
-                      }
-                  
-                  .edgesIgnoringSafeArea(.bottom)
-            
+                Spacer(minLength: 30)
+            }
         }
-       .background(Color.blue.opacity(0.01))
+        .background(Color.blue.opacity(0.01))
+        .edgesIgnoringSafeArea(.bottom)
+    }
+    
+    // MARK: - Info Row Helper
+    private func infoRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundColor(.secondary)
+                .fontWeight(.medium)
+            Spacer()
+            Text(value)
+                .foregroundColor(.black)
+                .bold()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 15)
+    }
+    
+    // MARK: - Divider Helper
+    private func divider() -> some View {
+        Rectangle()
+            .fill(Color.black.opacity(0.05))
+            .frame(height: 1)
+            .padding(.horizontal)
     }
 }
 
 #Preview {
-    ProfileView()        .environmentObject(SpeciesStore())
+    ProfileView()
+        .environmentObject(User())
 }

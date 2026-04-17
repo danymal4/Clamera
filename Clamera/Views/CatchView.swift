@@ -28,7 +28,7 @@ struct CatchView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 20 * vScale) {
                         
-                        // Header with fishing rod and title
+                       
                         HStack(alignment: .top, spacing: -20) {
                             Image("Rod")
                                 .resizable()
@@ -69,7 +69,7 @@ struct CatchView: View {
                             if let image = selectedImage {
                                 Image(uiImage: image)
                                     .resizable()
-                                    .scaledToFill()
+                                   
                                     .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
                                            height: min(UIScreen.main.bounds.width * 0.85, 750))
                                     .clipped()
@@ -115,7 +115,7 @@ struct CatchView: View {
                                         .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
                                 }
                             }
-                            .onChange(of: selectedItem) { newItem in
+                            .onChange(of: selectedItem) { oldState, newItem in
                                 guard let newItem else { return }
                                 Task {
                                     if let data = try? await newItem.loadTransferable(type: Data.self),
@@ -213,7 +213,7 @@ struct CatchView: View {
                 
             }
         } else {
-            CatchManageView(editState: $editState, selectedUIImage: selectedImage)
+            CatchManageView(editState: $editState, selectedUIImage: $selectedImage)
         }
     }
 }

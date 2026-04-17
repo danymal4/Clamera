@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct AquariumManageView: View {
-    @EnvironmentObject var aquarium: AquariumFishList
-    @EnvironmentObject var aquariumState: AquariumState
-    @EnvironmentObject var speciesStore: SpeciesStore
+    @EnvironmentObject var user: User
+    
     @State var isDropdown: Bool = true
     @State private var viewRefreshID = false
     @State private var selectedFish: Int = -1
     @State private var delay: Bool = false
     @State private var refreshID = UUID()
     @State private var swipedIndex: Int? = nil
+    @State private var showClearConfirm = false
 
 
     var vScale: CGFloat { min(UIScreen.main.bounds.height / 844, 1.2) }
@@ -69,7 +69,6 @@ struct AquariumManageView: View {
                     
                     
                     
-                    
                     let collapsedHeight = min(UIScreen.main.bounds.width * 0.43, 2000)
                     let expandedHeight = min(UIScreen.main.bounds.width * 0.6, 2000)
 
@@ -101,7 +100,7 @@ struct AquariumManageView: View {
 
                         // Fish rows
                         VStack(spacing: 14.5) {
-                            ForEach(Array(aquarium.fish.enumerated()), id: \.element.id) { i, fish in
+                            ForEach(Array(user.aquarium.fish.enumerated()), id: \.element.id) { i, fish in
 
                                 VStack(spacing: 5) {
                                     // Fish row: icon + toggle + divider
@@ -162,27 +161,31 @@ struct AquariumManageView: View {
                                         Spacer()
                                         Spacer()
                                         Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
 
+                                        // ✅ Updated Toggle
                                         if fish.isActive {
-                                            Toggle("", isOn: Binding(
-                                                get: { fish.isShown },
-                                                set: { newValue in
-                                                    var updatedFish = fish
-                                                    updatedFish.isShown = newValue
-                                                    aquarium.fish[i] = updatedFish
-
+                                            Toggle("", isOn: $user.aquarium.fish[i].isShown)
+                                                .labelsHidden()
+                                                .tint(.green)
+                                                .onChange(of: user.aquarium.fish[i].isShown) { newValue in
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
                                                     }
                                                 }
-                                            ))
-                                            .labelsHidden()   .tint(.green)
                                         }
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
-                                        Spacer()
 
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
+                                        Spacer()
                                     }
                                     .padding(.horizontal, -210)
                                     .offset(y: isDropdown
@@ -215,11 +218,11 @@ struct AquariumManageView: View {
                                                     value: Binding(
                                                         get: { 16 - fish.swimDuration },
                                                         set: { newVal in
-                                                            aquarium.updateSpeed(for: fish, to: 16 - newVal)
+                                                            user.aquarium.updateSpeed(for: fish, to: 16 - newVal)
                                                         }
                                                     ),
                                                     in: 1...15
-                                                ).accentColor(.cyan.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6)) .layoutPriority(1)
 
                                                 Image("fast").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.06, 2000),
@@ -237,11 +240,11 @@ struct AquariumManageView: View {
                                                         get: { Double(fish.size.width) },
                                                         set: { newVal in
                                                             let newHeight = fish.size.height * newVal / fish.size.width
-                                                            aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
+                                                            user.aquarium.updateSize(for: fish, to: CGSize(width: newVal, height: newHeight))
                                                         }
                                                     ),
                                                     in: 20...200
-                                                ).accentColor(.cyan.opacity(0.6))
+                                                ).accentColor(.cyan.opacity(0.6)) .layoutPriority(1)
 
                                                 Image("big").resizable().frame(
                                                     width: min(UIScreen.main.bounds.width * 0.08, 2000),
@@ -264,13 +267,13 @@ struct AquariumManageView: View {
                                             if fish.isActive {
                                                 withAnimation(.easeInOut) {
                                                     if let speciesID = fish.speciesID,
-                                                       let species = speciesStore.speciesList.first(where: { $0.id == speciesID }) {
+                                                       let species = user.speciesStore.speciesList.first(where: { $0.id == speciesID }) {
 
                                                         if let fishToRemove = species.fishList.first(where: { $0.isAquarium }) {
                                                             fishToRemove.isAquarium = false
                                                         }
                                                     }
-                                                    aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
+                                                    user.aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
                                                     swipedIndex = nil
                                                 }
                                             }
@@ -304,14 +307,14 @@ struct AquariumManageView: View {
                                 .padding(.horizontal, 60)
                             }
                         }
-                        .padding(.bottom, -10)  .frame(
+                        .padding(.bottom, -10)
+                        .frame(
                             width: min(UIScreen.main.bounds.width * 0.9, 2000),
                             height: isDropdown ? collapsedHeight : expandedHeight
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 30))
                     }
-                    
-                 
+
                     .animation(.easeInOut(duration: 0.3), value: isDropdown)
                   
                     
@@ -348,12 +351,12 @@ struct AquariumManageView: View {
                             HStack {
                                 
                                 
-                                if (100 - (300 * aquariumState.clean)) > 60 {
+                                if (100 - (300 * user.aquariumState.clean)) > 60 {
                                     Image("good").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.12, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.12, 2000)
                                     )
-                                } else if (100 - (300 * aquariumState.clean)) > 20 {
+                                } else if (100 - (300 * user.aquariumState.clean)) > 20 {
                                     Image("med").resizable().frame(
                                         width: min(UIScreen.main.bounds.width * 0.12, 2000),
                                         height: min(UIScreen.main.bounds.width * 0.12, 2000)
@@ -373,7 +376,7 @@ struct AquariumManageView: View {
                                 
                                 
                                 
-                                Text("  \(String(format: "%.2f", (100 - (300 * aquariumState.clean)))) %")
+                                Text("  \(String(format: "%.2f", (100 - (300 * user.aquariumState.clean)))) %")
                                     .padding(.horizontal, -5)
                                     .foregroundStyle(.gray)
                                     .font(.system(size: UIScreen.main.bounds.width * 0.035))
@@ -425,7 +428,7 @@ struct AquariumManageView: View {
                             .cornerRadius(30)
                             .frame(
                                 width: min(UIScreen.main.bounds.width * 0.9, 2000),
-                                height: min(UIScreen.main.bounds.width * 0.45, 2000)
+                                height: min(UIScreen.main.bounds.width * 0.44, 2000)
                             )
                             .shadow(color: .black.opacity(0.1), radius: 10)
                         
@@ -433,26 +436,29 @@ struct AquariumManageView: View {
                     
                         
                         
-                        VStack(spacing: 8){
+                        VStack(spacing: 10){
                            
                             
                             
                             HStack{
                                 
-                                Text("Bubbles").opacity(0.5).font(.system(size: UIScreen.main.bounds.width * 0.045)).bold()
+                                Text("Bubbles").opacity(0.5).font(.system(size: UIScreen.main.bounds.width * 0.045)).bold().padding(.horizontal, 10)
                                  
                                 
                                 Spacer()
+                              
                                 
                                 Toggle("Bubbles", isOn: Binding(
-                                    get: { aquariumState.bubbleVisibility > 0 },
+                                    get: { user.aquariumState.bubbleVisibility > 0 },
                                     set: { newValue in
-                                        aquariumState.bubbleVisibility = newValue ? 1 : 0
+                                        user.aquariumState.bubbleVisibility = newValue ? 1 : 0
+                                        user.aquariumState.bubbleAmount = newValue ? 1.0 : 0.0
                                     }
                                 ))
-                                .labelsHidden().tint(.green)
+                                .labelsHidden()
+                                .tint(.green)
                                 
-                            }.padding(.horizontal, 45)
+                            }.padding(.horizontal, 35)
                             
                             
                             Divider()
@@ -468,12 +474,12 @@ struct AquariumManageView: View {
                                     height: min(UIScreen.main.bounds.width * 0.1, 2000)).cornerRadius(10).padding(.horizontal, -40)
                                 
                                 
-                                Text("Amount  \(String(format: "%.1f", aquariumState.bubbleAmount))").opacity(0.9).opacity(0.5)
+                                Text("Amount  \(String(format: "%.1f", user.aquariumState.bubbleAmount))").opacity(0.9).opacity(0.5)
                                 
                                 Spacer()
                             
                                 
-                                Stepper("", value: $aquariumState.bubbleAmount, in: 0.1...3, step: 0.1)
+                                Stepper("", value: $user.aquariumState.bubbleAmount, in: 0.1...3, step: 0.1)
                                        .labelsHidden()
                                        .frame(width: UIScreen.main.bounds.width * 0.6).padding(.horizontal, -40)
                            
@@ -488,12 +494,12 @@ struct AquariumManageView: View {
                                     width: min(UIScreen.main.bounds.width * 0.1, 2000),
                                     height: min(UIScreen.main.bounds.width * 0.1, 2000)).colorInvert().cornerRadius(10).padding(.horizontal, -40)
                                 
-                                Text("Visibility  \(String(format: "%.1f", aquariumState.bubbleVisibility))").opacity(0.9).opacity(0.5)
+                                Text("Visibility  \(String(format: "%.1f", user.aquariumState.bubbleVisibility))").opacity(0.9).opacity(0.5)
                            
                                 Spacer()
                                 
                                 
-                                Stepper("", value: $aquariumState.bubbleVisibility, in: 0.1...2, step: 0.1)
+                                Stepper("", value: $user.aquariumState.bubbleVisibility, in: 0.1...2, step: 0.1)
                                        .labelsHidden()
                                 .frame(width: UIScreen.main.bounds.width * 0.6).padding(.horizontal, -40)
                                 
@@ -509,10 +515,8 @@ struct AquariumManageView: View {
                     ZStack{
                         
  
-
                         Button {
-                            aquarium.toggleAll()               // your existing logic
-                            refreshID = UUID()                  // triggers SwiftUI to re-render the view
+                            showClearConfirm = true
                         } label: {
                             Rectangle()
                                 .opacity(1)
@@ -524,7 +528,18 @@ struct AquariumManageView: View {
                                 )
                                 .shadow(color: .black.opacity(0.1), radius: 10)
                         }
-                        .id(refreshID)   // <-- forces this view (and its subtree) to refresh
+                        .id(refreshID)
+                        .confirmationDialog("Are you sure?",
+                                            isPresented: $showClearConfirm,
+                                            titleVisibility: .visible) {
+
+                            Button("Yes", role: .destructive) {
+                                user.aquarium.toggleAll()
+                                refreshID = UUID()
+                            }
+
+                            Button("Cancel", role: .cancel) { }
+                        }
                         
                         HStack{
                             Text("Clear Aquarium").foregroundStyle(.red)
@@ -539,12 +554,12 @@ struct AquariumManageView: View {
     
         }
         .background(Color(.systemBackground)) .onAppear {
-            aquariumState.markActive("manage")
+            user.aquariumState.markActive("manage")
         }
         .onDisappear {
-            aquariumState.updatePendingClean(to: aquariumState.clean)
+            user.aquariumState.updatePendingClean(to: user.aquariumState.clean)
 
-            aquariumState.markInactive("manage")
+            user.aquariumState.markInactive("manage")
             
        
         }
@@ -562,7 +577,8 @@ extension Array {
 
 
 #Preview {
-    AquariumManageView() .environmentObject(AquariumFishList()).environmentObject(AquariumState())
+    AquariumManageView()
+        .environmentObject(User())
 
 }
 
