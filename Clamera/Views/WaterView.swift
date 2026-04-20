@@ -13,8 +13,6 @@ struct WaterView: View {
        var body: some View {
         
            ZStack {
-            
-               
                WaterWave()
                    .fill(Color.cyan.opacity(0.15))
                // Controls y val movements of dark blue
@@ -35,16 +33,9 @@ struct WaterView: View {
                    .offset(y: move ? -40 : 10)
                // Controls x val movements of light blue
                    .offset(x: move ? 0 : 10)
-         
-               
-               
            }
+
            
-           
-        
-               
-           
-        
            .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height)
            .ignoresSafeArea(edges: .top) 
            .onAppear {

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		31E6A1A82F87F37F00315C22 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A1A72F87F37F00315C22 /* FirebaseAuth */; };
 		31E6A1AA2F87F37F00315C22 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A1A92F87F37F00315C22 /* FirebaseFirestore */; };
+		31E6A2022F8D204100315C22 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A2012F8D204100315C22 /* GoogleSignIn */; };
+		31E6A2042F8D204100315C22 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A2032F8D204100315C22 /* GoogleSignInSwift */; };
 		4050C1A12F5161BD0061F5CE /* fish_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 4050C1A02F5161BD0061F5CE /* fish_data.json */; };
 		40A207AB2F535281008A557A /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 40A207AA2F535281008A557A /* Kingfisher */; };
 		40C22BD92F64BC2C0083E9AD /* bubble.wav in Resources */ = {isa = PBXBuildFile; fileRef = 40C22BD82F64BC2B0083E9AD /* bubble.wav */; };
@@ -48,7 +50,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				31E6A2042F8D204100315C22 /* GoogleSignInSwift in Frameworks */,
 				40A207AB2F535281008A557A /* Kingfisher in Frameworks */,
+				31E6A2022F8D204100315C22 /* GoogleSignIn in Frameworks */,
 				31E6A1A82F87F37F00315C22 /* FirebaseAuth in Frameworks */,
 				31E6A1AA2F87F37F00315C22 /* FirebaseFirestore in Frameworks */,
 			);
@@ -99,6 +103,8 @@
 				40A207AA2F535281008A557A /* Kingfisher */,
 				31E6A1A72F87F37F00315C22 /* FirebaseAuth */,
 				31E6A1A92F87F37F00315C22 /* FirebaseFirestore */,
+				31E6A2012F8D204100315C22 /* GoogleSignIn */,
+				31E6A2032F8D204100315C22 /* GoogleSignInSwift */,
 			);
 			productName = Clamera;
 			productReference = 16BA8AA82F2A490600BA04E9 /* Clamera.app */;
@@ -131,6 +137,7 @@
 			packageReferences = (
 				40A207A92F535281008A557A /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				31E6A1A62F87F37F00315C22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				31E6A2002F8D204100315C22 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 16BA8AA92F2A490600BA04E9 /* Products */;
@@ -373,6 +380,14 @@
 				minimumVersion = 12.12.0;
 			};
 		};
+		31E6A2002F8D204100315C22 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
 		40A207A92F535281008A557A /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -393,6 +408,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 31E6A1A62F87F37F00315C22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		31E6A2012F8D204100315C22 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31E6A2002F8D204100315C22 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		31E6A2032F8D204100315C22 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31E6A2002F8D204100315C22 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 		40A207AA2F535281008A557A /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;

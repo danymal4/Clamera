@@ -12,6 +12,7 @@ struct SignInView: View {
     @State var email = ""
     @State var password = ""
     @State var username = ""
+    @Binding var editState: EditState
     
     var body: some View{
         
@@ -33,12 +34,6 @@ struct SignInView: View {
                         .bold()
                     
                 }.position(x: 200,y:70)
-                HStack {
-                    Text("Enter your email and password to sign in")
-                        .font(.custom("HelveticaNeue-Thin", size: 18))
-                    
-                } .position(x: 200, y:50)
-                
             }
             
             
@@ -49,7 +44,7 @@ struct SignInView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
-                
+            
             TextField("email@​domain.com", text: $email)
                 .foregroundStyle(.gray)
                 .bold()
@@ -61,7 +56,7 @@ struct SignInView: View {
                 .stroke(Color.gray, lineWidth: 2)
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
-                
+            
             SecureField("Password", text: $password)
                 .foregroundStyle(.gray)
                 .bold()
@@ -97,10 +92,12 @@ struct SignInView: View {
                 .position(x: 200, y:-200)
             
             
-            Text("Sign Up With Email and Password")
-                .foregroundStyle(.white)
-                .bold()
-                .position(x: 200, y:-150)
+            Button("Sign Up With Email and Password"){
+                editState = .notEditing
+            }
+            .foregroundStyle(.white)
+            .bold()
+            .position(x: 200, y:-150)
             
             Rectangle()
                 .foregroundStyle(.gray)
@@ -108,28 +105,23 @@ struct SignInView: View {
                 .cornerRadius(10)
                 .position(x: 200, y:-90)
             
-            
-            Text("Continue With Google")
-                .foregroundStyle(.white)
-                .bold()
-                .position(x: 200, y:-90)
-            
-            
-            Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
-                .foregroundStyle(.gray)
-                .bold()
-                .font(.custom("HelveticaNeue-Thin", size: 14))
-                .padding(.leading, 40)
-                .padding(.trailing, 40)
-                .position(x: 200, y: -30)
+            Button("Continue With Google") {
+                Task {
+                    do {
+                        try await AuthManager.shared.signInWithGoogle()
+                    } catch {
+                        print("Google Sign-In failed: \(error.localizedDescription)")
+                    }
+                }
+            }
+            .foregroundStyle(.white)
+            .bold()
+            .position(x: 200, y:-90)
             
         }
-
     }
 }
 
-
-
 #Preview {
-    SignInView()
+    SignInView(editState: Binding.constant(.editing))
 }
