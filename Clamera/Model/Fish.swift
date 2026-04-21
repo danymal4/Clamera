@@ -45,12 +45,12 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.description = dictionary["description"] ?? ""
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        self.dateCaught = dateFormatter.date(from: dictionary["date"] ?? "") ?? Date()
+        self.dateCaught = dateFormatter.date(from: dictionary["dateCaught"] ?? "") ?? Date()
         self.isPinned = Bool(dictionary["isPinned"] ?? "false") ?? false
         self.isDeleted = Bool(dictionary["isDeleted"] ?? "false") ?? false
         self.fishWeight = Int(dictionary["fishWeight"] ?? "-1")
         self.isAquarium = false
-        if (fishWeight ?? -1 >= 0) {
+        if (fishWeight ?? -1 <= 0) {
             fishWeight = nil
         }
     }

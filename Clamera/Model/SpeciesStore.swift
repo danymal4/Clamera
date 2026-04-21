@@ -29,6 +29,18 @@ final class SpeciesStore: ObservableObject {
         assignCatchOfTheWeek()
     }
     
+    func getWeekCatch() -> [[String:String]] {
+        var arr: [[String:String]] = []
+        if let sp = catchOfTheWeek {
+            arr = sp.getArray()
+        }
+        return arr
+    }
+    
+    func getWeekCatchPoints() -> Int {
+        return catchOfTheWeekPoints
+    }
+    
     func getDictionary() -> [String:[[String:String]]] {
         var species: [String:[[String:String]]] = [:]
         for s in speciesList {
@@ -37,7 +49,7 @@ final class SpeciesStore: ObservableObject {
         return species
     }
     
-    func update(speciesList:[String:[[String:String]]], clamPoints: Int) {
+    func update(speciesList:[String:[[String:String]]], clamPoints: Int, weekSpecies: [[String:String]], weekPoints: Int) {
         self.totalClamPoints = clamPoints
         for (name, species) in speciesList{
             for i in 0..<self.speciesList.count {

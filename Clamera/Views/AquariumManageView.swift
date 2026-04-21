@@ -175,6 +175,11 @@ struct AquariumManageView: View {
                                                     if i == selectedFish && !isDropdown {
                                                         isDropdown.toggle()
                                                     }
+                                                    Task{
+                                                        if let user = AuthManager.shared.user {
+                                                            await FirestoreManager.shared.saveUser(user: user)
+                                                        }
+                                                    }
                                                 }
                                         }
 
@@ -275,6 +280,11 @@ struct AquariumManageView: View {
                                                     }
                                                     user.aquarium.removeFish(with: fish.imageName, targetSize: fish.size)
                                                     swipedIndex = nil
+                                                }
+                                                Task{
+                                                    if let user = AuthManager.shared.user {
+                                                        await FirestoreManager.shared.saveUser(user: user)
+                                                    }
                                                 }
                                             }
                                         } label: {
@@ -536,6 +546,11 @@ struct AquariumManageView: View {
                             Button("Yes", role: .destructive) {
                                 user.aquarium.toggleAll()
                                 refreshID = UUID()
+                                Task{
+                                    if let user = AuthManager.shared.user {
+                                        await FirestoreManager.shared.saveUser(user: user)
+                                    }
+                                }
                             }
 
                             Button("Cancel", role: .cancel) { }

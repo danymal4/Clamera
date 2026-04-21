@@ -46,6 +46,22 @@ final class AquariumFishList: ObservableObject {
         ]
     }
     
+    func loadUpdate(fishArr: [[String:String]]) {
+        for i in 0..<fishArr.count {
+            if fishArr[i] != [:] && i<fish.count {
+                fish[i] = AquariumFish(dict: fishArr[i])
+            }
+        }
+    }
+    
+    func save() -> [[String:String]] {
+        var arr:[[String:String]] = []
+        for f in fish {
+            arr.append(f.getDictionary())
+        }
+        return arr
+    }
+    
     func refresh() {
         refreshID.toggle() // flips true/false to trigger a redraw
     }
