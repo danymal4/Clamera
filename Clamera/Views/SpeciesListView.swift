@@ -92,7 +92,11 @@ struct SpeciesListView: View {
                                 }
 
                                 aquarium.refresh()
-
+                                Task{
+                                    if let user = AuthManager.shared.user {
+                                        await FirestoreManager.shared.saveUser(user: user)
+                                    }
+                                }
                             } label: {
                                 Image(systemName: "plus.circle.fill")
                                     .resizable()
@@ -124,6 +128,11 @@ struct SpeciesListView: View {
 
                                     newestAquariumFish.isAquarium = false
                                     aquarium.refresh()
+                                    Task{
+                                        if let user = AuthManager.shared.user {
+                                            await FirestoreManager.shared.saveUser(user: user)
+                                        }
+                                    }
                                 }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
@@ -170,6 +179,11 @@ struct SpeciesListView: View {
                             // Small pinned toggle (blends in, not a second bar)
                             Button {
                                 showPinnedOnly.toggle()
+                                Task{
+                                    if let user = AuthManager.shared.user {
+                                        await FirestoreManager.shared.saveUser(user: user)
+                                    }
+                                }
                             } label: {
                                 Image(systemName: showPinnedOnly ? "pin.fill" : "pin")
                                     .foregroundColor(showPinnedOnly ? .cyan : .secondary)

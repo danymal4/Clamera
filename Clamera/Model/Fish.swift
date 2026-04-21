@@ -34,6 +34,9 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.isAquarium = isAquarium
         self.isDeleted = isDeleted
         self.fishWeight = fishWeight
+        if (self.fishWeight ?? -1 <= 0) {
+            self.fishWeight = nil
+        }
     }
     
     init(dictionary: [String: String]) {
@@ -42,11 +45,14 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.description = dictionary["description"] ?? ""
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        self.dateCaught = dateFormatter.date(from: dictionary["date"] ?? "") ?? Date()
+        self.dateCaught = dateFormatter.date(from: dictionary["dateCaught"] ?? "") ?? Date()
         self.isPinned = Bool(dictionary["isPinned"] ?? "false") ?? false
         self.isDeleted = Bool(dictionary["isDeleted"] ?? "false") ?? false
-        self.fishWeight = nil
+        self.fishWeight = Int(dictionary["fishWeight"] ?? "-1")
         self.isAquarium = false
+        if (fishWeight ?? -1 <= 0) {
+            fishWeight = nil
+        }
     }
     
     func getDictionary() -> [String : String] {
@@ -58,7 +64,8 @@ class Fish: Identifiable, ObservableObject, Hashable {
          "description":self.description,
          "dateCaught":dateFormatter.string(from: self.dateCaught),
          "isPinned":String(isPinned),
-         "isDeleted":String(isDeleted)
+         "isDeleted":String(isDeleted),
+         "fishWeight":String(fishWeight ?? -1)
         ]
         return dict
     }
