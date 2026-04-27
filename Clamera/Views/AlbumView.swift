@@ -20,7 +20,7 @@ struct FishData: Codable, Identifiable {
     }
 }
 
-import SwiftUI
+
 
 struct AlbumView: View {
     
@@ -29,6 +29,8 @@ struct AlbumView: View {
     @State private var searchText: String = ""
     @State private var showSearch: Bool = false
     @State private var showHint: Bool = false
+    @State private var activeLetter: Character? = "A"
+    @State private var didSearchChange: Bool = false   // ✅ NEW
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case alphabetical = "Species"
@@ -39,11 +41,13 @@ struct AlbumView: View {
 
     @State private var selectedFilter: FilterOption = .caught
     
-    // MARK: - Filtering
+   
     var filteredSpecies: [Species] {
         var filtered = user.speciesStore.speciesList
 
         if !searchText.isEmpty {
+            didSearchChange = true
+            
             filtered = filtered.filter {
                 $0.name.lowercased().contains(searchText.lowercased())
             }
@@ -64,61 +68,119 @@ struct AlbumView: View {
 
         return filtered
     }
+    
+    var sortedSpecies: [Species] {
+        filteredSpecies.sorted {
+            $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+    }
 
+    
+    var availableLetters: [Character] {
+        Set(
+            sortedSpecies.compactMap { species in
+                species.name.uppercased().first
+            }
+        )
+        .sorted()
+    }
+    
     var body: some View {
         ZStack {
             
-            ScrollView {
-                VStack(spacing: 18) {
-                    
-                    // TITLE
-                    Text("Album")
-                        .font(.system(size: 34, weight: .bold))
-                        .padding(.top, 20)
-                    
-                    // ✅ SEGMENTED CONTROL (NEW)
-                    Picker("", selection: $selectedFilter) {
-                        ForEach(FilterOption.allCases) { option in
-                            Text(option.rawValue).tag(option)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal, 20)
-
-                    // LIST
-                    VStack(spacing: 14) {
+            ScrollViewReader { proxy in
+                
+                ScrollView {
+                    VStack(spacing: 18) {
                         
-                        if filteredSpecies.isEmpty {
-                            Text("No fish found")
-                                .foregroundColor(.secondary)
-                                .padding(.top, 40)
-                        } else {
+                        Text("Album")
+                            .font(.system(size: 34, weight: .bold))
+                            .padding(.top, 20)
+                        
+                        Picker("", selection: $selectedFilter) {
+                            ForEach(FilterOption.allCases) { option in
+                                Text(option.rawValue).tag(option)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal, 20)
+
+                        LazyVStack(spacing: 14) {
                             
-                            ForEach(filteredSpecies) { species in
+                            if sortedSpecies.isEmpty {
+                                Text("No fish found")
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 40)
+                            } else {
                                 
-                                if let index = user.speciesStore.speciesList.firstIndex(where: { $0.id == species.id }) {
+                                ForEach(sortedSpecies) { species in
                                     
-                                    NavigationLink(
-                                        destination: SpeciesListView(
-                                            aquarium: user.aquarium,
-                                            species: user.speciesStore.speciesList[index]
-                                        )
-                                    ) {
-                                        SpeciesRow(species: user.speciesStore.speciesList[index])
+                                    let letter = String(species.name.prefix(1)).uppercased()
+                                    let hasFish = !species.fishList.isEmpty
+                                    
+                                    Group {
+                                        if hasFish {
+                                            NavigationLink(
+                                                destination: SpeciesListView(
+                                                    aquarium: user.aquarium,
+                                                    species: species
+                                                )
+                                            ) {
+                                                SpeciesRow(species: species)
+                                            }
+                                        } else {
+                                            SpeciesRow(species: species)
+                                              
+                                        }
                                     }
+                                    .background(
+                                        LetterTracker(letter: letter) { newLetter in
+                                            if activeLetter != Character(newLetter) {
+                                                activeLetter = Character(newLetter)
+                                            }
+                                        }
+                                    )
+                                    .id(species.id)
                                 }
                             }
                         }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 120)
                     }
-                    .padding(.horizontal, 16)
                 }
-                .padding(.bottom, 120)
+                
+                // ALPHABET OVERLAY (FILTERED)
+                .overlay(alignment: .trailing) {
+                    VStack(spacing: 2) {
+                        ForEach(availableLetters, id: \.self) { letter in
+                            
+                            let isActive = activeLetter == letter
+                            
+                            ZStack {
+                                Rectangle()
+                                    .fill(Color.clear)
+                                    .frame(width: 30, height: 16)
+                                
+                                Text(String(letter))
+                                    .font(.system(size: isActive ? 14 : 11, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .opacity(isActive ? 1.0 : 0.35)
+                                    .scaleEffect(isActive ? 1.2 : 1.0)
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                activeLetter = letter
+                                scrollToLetter(letter, proxy: proxy)
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        }
+                    }
+                    .padding(.trailing, 4)
+                }
             }
             
             // SEARCH BAR (UNCHANGED)
-            VStack {
-                Spacer()
-                
+            .overlay(alignment: .bottom) {
                 ZStack(alignment: .trailing) {
                     
                     HStack {
@@ -137,8 +199,21 @@ struct AlbumView: View {
                     
                     Button {
                         withAnimation {
+                            
                             showSearch.toggle()
-                            searchText = ""
+                            
+                            if showSearch == false {
+                                
+                                if didSearchChange {
+                                    activeLetter = "A"
+                                }
+                                
+                                didSearchChange = false
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                    searchText = ""
+                                }
+                            }
                         }
                     } label: {
                         ZStack {
@@ -166,8 +241,18 @@ struct AlbumView: View {
         }
         .background(Color.blue.opacity(0.02))
     }
-}
 
+    // SCROLL
+    func scrollToLetter(_ letter: Character, proxy: ScrollViewProxy) {
+        if let match = sortedSpecies.first(where: {
+            $0.name.uppercased().hasPrefix(String(letter))
+        }) {
+            withAnimation {
+                proxy.scrollTo(match.id, anchor: .top)
+            }
+        }
+    }
+}
 
 // grid that's passed a species for each item
 struct SpeciesRow: View {
@@ -230,4 +315,20 @@ struct SpeciesRow: View {
 #Preview {
     AlbumView()
         .environmentObject(User())
+}
+
+struct LetterTracker: View {
+    let letter: String
+    let onChange: (String) -> Void
+
+    var body: some View {
+        GeometryReader { geo in
+            Color.clear
+                .onChange(of: geo.frame(in: .global).minY) { y in
+                    if y < 200 && y > 0 { // sweet spot near top
+                        onChange(letter)
+                    }
+                }
+        }
+    }
 }
