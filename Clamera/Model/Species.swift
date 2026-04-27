@@ -30,6 +30,17 @@ class Species: ObservableObject, Identifiable, Hashable {
         self.fishList = fishList
     }
     
+    init(array: [[String:String]]){
+        var fishArr = array
+        let specialDict = fishArr.removeLast()
+        self.id = specialDict["name"] ?? ""
+        self.name = specialDict["name"] ?? ""
+        self.imageName = specialDict["imageName"] ?? ""
+        self.icon = specialDict["icon"] ?? ""
+        self.fishList = []
+        update(fishArray: fishArr)
+    }
+    
     func update(fishArray: [[String:String]]) {
         var fishList: [Fish] = []
         for fish in fishArray {
@@ -47,6 +58,18 @@ class Species: ObservableObject, Identifiable, Hashable {
         }
         return fishArr
     }
+    
+    func getFullArray() -> [[String:String]] {
+        var fishArr: [[String:String]] = self.getArray()
+        let specialDict: [String:String] = [
+            "name":name,
+            "imageName":imageName,
+            "icon":icon
+        ]
+        fishArr.append(specialDict)
+        return fishArr
+    }
+    
     // MARK: - Hashable
     static func == (lhs: Species, rhs: Species) -> Bool {
         lhs.id == rhs.id

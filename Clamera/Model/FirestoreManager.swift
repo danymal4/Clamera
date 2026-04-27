@@ -34,6 +34,8 @@ class FirestoreManager: ObservableObject{
                 "species list": user.speciesStore.getDictionary(),
                 "clampoints": user.speciesStore.totalClamPoints,
                 "aquarium fish": user.aquarium.save(),
+                "week species": (user.speciesStore.catchOfTheWeek ?? Species(name: "clownfish", imageName: "clownfish")).getFullArray(),
+                "week points": user.speciesStore.catchOfTheWeekPoints,
             ])
             print("user saved")
         } catch {
@@ -57,7 +59,10 @@ class FirestoreManager: ObservableObject{
                     user.email = data["email"] as? String ?? ""
                     user.profilePicture = data["profile picture"] as? String ?? ""
                     user.speciesStore.update(speciesList: data["species list"] as? [String:[[String:String]]] ?? [:],
-                                             clamPoints: data["clampoints"] as? Int ?? 0)
+                                             clamPoints: data["clampoints"] as? Int ?? 0,
+                                             weekSpecies: data["week species"] as? [[String:String]],
+                                             weekPoints: data["week points"] as? Int ?? 100
+                                            )
                     user.aquarium.loadUpdate(fishArr: data["aquarium fish"] as? [[String:String]] ?? [])
                 }
             }
