@@ -65,8 +65,8 @@ struct ProfileView: View {
                         if let user = AuthManager.shared.user {
                             await FirestoreManager.shared.saveUser(user: user)
                         }
+                        AuthManager.shared.signOut()
                     }
-                    AuthManager.shared.signOut()
                 } label: {
                     Text("Logout")
                         .font(.system(size: 18, weight: .semibold))
