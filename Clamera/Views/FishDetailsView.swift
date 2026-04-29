@@ -216,3 +216,4 @@ struct FishDetailsView: View {
           
     }
 }
+

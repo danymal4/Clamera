@@ -1,222 +1,221 @@
-//
-//  CatchView.swift
-//  Clamera
-//
-//  Created by Dany Malaeb (student LM) on 1/28/26.
 import SwiftUI
-import PhotosUI
-
+import Vision
 
 struct CatchView: View {
-    
-    @State private var selectedItem: PhotosPickerItem?
-    @State private var selectedImage: UIImage?
-    @State var editState: EditState = .notEditing
-    
-    let baseWidth: CGFloat = 403
-    let baseHeight: CGFloat = 844
-    
-    var hScale: CGFloat { min(UIScreen.main.bounds.width / baseWidth, 1.2) }
-    var vScale: CGFloat { min(UIScreen.main.bounds.height / baseHeight, 1.2) }
-    
-    var body: some View {
-        if editState == .notEditing {
-            ZStack {
-                Color.white
-                    .ignoresSafeArea()
-                
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 20 * vScale) {
-                        
-                       
-                        HStack(alignment: .top, spacing: -20) {
-                            Image("Rod")
-                                .resizable()
-                                .frame(width: UIScreen.main.bounds.width * 0.14,
-                                       height: UIScreen.main.bounds.width * 0.14)
-                                .opacity(0.45)
-                                .padding(.top, -33)
-                            
-                            Text("Catch")
-                                .font(.system(size: 42, weight: .bold))
-                                .foregroundColor(.black)
-                                .shadow(color: .black.opacity(0.08), radius: 2, x: 1, y: 1)
-                        }
-                        .padding(.top, 10)
-                        .padding(.trailing, 30)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        // Image container
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 40)
-                                .fill(
-                                    selectedImage == nil
-                                    ? AnyShapeStyle(
-                                        LinearGradient(
-                                            colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.18)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                      )
-                                    : AnyShapeStyle(Color.white.opacity(0.3))
-                                )
-                                .frame(
-                                    width: min(UIScreen.main.bounds.width * 0.85, 750),
-                                    height: min(UIScreen.main.bounds.width * 0.85, 750)
-                                )
-                                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                            
-                            if let image = selectedImage {
-                                Image(uiImage: image)
-                                    .resizable()
-                                   
-                                    .frame(width: min(UIScreen.main.bounds.width * 0.85, 750),
-                                           height: min(UIScreen.main.bounds.width * 0.85, 750))
-                                    .clipped()
-                                    .cornerRadius(40)
-                                    .shadow(color: .cyan.opacity(0.15), radius: 15, x: 0, y: 0)
-                            } else {
-                                HStack(spacing: 20 * hScale) {
-                                    Text("Fish image")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.gray)
-                                    Image("FishIcon")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .clipShape(Circle())
-                                        .frame(width: min(UIScreen.main.bounds.width * 0.25, 120),
-                                               height: min(UIScreen.main.bounds.width * 0.25, 120))
-                                }
-                            }
-                        }
-                        .padding(.top, 10 * vScale)     // added breathing room
-                        .padding(.bottom, 8)           // subtle separation from buttons
-                        
-                        // Buttons
-                        HStack(alignment: .center, spacing: 20 * hScale) {
-                            PhotosPicker(
-                                selection: $selectedItem,
-                                matching: .images,
-                                photoLibrary: .shared()
-                            ) {
-                                VStack(spacing: 4) {
-                                    Image("CameraIcon")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .clipShape(Circle())
-                                        .frame(width: min(UIScreen.main.bounds.width * 0.25, 160),
-                                               height: min(UIScreen.main.bounds.width * 0.28, 140))
-                                        .opacity(0.85)
-                                        .shadow(color: .black.opacity(0.1), radius: 5)
-                                    
-                                    Text("Add Photo")
-                                        .font(.system(size: UIScreen.main.bounds.width * 0.04, weight: .semibold))
-                                        .foregroundColor(.cyan)
-                                        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
-                                }
-                            }
-                            .onChange(of: selectedItem) { oldState, newItem in
-                                guard let newItem else { return }
-                                Task {
-                                    if let data = try? await newItem.loadTransferable(type: Data.self),
-                                       let uiImage = UIImage(data: data) {
-                                        selectedImage = uiImage
-                                    }
-                                }
-                            }
-                            .offset(y: -10 * vScale)
-                            
-                            Button {
-                                if selectedImage != nil {
-                                    editState = .editing
-                                }
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Image("uploadIcon")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: min(UIScreen.main.bounds.width * 0.35, 180),
-                                               height: min(UIScreen.main.bounds.width * 0.35, 180))
-                                        .opacity(selectedImage == nil ? 0.7 : 0.9)
-                                        .shadow(color: .black.opacity(selectedImage == nil ? 0.0 : 0.1), radius: 5)
-                                    
-                                    Text("Upload")
-                                        .font(.system(size: UIScreen.main.bounds.width * 0.04, weight: .semibold))
-                                        .foregroundColor(selectedImage == nil ? .gray.opacity(0.7) : .cyan)
-                                        .offset(y: -33 * vScale)
-                                        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
-                                }
-                            }
-                            .offset(y: 10 * vScale)
-                            .disabled(selectedImage == nil)
-                        }
-                        .offset(y: -10 * vScale)   // reduced from -20
-                        .offset(x: 10 * vScale)
-                        
-                        // Recently Caught
-                        VStack(spacing: 10) {
-                            
-                            HStack {
-                                Spacer()
-                                Text("Recently Caught")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.gray)
-                                Spacer()
-                            }
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(0..<10) { _ in
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(
-                                                LinearGradient(
-                                                    colors: [Color.gray.opacity(0.05), Color.gray.opacity(0.15)],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                )
-                                            )
-                                            .frame(width: 60, height: 60)
-                                            .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
-                                    }
-                                }
-                                .padding(12)
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color(.systemGray6))
-                                    .shadow(color: .black.opacity(0.03), radius: 4, x: 0, y: 2)
-                                    .opacity(0.0)
-                            )
-                        }
-                        .padding(.top, -5)   // removed negative padding
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 25)
+    @EnvironmentObject var user: User
+    @State private var selectedUIImage: UIImage?
+    @State private var editState: EditState = .notEditing
+    @State private var identifiedSpecies: Species? = nil
+    @State private var isPreparingAI = true
+    @State private var showImagePicker = false
+    @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
 
-                        Spacer(minLength: 70)   // increased bottom breathing room
+    var body: some View {
+        NavigationView {
+            VStack {
+                if isPreparingAI {
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        Text("Scanning Fish Library...")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 50 * vScale)
-                    .padding(.bottom, 50)
+                } else if editState == .editing {
+                    // This switches to the input form once a fish is picked
+                    CatchManageView(
+                        editState: $editState,
+                        selectedUIImage: $selectedUIImage,
+                        identifiedSpecies: identifiedSpecies
+                    )
+                } else {
+                    // THE MAIN SELECTION SCREEN
+                    VStack(spacing: 40) {
+                        Text("Catch")
+                            .font(.system(size: 34, weight: .bold))
+                        
+                        // IMAGE PREVIEW AREA
+                        if let image = selectedUIImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 300, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 30))
+                                .shadow(radius: 10)
+                        } else {
+                            RoundedRectangle(cornerRadius: 30)
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(width: 300, height: 300)
+                                .overlay(
+                                    Image(systemName: "fish.fill")
+                                        .font(.system(size: 80))
+                                        .foregroundColor(.gray.opacity(0.3))
+                                )
+                        }
+                        
+                        // SYMMETRICAL BUTTONS
+                        HStack(spacing: 50) {
+                            // Camera Button
+                            Button(action: {
+                                sourceType = .camera
+                                showImagePicker = true
+                            }) {
+                                Image(systemName: "camera.circle")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 65, height: 65)
+                                    .foregroundColor(.black)
+                            }
+                            
+                            // Photo Library Button
+                            Button(action: {
+                                sourceType = .photoLibrary
+                                showImagePicker = true
+                            }) {
+                                Image(systemName: "photo.circle")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 65, height: 65)
+                                    .foregroundColor(.black)
+                            }
+                        }
+                    }
                 }
-                .background(Color.blue.opacity(0.01))
-                
-                LinearGradient(
-                    colors: [Color.black.opacity(0.03), Color.black.opacity(0.05)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(height: 200)
-                .cornerRadius(100)
-                .rotationEffect(.degrees(10))
-                .offset(y: -100)
-                .blendMode(.overlay)
-                
             }
+            .onAppear {
+                Task {
+                    await prepareAIData()
+                }
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(image: $selectedUIImage, sourceType: sourceType)
+                    .onDisappear {
+                        if selectedUIImage != nil {
+                            processNewSelection()
+                        }
+                    }
+            }
+        }
+    }
+
+    // MARK: - AI Logic
+    func prepareAIData() async {
+        print("AI: Starting scan...")
+        
+        // 1. MANUAL BYPASS (For Brown Trout Testing)
+        if let trout = user.speciesStore.speciesList.first(where: { $0.name == "Brown Trout" }) {
+            // Make sure you have "brown_trout_test_image" in Assets.xcassets
+            if let localImage = UIImage(named: "brown_trout_test_image")?.cgImage {
+                trout.featurePrint = generateFeaturePrint(from: localImage)
+                print("AI: Indexed Brown Trout from Assets")
+            }
+        }
+        
+        // 2. NETWORK DOWNLOAD (With SSL Bypass)
+        let session = URLSession(configuration: .default, delegate: InsecureDelegate(), delegateQueue: nil)
+
+        for species in user.speciesStore.speciesList {
+            guard species.featurePrint == nil, let url = URL(string: species.imageName) else { continue }
+            
+            do {
+                let (data, _) = try await session.data(from: url)
+                if let uiImage = UIImage(data: data), let cgImage = uiImage.cgImage {
+                    species.featurePrint = generateFeaturePrint(from: cgImage)
+                    print("AI: Scanned \(species.name)")
+                }
+            } catch {
+                print("AI: Network skip for \(species.name) - \(error.localizedDescription)")
+            }
+        }
+        
+        await MainActor.run { isPreparingAI = false }
+    }
+
+    func processNewSelection() {
+        guard let uiImage = selectedUIImage, let cgImage = uiImage.cgImage else { return }
+        let inputPrint = generateFeaturePrint(from: cgImage)
+        
+        var bestMatch: Species?
+        var minDistance: Float = Float.greatestFiniteMagnitude
+        
+        for species in user.speciesStore.speciesList {
+            if let refPrint = species.featurePrint {
+                var distance: Float = 0
+                try? inputPrint?.computeDistance(&distance, to: refPrint)
+                if distance < minDistance {
+                    minDistance = distance
+                    bestMatch = species
+                }
+            }
+        }
+        
+        // Distance < 15 is usually a strong match
+        if minDistance < 15.0 {
+            identifiedSpecies = bestMatch
         } else {
-            CatchManageView(editState: $editState, selectedUIImage: $selectedImage)
+            identifiedSpecies = nil
+        }
+        
+        editState = .editing
+    }
+
+    func generateFeaturePrint(from image: CGImage) -> VNFeaturePrintObservation? {
+        let request = VNGenerateImageFeaturePrintRequest()
+        let handler = VNImageRequestHandler(cgImage: image, options: [:])
+        try? handler.perform([request])
+        return request.results?.first as? VNFeaturePrintObservation
+    }
+}
+
+// MARK: - Helpers
+
+class InsecureDelegate: NSObject, URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        completionHandler(.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
+    }
+}
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    var sourceType: UIImagePickerController.SourceType
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = sourceType
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: ImagePicker
+        init(_ parent: ImagePicker) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                parent.image = uiImage
+            }
+            picker.dismiss(animated: true)
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
         }
     }
 }
+
+// MARK: - Preview
+
 #Preview {
-    CatchView()
+    let mockUser = User()
+    let mockSpecies = Species(name: "Brown Trout", imageName: "")
+    mockUser.speciesStore.speciesList = [mockSpecies]
+    
+    return CatchView()
+        .environmentObject(mockUser)
 }

@@ -1,11 +1,5 @@
-//
-//  SpeciesStore.swift
-//  Clamera
-//
-//  Created by Kaes van Dolder (student LM) on 3/2/26.
-//
-
 import SwiftUI
+import Vision
 
 final class SpeciesStore: ObservableObject {
     @Published var speciesList: [Species] = []
@@ -17,8 +11,6 @@ final class SpeciesStore: ObservableObject {
     @Published var popupType: Int = 0
     
     init() {
-       
-        // calls all the json logic upon loading
         loadFromJSON()
         assignCatchOfTheWeek()
     }
@@ -39,17 +31,14 @@ final class SpeciesStore: ObservableObject {
     
     func update(speciesList:[String:[[String:String]]], clamPoints: Int) {
         self.totalClamPoints = clamPoints
-        for (name, species) in speciesList{
+        for (name, species) in speciesList {
             for i in 0..<self.speciesList.count {
                 if self.speciesList[i].name == name {
                     self.speciesList[i].update(fishArray: species)
                 }
             }
         }
-        
     }
-    
-    // declares url from fish data json
     
     private func loadFromJSON() {
         guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
@@ -58,44 +47,29 @@ final class SpeciesStore: ObservableObject {
         }
         
         do {
-        
-           // if successful then trys to get data from the url
-            
             let data = try Data(contentsOf: url)
-            
-            // attempts to convert json into an array of fishdata objects (try throws error if neccesary)
-            // fish data neeeded to match the json's organization
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
             
-        
-            // takes the decoded fish data and adds it into speciesList class with the correct format
             self.speciesList = decoded.map { fish in
                 Species(
                     name: fish.CommonName,
-                    imageName: fish.Image,
+                    imageName: fish.Image, // Wikipedia URL
                     fishList: []
                 )
             }
-            
             print("Loaded \(speciesList.count) species")
         } catch {
-            
-            // do/catch is here to see precise errors
             print("JSON error:", error)
         }
     }
     
     func assignPinnedDisplay() {
         var pinnedFish: [Fish] = []
-
         for species in speciesList {
             for fish in species.fishList {
-                if fish.isPinned {
-                    pinnedFish.append(fish)
-                }
+                if fish.isPinned { pinnedFish.append(fish) }
             }
         }
-
         pinnedDisplay = pinnedFish.randomElement()
     }
     
@@ -109,61 +83,48 @@ final class SpeciesStore: ObservableObject {
             catchOfTheWeek = nil
             return
         }
-        
         catchOfTheWeek = validSpecies.randomElement()
     }
-    
-   
-    func catchOfTheWeekIcon() -> String? {
-        guard let species = catchOfTheWeek else { return nil }
-        return "\(species.name)Icon"
-    }
-    
-
-    func calculateClamPoints(
-        totalOfSpecies caughtFish: Int,
-        totalOtherFish otherFish: Int,
-        previousFishDate: Date? = nil
-    ) -> Int {
-        guard caughtFish > 0 else { return 0 }
-        let safeOtherFish = max(otherFish, 0)
-        if caughtFish == 1 { return 90 }
         
-        let caughtMinRaw = 15 + abs(Double(safeOtherFish - 5) / 3.0)
-        let caughtMin = min(caughtMinRaw, 30)
-        guard caughtMin > 2 else { return 50 }
-        
-        let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
-        let speciesPoints = max(pointsRaw, 20)
-        
-        var timeBonus: Double = 0
-        if let prevDate = previousFishDate {
-            let daysSincePrevious = Calendar.current.dateComponents([.day], from: prevDate, to: Date()).day ?? 0
-            let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
-            timeBonus = min(rawTimeBonus, 12.0)
+        // Returns the total count of all fish caught across all species
+        func getFish() -> Int {
+            speciesList.reduce(0) { $0 + $1.fishList.count }
         }
         
-        return Int((speciesPoints + timeBonus).rounded())
-    }
-    
-   
-    func getSpecies() -> Int {
-        speciesList.filter { !$0.fishList.isEmpty }.count
-    }
-    
-    func getFish() -> Int {
-        speciesList.reduce(0) { $0 + $1.fishList.count }
-    }
-    
-    func randomPoints() -> Int {
-        Int.random(in: 30...40) * 5
-    }
+        // Returns the count of species that have at least one fish caught
+        func getSpecies() -> Int {
+            speciesList.filter { !$0.fishList.isEmpty }.count
+        }
 
-    
-    func refresh() {
-        objectWillChange.send()
-    }
+        // This is the point calculation logic your CatchManageView is looking for
+        func calculateClamPoints(
+            totalOfSpecies caughtFish: Int,
+            totalOtherFish otherFish: Int,
+            previousFishDate: Date? = nil
+        ) -> Int {
+            guard caughtFish > 0 else { return 0 }
+            let safeOtherFish = max(otherFish, 0)
+            if caughtFish == 1 { return 90 }
+            
+            let caughtMinRaw = 15 + abs(Double(safeOtherFish - 5) / 3.0)
+            let caughtMin = min(caughtMinRaw, 30)
+            guard caughtMin > 2 else { return 50 }
+            
+            let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
+            let speciesPoints = max(pointsRaw, 20)
+            
+            var timeBonus: Double = 0
+            if let prevDate = previousFishDate {
+                let daysSincePrevious = Calendar.current.dateComponents([.day], from: prevDate, to: Date()).day ?? 0
+                let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
+                timeBonus = min(rawTimeBonus, 12.0)
+            }
+            
+            return Int((speciesPoints + timeBonus).rounded())
+        }
+
+        // Simple refresh to tell SwiftUI to redraw views
+        func refresh() {
+            objectWillChange.send()
+        }
 }
-    
-    
-

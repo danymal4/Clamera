@@ -1,18 +1,15 @@
-//
-//  Species.swift
-//  Clamera
-//
-//  Created by Kaes van Dolder (student LM) on 3/2/26.
-//
-
 import SwiftUI
+import Vision
 
 class Species: ObservableObject, Identifiable, Hashable {
 
     let id: String   // stable ID = species name
     let name: String
-    let imageName: String
+    let imageName: String // This holds the Wikipedia URL
     let icon: String
+
+    // This is the "Mathematical Fingerprint" the AI uses to identify the fish
+    var featurePrint: VNFeaturePrintObservation? = nil
 
     @Published var fishList: [Fish]
 
@@ -47,14 +44,13 @@ class Species: ObservableObject, Identifiable, Hashable {
         }
         return fishArr
     }
+
     // MARK: - Hashable
     static func == (lhs: Species, rhs: Species) -> Bool {
         lhs.id == rhs.id
     }
-    
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 }
-
