@@ -53,7 +53,7 @@ final class SpeciesStore: ObservableObject {
         self.totalClamPoints = clamPoints
         for (name, species) in speciesList{
             for i in 0..<self.speciesList.count {
-                if self.speciesList[i].name == name {
+                if self.speciesList[i].name == name && species != [] {
                     self.speciesList[i].update(fishArray: species)
                 }
             }

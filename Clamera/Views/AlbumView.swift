@@ -324,8 +324,8 @@ struct LetterTracker: View {
     var body: some View {
         GeometryReader { geo in
             Color.clear
-                .onChange(of: geo.frame(in: .global).minY) { y in
-                    if y < 200 && y > 0 { // sweet spot near top
+                .onChange(of: geo.frame(in: .global).minY) { oldValue, newValue in
+                    if newValue < 200 && newValue > 0 {
                         onChange(letter)
                     }
                 }
