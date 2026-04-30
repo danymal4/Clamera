@@ -22,7 +22,7 @@ struct CatchView: View {
                             .foregroundColor(.gray)
                     }
                 } else if editState == .editing {
-                    // This switches to the input form once a fish is picked
+                    // This switches to the input form once a fish  is picked
                     CatchManageView(
                         editState: $editState,
                         selectedUIImage: $selectedUIImage,
