@@ -71,7 +71,7 @@ struct ShopView: View {
                         
                         HStack {
                             VStack(alignment: .leading) {
-                                Text("Fishing Streak: 5 Days")
+                                Text("Login Streak: 5 Days")
                                     .bold()
                                     .foregroundColor(.white)
                                 Text("Shop Discount: 5%")
