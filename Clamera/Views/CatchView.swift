@@ -15,6 +15,7 @@ struct CatchView: View {
     @State var editState: EditState = .notEditing
     @State private var detectedSpecies: String?
     @State private var isDetectingSpecies = false
+    @State private var detectionMessage: String?
     
     let baseWidth: CGFloat = 403
     let baseHeight: CGFloat = 844
@@ -125,6 +126,7 @@ struct CatchView: View {
                                        let uiImage = UIImage(data: data) {
                                         selectedImage = uiImage
                                         detectedSpecies = nil
+                                        detectionMessage = nil
                                         await detectFishSpecies(from: uiImage)
                                     }
                                 }
@@ -165,6 +167,10 @@ struct CatchView: View {
                             Text("Detected: \(detectedSpecies)")
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(.cyan)
+                        } else if let detectionMessage {
+                            Text(detectionMessage)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.orange)
                         }
                         
                         // Recently Caught
@@ -236,6 +242,7 @@ struct CatchView: View {
     }
 
     private func detectFishSpecies(from image: UIImage) async {
+        if isDetectingSpecies { return }
         isDetectingSpecies = true
         defer { isDetectingSpecies = false }
 
@@ -244,11 +251,22 @@ struct CatchView: View {
             let validatedName = user.speciesStore.bestMatchingSpeciesName(for: prediction)
             await MainActor.run {
                 detectedSpecies = validatedName
+                if validatedName == nil {
+                    detectionMessage = "AI could not match this fish in local species list."
+                } else {
+                    detectionMessage = nil
+                }
             }
         } catch {
             await MainActor.run {
                 detectedSpecies = nil
+                if let geminiError = error as? GeminiFishVisionError {
+                    detectionMessage = geminiError.localizedDescription
+                } else {
+                    detectionMessage = "Detection failed. You can enter species manually."
+                }
             }
+            print("Gemini detection failed: \(error.localizedDescription)")
         }
     }
 }
