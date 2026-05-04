@@ -8,10 +8,15 @@
 import Foundation
 import UIKit
 
+private enum GeminiModel {
+    /// Must match REST `models/{name}` slug (lowercase); see Gemini API docs / AI Studio.
+    static let id = "gemini-3.1-flash-lite"
+}
+
 enum GeminiFishVisionError: LocalizedError {
     case invalidImageData
     case invalidURL
-    case badResponseStatus(Int)
+    case geminiFailure(statusCode: Int, message: String?)
     case missingResponseText
     case rateLimited(retryAfter: Int?, message: String?)
     case throttled(waitSeconds: Int)
@@ -22,7 +27,10 @@ enum GeminiFishVisionError: LocalizedError {
             return "Could not read image data."
         case .invalidURL:
             return "Gemini endpoint URL is invalid."
-        case .badResponseStatus(let statusCode):
+        case .geminiFailure(let statusCode, let message):
+            if let message, !message.isEmpty {
+                return message
+            }
             return "Gemini request failed with status code \(statusCode)."
         case .missingResponseText:
             return "Gemini returned no species text."
@@ -71,7 +79,8 @@ actor GeminiFishVisionService {
             }
         }
 
-        guard let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/Gemini-3.1-Flash-Lite:generateContent?key=\(apiKey)") else {
+        let endpoint = "https://generativelanguage.googleapis.com/v1beta/models/\(GeminiModel.id):generateContent?key=\(apiKey)"
+        guard let url = URL(string: endpoint) else {
             throw GeminiFishVisionError.invalidURL
         }
 
@@ -83,15 +92,15 @@ actor GeminiFishVisionService {
 
         let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw GeminiFishVisionError.badResponseStatus(-1)
+            throw GeminiFishVisionError.geminiFailure(statusCode: -1, message: nil)
         }
         guard (200..<300).contains(httpResponse.statusCode) else {
+            let apiMessage = parseGeminiErrorMessage(from: data)
             if httpResponse.statusCode == 429 {
                 let retryAfter = Int(httpResponse.value(forHTTPHeaderField: "Retry-After") ?? "")
-                let apiMessage = parseGeminiErrorMessage(from: data)
                 throw GeminiFishVisionError.rateLimited(retryAfter: retryAfter, message: apiMessage)
             }
-            throw GeminiFishVisionError.badResponseStatus(httpResponse.statusCode)
+            throw GeminiFishVisionError.geminiFailure(statusCode: httpResponse.statusCode, message: apiMessage)
         }
 
         let decoded = try JSONDecoder().decode(GeminiGenerateContentResponse.self, from: data)
