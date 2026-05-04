@@ -30,7 +30,7 @@ struct AlbumView: View {
     @State private var showSearch: Bool = false
     @State private var showHint: Bool = false
     @State private var activeLetter: Character? = "A"
-    @State private var didSearchChange: Bool = false   // ✅ NEW
+    @State private var didSearchChange: Bool = false
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case alphabetical = "Species"
