@@ -10,7 +10,7 @@ import UIKit
 
 private enum GeminiModel {
     /// Must match REST `models/{name}` slug (lowercase); see Gemini API docs / AI Studio.
-    static let id = "gemini-3.1-flash-lite"
+    static let id = "gemini-3.1-flash-lite-preview"
 }
 
 enum GeminiFishVisionError: LocalizedError {
