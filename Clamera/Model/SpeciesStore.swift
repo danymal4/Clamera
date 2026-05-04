@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 final class SpeciesStore: ObservableObject {
     @Published var speciesList: [Species] = []
@@ -175,6 +176,45 @@ final class SpeciesStore: ObservableObject {
         Int.random(in: 30...40) * 5
     }
 
+    func bestMatchingSpeciesName(for aiPrediction: String) -> String? {
+        let prediction = normalizedSpeciesToken(aiPrediction)
+        guard !prediction.isEmpty, prediction != "unknown" else { return nil }
+
+        if let exact = speciesList.first(where: { normalizedSpeciesToken($0.name) == prediction }) {
+            return exact.name
+        }
+
+        if let containsMatch = speciesList.first(where: {
+            let normalizedName = normalizedSpeciesToken($0.name)
+            return normalizedName.contains(prediction) || prediction.contains(normalizedName)
+        }) {
+            return containsMatch.name
+        }
+
+        let predictionTokens = Set(prediction.split(separator: " ").map(String.init))
+        guard !predictionTokens.isEmpty else { return nil }
+
+        let scored = speciesList.map { species -> (name: String, score: Int) in
+            let speciesTokens = Set(normalizedSpeciesToken(species.name).split(separator: " ").map(String.init))
+            let overlap = predictionTokens.intersection(speciesTokens).count
+            return (species.name, overlap)
+        }
+
+        guard let best = scored.max(by: { $0.score < $1.score }), best.score > 0 else {
+            return nil
+        }
+
+        return best.name
+    }
+
+    private func normalizedSpeciesToken(_ input: String) -> String {
+        input
+            .lowercased()
+            .replacingOccurrences(of: "[^a-z0-9 ]", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     
     func refresh() {
         objectWillChange.send()

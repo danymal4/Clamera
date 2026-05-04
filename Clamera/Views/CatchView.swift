@@ -9,9 +9,12 @@ import PhotosUI
 
 struct CatchView: View {
     
+    @EnvironmentObject var user: User
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: UIImage?
     @State var editState: EditState = .notEditing
+    @State private var detectedSpecies: String?
+    @State private var isDetectingSpecies = false
     
     let baseWidth: CGFloat = 403
     let baseHeight: CGFloat = 844
@@ -121,6 +124,8 @@ struct CatchView: View {
                                     if let data = try? await newItem.loadTransferable(type: Data.self),
                                        let uiImage = UIImage(data: data) {
                                         selectedImage = uiImage
+                                        detectedSpecies = nil
+                                        await detectFishSpecies(from: uiImage)
                                     }
                                 }
                             }
@@ -152,6 +157,15 @@ struct CatchView: View {
                         }
                         .offset(y: -10 * vScale)   // reduced from -20
                         .offset(x: 10 * vScale)
+
+                        if isDetectingSpecies {
+                            ProgressView("Detecting species...")
+                                .foregroundColor(.gray)
+                        } else if let detectedSpecies {
+                            Text("Detected: \(detectedSpecies)")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.cyan)
+                        }
                         
                         // Recently Caught
                         VStack(spacing: 10) {
@@ -213,10 +227,32 @@ struct CatchView: View {
                 
             }
         } else {
-            CatchManageView(editState: $editState, selectedUIImage: $selectedImage)
+            CatchManageView(
+                editState: $editState,
+                selectedUIImage: $selectedImage,
+                autoDetectedSpecies: $detectedSpecies
+            )
+        }
+    }
+
+    private func detectFishSpecies(from image: UIImage) async {
+        isDetectingSpecies = true
+        defer { isDetectingSpecies = false }
+
+        do {
+            let prediction = try await GeminiFishVisionService.shared.detectFishName(from: image)
+            let validatedName = user.speciesStore.bestMatchingSpeciesName(for: prediction)
+            await MainActor.run {
+                detectedSpecies = validatedName
+            }
+        } catch {
+            await MainActor.run {
+                detectedSpecies = nil
+            }
         }
     }
 }
 #Preview {
     CatchView()
+        .environmentObject(User())
 }

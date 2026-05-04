@@ -19,6 +19,7 @@ struct CatchManageView: View {
     @EnvironmentObject var user: User
     
     @Binding var selectedUIImage: UIImage?
+    @Binding var autoDetectedSpecies: String?
     
     @State private var showSpeciesSuggestions: Bool = false
     
@@ -92,6 +93,18 @@ struct CatchManageView: View {
                             .onChange(of: species) { oldState, newValue in
                                 showSpeciesSuggestions = !newValue.isEmpty
                                 updatePreviewPoints()
+                            }
+                            .onChange(of: autoDetectedSpecies) { oldValue, newValue in
+                                guard
+                                    let suggested = newValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+                                    !suggested.isEmpty
+                                else { return }
+
+                                if species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    species = suggested
+                                    showSpeciesSuggestions = false
+                                    updatePreviewPoints()
+                                }
                             }
                         
                         // Species Suggestions (keep existing padding/alignment)
@@ -195,6 +208,14 @@ struct CatchManageView: View {
         }
         .navigationBarHidden(true)
         .background(Color(.systemBackground))
+        .onAppear {
+            if species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+               let suggested = autoDetectedSpecies?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !suggested.isEmpty {
+                species = suggested
+                updatePreviewPoints()
+            }
+        }
     }
     
     // MARK: - Helpers
@@ -307,7 +328,8 @@ struct CatchManageView: View {
 #Preview {
     CatchManageView(
         editState: Binding.constant(.editing),
-        selectedUIImage: Binding.constant(UIImage(systemName: "photo"))
+        selectedUIImage: Binding.constant(UIImage(systemName: "photo")),
+        autoDetectedSpecies: Binding.constant("Largemouth Bass")
     )
     .environmentObject(User())
 }

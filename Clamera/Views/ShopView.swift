@@ -22,7 +22,7 @@ struct ShopView: View {
                 
                 VStack(spacing: 32) {
                     
-                    // MARK: Header
+                    
                     HStack {
                         (
                             Text("Happy Shopping ")
@@ -49,7 +49,7 @@ struct ShopView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 40)
                     
-                    // MARK: Streak Bar
+                    
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 20)
@@ -90,7 +90,7 @@ struct ShopView: View {
                     .padding(.horizontal, 20)
                     
                     
-                    // MARK: Catch of the Day
+                    
                     ZStack {
                         
                         RoundedRectangle(cornerRadius: 30)
@@ -155,7 +155,7 @@ struct ShopView: View {
                     }
                     
                     
-                    // MARK: Half Cards
+                    
                     HStack(spacing: 16) {
                         
                         // Pinned Catch
@@ -272,7 +272,7 @@ struct ShopView: View {
             }
             
             
-            // MARK: Bottom Tab Bar
+            // Bottom Tab Bar
             Rectangle()
                 .fill(Color.white)
                 .overlay(Color.blue.opacity(0.06))
