@@ -13,7 +13,7 @@ enum GeminiFishVisionError: LocalizedError {
     case invalidURL
     case badResponseStatus(Int)
     case missingResponseText
-    case rateLimited(retryAfter: Int?)
+    case rateLimited(retryAfter: Int?, message: String?)
     case throttled(waitSeconds: Int)
 
     var errorDescription: String? {
@@ -26,7 +26,10 @@ enum GeminiFishVisionError: LocalizedError {
             return "Gemini request failed with status code \(statusCode)."
         case .missingResponseText:
             return "Gemini returned no species text."
-        case .rateLimited(let retryAfter):
+        case .rateLimited(let retryAfter, let message):
+            if let message, !message.isEmpty {
+                return message
+            }
             if let retryAfter {
                 return "Rate limit reached. Try again in about \(retryAfter)s."
             }
@@ -85,7 +88,8 @@ actor GeminiFishVisionService {
         guard (200..<300).contains(httpResponse.statusCode) else {
             if httpResponse.statusCode == 429 {
                 let retryAfter = Int(httpResponse.value(forHTTPHeaderField: "Retry-After") ?? "")
-                throw GeminiFishVisionError.rateLimited(retryAfter: retryAfter)
+                let apiMessage = parseGeminiErrorMessage(from: data)
+                throw GeminiFishVisionError.rateLimited(retryAfter: retryAfter, message: apiMessage)
             }
             throw GeminiFishVisionError.badResponseStatus(httpResponse.statusCode)
         }
@@ -111,6 +115,17 @@ actor GeminiFishVisionService {
             partialResult + Int(byte)
         }
         return "\(data.count)-\(prefixSum)"
+    }
+
+    private func parseGeminiErrorMessage(from data: Data) -> String? {
+        guard
+            let decoded = try? JSONDecoder().decode(GeminiErrorEnvelope.self, from: data),
+            let message = decoded.error.message?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !message.isEmpty
+        else {
+            return nil
+        }
+        return message
     }
 
     private func requestBody(base64Image: String) -> [String: Any] {
@@ -140,6 +155,14 @@ actor GeminiFishVisionService {
 
 private struct GeminiGenerateContentResponse: Decodable {
     let candidates: [GeminiCandidate]
+}
+
+private struct GeminiErrorEnvelope: Decodable {
+    let error: GeminiAPIError
+}
+
+private struct GeminiAPIError: Decodable {
+    let message: String?
 }
 
 private struct GeminiCandidate: Decodable {

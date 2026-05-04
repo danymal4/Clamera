@@ -16,6 +16,8 @@ struct CatchView: View {
     @State private var detectedSpecies: String?
     @State private var isDetectingSpecies = false
     @State private var detectionMessage: String?
+    @State private var detectionTask: Task<Void, Never>?
+    @State private var lastDetectedImageFingerprint: String?
     
     let baseWidth: CGFloat = 403
     let baseHeight: CGFloat = 844
@@ -121,13 +123,14 @@ struct CatchView: View {
                             }
                             .onChange(of: selectedItem) { oldState, newItem in
                                 guard let newItem else { return }
-                                Task {
+                                detectionTask?.cancel()
+                                detectionTask = Task {
                                     if let data = try? await newItem.loadTransferable(type: Data.self),
                                        let uiImage = UIImage(data: data) {
                                         selectedImage = uiImage
                                         detectedSpecies = nil
                                         detectionMessage = nil
-                                        await detectFishSpecies(from: uiImage)
+                                        await detectFishSpeciesIfNeeded(from: uiImage)
                                     }
                                 }
                             }
@@ -241,6 +244,21 @@ struct CatchView: View {
         }
     }
 
+    private func detectFishSpeciesIfNeeded(from image: UIImage) async {
+        guard let imageData = image.jpegData(compressionQuality: 0.75) else {
+            detectionMessage = "Could not read selected image."
+            return
+        }
+
+        let fingerprint = imageFingerprint(for: imageData)
+        if lastDetectedImageFingerprint == fingerprint, detectedSpecies != nil {
+            detectionMessage = nil
+            return
+        }
+        lastDetectedImageFingerprint = fingerprint
+        await detectFishSpecies(from: image)
+    }
+
     private func detectFishSpecies(from image: UIImage) async {
         if isDetectingSpecies { return }
         isDetectingSpecies = true
@@ -268,6 +286,13 @@ struct CatchView: View {
             }
             print("Gemini detection failed: \(error.localizedDescription)")
         }
+    }
+
+    private func imageFingerprint(for data: Data) -> String {
+        let prefixSum = data.prefix(64).reduce(0) { partialResult, byte in
+            partialResult + Int(byte)
+        }
+        return "\(data.count)-\(prefixSum)"
     }
 }
 #Preview {
