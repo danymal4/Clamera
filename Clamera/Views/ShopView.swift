@@ -153,7 +153,7 @@ struct ShopView: View {
                             Spacer()
                             
                             HStack {
-                                Text("Fish of the Day")
+                                Text("Sale of the Day")
                                     .bold()
                                     .foregroundColor(.white)
                                 
