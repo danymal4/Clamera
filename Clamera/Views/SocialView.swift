@@ -58,9 +58,7 @@ struct SocialView: View {
                         )
                     }
                     
-                    Button {
-                        // Shop action
-                    } label: {
+                    NavigationLink(destination: ShopView()) {
                         socialRow(
                             imageName: "Shop",
                             title: "Shop",

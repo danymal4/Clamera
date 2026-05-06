@@ -10,6 +10,7 @@ import SwiftUI
 struct ShopView: View {
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
+    @EnvironmentObject var user: User
     
     var body: some View {
         
@@ -17,8 +18,7 @@ struct ShopView: View {
             
             ScrollView {
                 
-                IconView()
-                    .padding(.bottom, -30)
+                
                 
                 VStack(spacing: 32) {
                     
@@ -29,15 +29,18 @@ struct ShopView: View {
                                 .font(.title2)
                                 .fontWeight(.semibold)
                             +
-                            Text("James")
+                            Text(user.username.lowercased())
                                 .font(.title2)
                                 .fontWeight(.bold)
-                        )
+                                
+                        ).lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .truncationMode(.tail)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
-                                    Color.black.opacity(0.6),
-                                    Color.blue.opacity(0.6)
+                                    Color.black.opacity(0.75),
+                                    Color.cyan.opacity(0.6)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -45,6 +48,20 @@ struct ShopView: View {
                         )
                         
                         Spacer()
+                        
+                        HStack(spacing: 4) {
+                            Image("clamIcon")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 18, height: 18).scaleEffect(1.3)
+                            
+                            Text("\(user.speciesStore.totalClamPoints)")
+                                .bold()
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.black.opacity(0.05))
+                        .cornerRadius(10)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 40)
