@@ -57,7 +57,7 @@ struct EditProfileView: View {
                 }
 
                 Section(header: Text("Account Information")) {
-                    TextField("Username", text: $username)implement the required auth stuff to allow the user to change their password in 
+                    TextField("Username", text: $username)
                     TextField("Email", text: $email)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
@@ -70,10 +70,7 @@ struct EditProfileView: View {
                     Button("Apply") {
                         user.username = username
                         user.email = email
-                        // Note: Password update logic would go here if Auth supports it
-
-                        // Handle image upload/update logic here if needed
-
+                        user.profilePicture = profileImage != nil ? saveImageToDocuments(profileImage!) : user.profilePicture
                         user.leaderboardUser.name = username
                         
                         Task {
