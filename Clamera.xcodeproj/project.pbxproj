@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		312DE8B62FABAA8000386F11 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 312DE8B52FABAA8000386F11 /* FirebaseStorage */; };
 		31E6A1A82F87F37F00315C22 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A1A72F87F37F00315C22 /* FirebaseAuth */; };
 		31E6A1AA2F87F37F00315C22 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A1A92F87F37F00315C22 /* FirebaseFirestore */; };
 		31E6A2022F8D204100315C22 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A2012F8D204100315C22 /* GoogleSignIn */; };
@@ -55,6 +56,7 @@
 				31E6A2022F8D204100315C22 /* GoogleSignIn in Frameworks */,
 				31E6A1A82F87F37F00315C22 /* FirebaseAuth in Frameworks */,
 				31E6A1AA2F87F37F00315C22 /* FirebaseFirestore in Frameworks */,
+				312DE8B62FABAA8000386F11 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,6 +107,7 @@
 				31E6A1A92F87F37F00315C22 /* FirebaseFirestore */,
 				31E6A2012F8D204100315C22 /* GoogleSignIn */,
 				31E6A2032F8D204100315C22 /* GoogleSignInSwift */,
+				312DE8B52FABAA8000386F11 /* FirebaseStorage */,
 			);
 			productName = Clamera;
 			productReference = 16BA8AA82F2A490600BA04E9 /* Clamera.app */;
@@ -399,6 +402,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		312DE8B52FABAA8000386F11 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31E6A1A62F87F37F00315C22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
 		31E6A1A72F87F37F00315C22 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 31E6A1A62F87F37F00315C22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
