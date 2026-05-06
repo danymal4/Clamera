@@ -33,9 +33,7 @@ struct SocialView: View {
                         )
                     }
                     
-                    Button {
-                        // Friends action
-                    } label: {
+                    NavigationLink(destination: FriendsListView()) {
                         socialRow(
                             imageName: "friends",
                             title: "Friends",

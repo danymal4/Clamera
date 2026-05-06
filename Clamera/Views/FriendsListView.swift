@@ -28,6 +28,7 @@ struct FriendsListView: View {
     ]
     
     var body: some View {
+        NavigationView {
             ScrollView {
                 VStack(spacing: 16) {
                     
@@ -43,13 +44,13 @@ struct FriendsListView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {}) {
                         Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.cyan)
-            }
-        }
+                            .foregroundColor(.cyan)
+                    }
+                }
             }
             .background(Color(.systemGray6))
         }
+    }
 
     // MARK: - Friend Row
     private func friendRow(_ friend: Friend) -> some View {
