@@ -94,14 +94,26 @@ struct SocialView: View {
                 .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
             
             HStack(spacing: 20) {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFit()
+                if isHighlighted && user.profilePicture.hasPrefix("http") {
+                    AsyncImage(url: URL(string: user.profilePicture)) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        ProgressView()
+                    }
                     .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
                            height: min(UIScreen.main.bounds.width * 0.15, 120))
                     .clipShape(Circle())
                     .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                
+                } else {
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
+                               height: min(UIScreen.main.bounds.width * 0.15, 120))
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                }
+                    
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title)
                         .font(.system(size: 22, weight: .semibold))
@@ -129,3 +141,4 @@ struct SocialView: View {
         .environmentObject(User())
         .environmentObject(LeaderboardData())
 }
+
