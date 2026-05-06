@@ -36,6 +36,14 @@ struct EditProfileView: View {
                                     .scaledToFill()
                                     .frame(width: 120, height: 120)
                                     .clipShape(Circle())
+                            } else if user.profilePicture.hasPrefix("http") {
+                                AsyncImage(url: URL(string: user.profilePicture)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
+                                }
+                                .frame(width: 120, height: 120)
+                                .clipShape(Circle())
                             } else {
                                 Image(user.profilePicture)
                                     .resizable()
@@ -72,24 +80,24 @@ struct EditProfileView: View {
                         user.email = email
                         user.leaderboardUser.name = username
                         
-                        // If a new image was selected, we update the user object.
-                        // Note: Depending on your app structure, you might need to upload this image to Firebase Storage.
-                        // Currently, this just saves the name/reference if it's a bundled asset.
-                        // If it's a custom image, you'd need a strategy for saving that file.
-                        if let _ = profileImage {
-                            // Assuming "custom_profile_image" is how you identify user-uploaded images,
-                            // or you might want to save it to Firebase Storage and update the string.
-                            user.profilePicture = "custom_profile_image"
-                        }
-
                         Task {
+                            if let profileImage = profileImage,
+                               let imageData = profileImage.jpegData(compressionQuality: 0.8) {
+                                do {
+                                    let urlString = try await FirestoreManager.shared.uploadProfileImage(data: imageData, userId: user.id)
+                                    user.profilePicture = urlString
+                                } catch {
+                                    print("Error uploading image: \(error)")
+                                }
+                            }
+
                             await FirestoreManager.shared.saveUser(user: user)
                             await MainActor.run {
                         presentationMode.wrappedValue.dismiss()
-                    }
                 }
             }
                     }
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         presentationMode.wrappedValue.dismiss()
