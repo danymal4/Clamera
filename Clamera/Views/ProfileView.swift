@@ -10,15 +10,31 @@ import SwiftUI
 struct ProfileView: View {
     
     @EnvironmentObject var user: User
+    @State private var showingEditProfile = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
                 
-                
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showingEditProfile = true
+                    }) {
+                        Text("Edit")
+                            .font(.system(size: 16, weight: .semibold))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(10)
+                    }
+                .padding(.top, 10)
+                    .padding(.trailing, 10)
+                }
+    
                 VStack(spacing: 10) {
-        
                     
+
                     // Profile picture
                     Image(user.profilePicture)
                         .resizable()
@@ -36,7 +52,7 @@ struct ProfileView: View {
                 }
                 .padding(.top, 40)
                 
-                
+
                 VStack(spacing: 0) {
                     
                     infoRow(title: "Email", value: user.email)
@@ -57,9 +73,9 @@ struct ProfileView: View {
                 .background(RoundedRectangle(cornerRadius: 25)
                     .fill(Color(.systemGray6))
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
-                .padding(.horizontal)
-                
-                
+            .padding(.horizontal)
+
+
                 Button {
                     Task{
                         if let user = AuthManager.shared.user {
@@ -84,9 +100,12 @@ struct ProfileView: View {
         }
         .background(Color.blue.opacity(0.01))
         .edgesIgnoringSafeArea(.bottom)
+        .sheet(isPresented: $showingEditProfile) {
+            EditProfileView(user: user)
+        }
     }
     
-    
+
     private func infoRow(title: String, value: String) -> some View {
         HStack {
             Text(title)
@@ -101,7 +120,7 @@ struct ProfileView: View {
         .padding(.vertical, 15)
     }
     
-    
+
     private func divider() -> some View {
         Rectangle()
             .fill(Color.black.opacity(0.05))
@@ -114,3 +133,4 @@ struct ProfileView: View {
     ProfileView()
         .environmentObject(User())
 }
+
