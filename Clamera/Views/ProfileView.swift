@@ -34,16 +34,27 @@ struct ProfileView: View {
     
                 VStack(spacing: 10) {
                     
-
                     // Profile picture
-                    Image(user.profilePicture)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
+                    if user.profilePicture.hasPrefix("http") {
+                        AsyncImage(url: URL(string: user.profilePicture)) { image in
+                            image.resizable().scaledToFill()
+                        } placeholder: {
+                            ProgressView()
+                        }
                         .frame(width: 140, height: 140)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                         .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
-                    
+                    } else {
+                        Image(user.profilePicture)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 140, height: 140)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
+                            .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
+                    }
+
                     // Username
                     Text(user.username)
                         .font(.title2)
@@ -51,7 +62,7 @@ struct ProfileView: View {
                         .foregroundColor(.black.opacity(0.85))
                 }
                 .padding(.top, 40)
-                
+
 
                 VStack(spacing: 0) {
                     
@@ -68,7 +79,6 @@ struct ProfileView: View {
                     divider()
                     
                     infoRow(title: "Clam Points", value: "\(user.speciesStore.totalClamPoints)")
-                    
                 }
                 .background(RoundedRectangle(cornerRadius: 25)
                     .fill(Color(.systemGray6))
@@ -104,7 +114,7 @@ struct ProfileView: View {
             EditProfileView(user: user)
         }
     }
-    
+
 
     private func infoRow(title: String, value: String) -> some View {
         HStack {
@@ -119,7 +129,7 @@ struct ProfileView: View {
         .padding(.horizontal)
         .padding(.vertical, 15)
     }
-    
+
 
     private func divider() -> some View {
         Rectangle()
