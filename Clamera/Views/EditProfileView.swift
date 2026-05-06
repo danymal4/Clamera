@@ -70,22 +70,33 @@ struct EditProfileView: View {
                     Button("Apply") {
                         user.username = username
                         user.email = email
-                        user.profilePicture = profileImage != nil ? saveImageToDocuments(profileImage!) : user.profilePicture
                         user.leaderboardUser.name = username
                         
+                        // If a new image was selected, we update the user object.
+                        // Note: Depending on your app structure, you might need to upload this image to Firebase Storage.
+                        // Currently, this just saves the name/reference if it's a bundled asset.
+                        // If it's a custom image, you'd need a strategy for saving that file.
+                        if let _ = profileImage {
+                            // Assuming "custom_profile_image" is how you identify user-uploaded images,
+                            // or you might want to save it to Firebase Storage and update the string.
+                            user.profilePicture = "custom_profile_image"
+                        }
+
                         Task {
                             await FirestoreManager.shared.saveUser(user: user)
-                            presentationMode.wrappedValue.dismiss()
-                        }
-                    }
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                            await MainActor.run {
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
             }
-            .onChange(of: selectedItem) { newItem in
+                    }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        presentationMode.wrappedValue.dismiss()
+                }
+            }
+            }
+            .onChange(of: selectedItem) { oldItem, newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
                        let uiImage = UIImage(data: data) {
