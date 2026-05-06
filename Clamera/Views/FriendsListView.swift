@@ -56,7 +56,7 @@ struct FriendsListView: View {
                 
                 // Online indicator
                 Circle()
-                    .fill(friend.isOnline ? Color.cyan : Color.gray)
+                    .fill(friend.isOnline ? Color.green : Color.gray)
                     .frame(width: 14, height: 14)
                     .overlay(Circle().stroke(Color.white, lineWidth: 2))
             }
