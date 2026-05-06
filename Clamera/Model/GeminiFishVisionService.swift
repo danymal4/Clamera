@@ -2,7 +2,7 @@
 //  GeminiFishVisionService.swift
 //  Clamera
 //
-//  Created by Codex on 5/4/26.
+//  Created by Isaac on 5/4/26.
 //
 
 import Foundation
