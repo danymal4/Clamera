@@ -70,12 +70,11 @@ struct SocialView: View {
                             isHighlighted: false
                         )
                     }
-                    
                     Spacer()
                 }
-                .padding(.horizontal)
-            }
+            .padding(.horizontal)
         }
+    }
         .background(Color.blue.opacity(0.01))
         .onAppear {
             user.leaderboardUser.points = user.speciesStore.totalClamPoints

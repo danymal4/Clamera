@@ -18,6 +18,7 @@ struct Friend: Identifiable {
 struct FriendsListView: View {
     
     @EnvironmentObject var user: User
+    @State private var searchText = ""
     // Mock data
     let friends: [Friend] = [
         Friend(name: "Jake Thompson", username: "@jaket", imageName: "fisherman", isOnline: true),
@@ -27,7 +28,6 @@ struct FriendsListView: View {
     ]
     
     var body: some View {
-        NavigationView {
             ScrollView {
                 VStack(spacing: 16) {
                     
@@ -38,10 +38,19 @@ struct FriendsListView: View {
                 .padding()
             }
             .navigationTitle("Friends")
+            .searchable(text: $searchText, prompt: "Search friends")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {}) {
+                        Image(systemName: "plus")
+                        .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.cyan)
+            }
+        }
+            }
             .background(Color(.systemGray6))
         }
-    }
-    
+
     // MARK: - Friend Row
     private func friendRow(_ friend: Friend) -> some View {
         HStack(spacing: 15) {
@@ -99,3 +108,4 @@ struct FriendsListView: View {
 #Preview {
     FriendsListView().environmentObject(User())
 }
+
