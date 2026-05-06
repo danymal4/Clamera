@@ -8,6 +8,8 @@
 import Foundation
 import Combine
 import FirebaseFirestore
+import FirebaseStorage
+import UIKit
 
 // Same singleton + ObservableObject pattern as AuthManager.
 // Firestore is Firebase's NoSQL cloud database — it stores data as
@@ -18,6 +20,13 @@ class FirestoreManager: ObservableObject{
     // Firestore.firestore() returns the Firestore singleton, similar to Auth.auth().
     // This is our reference to the database — all reads/writes go through it.
     private let db = Firestore.firestore()
+    private let storage = Storage.storage()
+
+    func uploadProfileImage(data: Data, userId: String) async throws -> String {
+        let storageRef = storage.reference().child("profile_pictures/\(userId).jpg")
+        let _ = try await storageRef.putDataAsync(data, metadata: nil)
+        return try await storageRef.downloadURL().absoluteString
+    }
 
     func saveUser(user: User) async {
         do {
