@@ -45,7 +45,7 @@ struct SignInView: View {
                 .foregroundStyle(.white)
                 .frame(width: 350, height: 50)
             
-            TextField("email@​domain.com", text: $email)
+            TextField("Username or Email", text: $email)
                 .foregroundStyle(.gray)
                 .bold()
                 .padding(.leading, 40)
@@ -64,46 +64,28 @@ struct SignInView: View {
         }.position(x: 200, y: -160)
         
         ZStack{
+            // --- SIGN IN BUTTON ---
             Rectangle()
                 .foregroundStyle(.blue)
                 .frame(width: 350, height: 50)
                 .cornerRadius(10)
                 .position(x: 200, y:-250)
             
-            
             Button("Sign In"){
                 Task{
-                    await AuthManager.shared.signIn(email: email, password: password)
+                    await AuthManager.shared.signIn(loginInput: email, password: password)
                 }
             }
             .foregroundStyle(.white)
             .bold()
             .position(x: 200, y:-250)
             
+            // --- CONTINUE WITH GOOGLE ---
             Rectangle()
                 .foregroundStyle(.gray)
                 .frame(width: 350, height: 50)
                 .cornerRadius(10)
-                .position(x: 200, y:-150)
-            
-            Text("⎯⎯⎯⎯⎯⎯⎯⎯      or      ⎯⎯⎯⎯⎯⎯⎯⎯")
-                .foregroundStyle(.gray)
-                .bold()
-                .position(x: 200, y:-200)
-            
-            
-            Button("Sign Up With Email and Password"){
-                editState = .notEditing
-            }
-            .foregroundStyle(.white)
-            .bold()
-            .position(x: 200, y:-150)
-            
-            Rectangle()
-                .foregroundStyle(.gray)
-                .frame(width: 350, height: 50)
-                .cornerRadius(10)
-                .position(x: 200, y:-90)
+                .position(x: 200, y:-190)
             
             Button("Continue With Google") {
                 Task {
@@ -116,7 +98,27 @@ struct SignInView: View {
             }
             .foregroundStyle(.white)
             .bold()
-            .position(x: 200, y:-90)
+            .position(x: 200, y:-190)
+            
+            // --- DIVIDER TEXT ---
+            Text("⎯⎯⎯    Don't have an account?      ⎯⎯")
+                .foregroundStyle(.gray)
+                .bold()
+                .position(x: 200, y:-130)
+            
+            // --- SIGN UP BUTTON ---
+            Rectangle()
+                .foregroundStyle(.gray)
+                .frame(width: 350, height: 50)
+                .cornerRadius(10)
+                .position(x: 200, y:-80)
+            
+            Button("Sign Up With Email and Password"){
+                editState = .notEditing
+            }
+            .foregroundStyle(.white)
+            .bold()
+            .position(x: 200, y:-80)
             
         }
     }

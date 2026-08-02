@@ -45,6 +45,7 @@ class FirestoreManager: ObservableObject{
                 "aquarium fish": user.aquarium.save(),
                 "week species": (user.speciesStore.catchOfTheWeek ?? Species(name: "clownfish", imageName: "clownfish")).getFullArray(),
                 "week points": user.speciesStore.catchOfTheWeekPoints,
+                "friends": user.friends
             ])
             print("user saved")
         } catch {
@@ -67,6 +68,7 @@ class FirestoreManager: ObservableObject{
                     user.username = data["username"] as? String ?? ""
                     user.email = data["email"] as? String ?? ""
                     user.profilePicture = data["profile picture"] as? String ?? ""
+                    user.friends = data["friends"] as? [String] ?? []
                     user.speciesStore.update(speciesList: data["species list"] as? [String:[[String:String]]] ?? [:],
                                              clamPoints: data["clampoints"] as? Int ?? 0,
                                              weekSpecies: data["week species"] as? [[String:String]],
@@ -79,6 +81,55 @@ class FirestoreManager: ObservableObject{
         } catch {
             print(error)
         }
+    }
+}
+extension FirestoreManager {
+    
+    // Fetch user details for the friends in your list
+    func fetchUsers(byIds ids: [String]) async -> [Friend] {
+        guard !ids.isEmpty else { return [] }
+        var fetchedFriends: [Friend] = []
+        
+        do {
+            // Firestore limit is 30 elements for 'in' queries, which works great for a standard friends list
+            let querySnapshot = try await db.collection("users")
+                .whereField(FieldPath.documentID(), in: ids)
+                .getDocuments()
+                
+            for doc in querySnapshot.documents {
+                let data = doc.data()
+                let friend = Friend(
+                    id: doc.documentID,
+                    name: data["username"] as? String ?? "Angler",
+                    username: "@" + (data["username"] as? String ?? "angler").lowercased(),
+                    imageName: data["profile picture"] as? String ?? "fisherman",
+                    isOnline: true // You can dynamically calculate this if you have lastActive timestamps!
+                )
+                fetchedFriends.append(friend)
+            }
+        } catch {
+            print("Error fetching friends: \(error)")
+        }
+        return fetchedFriends
+    }
+    
+    // Look up a user by their exact username to add them
+    func findUserByUsername(_ username: String) async -> (id: String, name: String, profilePic: String)? {
+        do {
+            let snapshot = try await db.collection("users")
+                .whereField("username", isEqualTo: username)
+                .limit(to: 1)
+                .getDocuments()
+                
+            if let doc = snapshot.documents.first {
+                let data = doc.data()
+                let profilePic = data["profile picture"] as? String ?? "fisherman"
+                return (id: doc.documentID, name: username, profilePic: profilePic)
+            }
+        } catch {
+            print("Error finding user: \(error)")
+        }
+        return nil
     }
 }
 

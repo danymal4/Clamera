@@ -164,7 +164,7 @@ struct ShopView: View {
                                 
                                 HStack {
                                     
-                                    Text(saleItem.name)
+                                    Text(saleItem.name.replacingOccurrences(of: " Icon", with: ""))
                                         .bold()
                                         .foregroundColor(.white)
                                     
@@ -216,7 +216,7 @@ struct ShopView: View {
                                             .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: floatUpDown)
                                         
                                         Spacer()
-                                        
+                                        Text(item.name.replacingOccurrences(of: " Icon", with: ""))
                                         Text(user.unlockedShopItems.contains(item.id) ? "Unlocked" : "\(calculateCost(for: item, isSaleItem: false)) pts")
                                             .font(.caption)
                                             .bold()

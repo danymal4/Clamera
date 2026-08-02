@@ -17,11 +17,14 @@ class User: ObservableObject {
     @Published var aquariumState: AquariumState
     @Published var leaderboardUser: LeaderboardUser
     
+    // ADD THIS: Store friends' user IDs
+    @Published var friends: [String] = []
+    
     // Shop & Progression Additions
     @Published var loginStreak: Int = 1
     @Published var lastLoginDate: Date? = nil
-    @Published var unlockedShopItems: Set<String> = [] // Tracks purchased shop item IDs
-
+    @Published var unlockedShopItems: Set<String> = []
+    
     let fishingUsernames = [
         "FishHunter5", "AnglerAce", "ReelMaster", "HookedUp", "BassBoss",
         "TroutTrooper", "CastingKing", "LureLegend", "SalmonSeeker", "CatchCraze",
