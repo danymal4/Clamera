@@ -8,7 +8,6 @@ import SwiftUI
 
 struct FishDetailsView: View {
     
-  
     @ObservedObject var speciesStore: SpeciesStore
     @ObservedObject var aquarium: AquariumFishList
     
@@ -20,8 +19,6 @@ struct FishDetailsView: View {
             let fish = binding.wrappedValue
 
             ZStack {
-
-            
                 WaterView().opacity(0.3)
                 IconView()
                     .padding(.top, 55)
@@ -125,9 +122,21 @@ struct FishDetailsView: View {
                 HStack {
                     Spacer()
                     Button {
+                        // 1. Unpin all other fish first so only ONE fish is ever pinned at a time
+                        for speciesIndex in speciesStore.speciesList.indices {
+                            for fishIndex in speciesStore.speciesList[speciesIndex].fishList.indices {
+                                speciesStore.speciesList[speciesIndex].fishList[fishIndex].isPinned = false
+                            }
+                        }
+                        
+                        // 2. Toggle the tapped fish's pin state
                         binding.isPinned.wrappedValue.toggle()
-                        Task{
-                            if let user = AuthManager.shared.user{
+                        
+                        // 3. Update the store's pinned display reference immediately
+                        speciesStore.assignPinnedDisplay()
+                        
+                        Task {
+                            if let user = AuthManager.shared.user {
                                 await FirestoreManager.shared.saveUser(user: user)
                             }
                         }
@@ -197,7 +206,7 @@ struct FishDetailsView: View {
             if let fishIndex = speciesStore.speciesList[speciesIndex]
                 .fishList
                 .firstIndex(where: { $0.id == fishID }) {
-                
+                 
                 return $speciesStore.speciesList[speciesIndex]
                     .fishList[fishIndex]
             }
@@ -213,6 +222,6 @@ struct FishDetailsView: View {
     
     NavigationStack {
         FishDetailsView(speciesStore: store, aquarium: aquarium, fishID: firstFishID)
-          
+         
     }
 }

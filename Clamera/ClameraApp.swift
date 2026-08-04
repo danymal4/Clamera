@@ -33,14 +33,21 @@ struct ClameraApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if let user = auth.user {
-                HomerView()
-                    .environmentObject(user)
-                    .environmentObject(leaderboard)
-            } else {
-                SignUpView()
+            ClameraSplashView {
+                if auth.isLoading {
+                    // Holds the screen steady with a matching background while Firebase checks keychain
+                    Color.cyan
+                        .ignoresSafeArea()
+                } else if let user = auth.user {
+                    // If logged in, drops the curtain straight to HomerView
+                    HomerView()
+                        .environmentObject(user)
+                        .environmentObject(leaderboard)
+                } else {
+                    // Otherwise, drops the curtain to the sign-up/sign-in flow
+                    SignUpView()
+                }
             }
-            
         }
     }
 }

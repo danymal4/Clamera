@@ -1,3 +1,10 @@
+//
+//  ShopCatalog.swift
+//  Clamera
+//
+//  Created by Kaes van Dolder on 2026-08.
+//
+
 import Foundation
 
 struct ShopCatalog {
@@ -152,7 +159,6 @@ struct ShopCatalog {
     // 2. Automated structural translation pipeline
     static var items: [ShopItem] {
         fishNames.map { name in
-            // Cleans formatting for string safety checks inside user purchase sets
             let safeId = name.lowercased()
                 .replacingOccurrences(of: " ", with: "_")
                 .replacingOccurrences(of: "-", with: "_")
@@ -160,14 +166,14 @@ struct ShopCatalog {
                 .replacingOccurrences(of: ")", with: "")
                 .replacingOccurrences(of: "'", with: "") + "_cosmetic"
             
-            // Gives rarer/longer named exotic fish higher point distributions automatically!
             let dynamicCost = 250 + (name.count * 12)
             
             return ShopItem(
                 id: safeId,
                 name: "\(name) Icon",
-                iconName: "\(name)Icon", // Yields precise maps like "Albacore TunaIcon"
-                baseCost: dynamicCost
+                iconName: "\(name)Icon",
+                baseCost: dynamicCost,
+                category: .icons
             )
         }
     }

@@ -18,7 +18,6 @@ final class SpeciesStore: ObservableObject {
     @Published var popupType: Int = 0
     
     init() {
-       
         // calls all the json logic upon loading
         loadFromJSON()
         assignCatchOfTheWeek()
@@ -75,16 +74,16 @@ final class SpeciesStore: ObservableObject {
         }
         
         do {
-        
-           // if successful then trys to get data from the url
+         
+          // if successful then trys to get data from the url
             
             let data = try Data(contentsOf: url)
-            
+           
             // attempts to convert json into an array of fishdata objects (try throws error if neccesary)
             // fish data neeeded to match the json's organization
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
-            
-        
+           
+         
             // takes the decoded fish data and adds it into speciesList class with the correct format
             self.speciesList = decoded.map { fish in
                 Species(
@@ -93,27 +92,29 @@ final class SpeciesStore: ObservableObject {
                     fishList: []
                 )
             }
-            
+           
             print("Loaded \(speciesList.count) species")
         } catch {
-            
+             
             // do/catch is here to see precise errors
             print("JSON error:", error)
         }
     }
     
     func assignPinnedDisplay() {
-        var pinnedFish: [Fish] = []
+        var foundPinned: Fish? = nil
 
         for species in speciesList {
             for fish in species.fishList {
                 if fish.isPinned {
-                    pinnedFish.append(fish)
+                    foundPinned = fish
+                    break
                 }
             }
+            if foundPinned != nil { break }
         }
 
-        pinnedDisplay = pinnedFish.randomElement()
+        pinnedDisplay = foundPinned
     }
     
     func assignCatchOfTheWeek() {
@@ -121,13 +122,22 @@ final class SpeciesStore: ObservableObject {
             let imageName = "\(species.name)Icon"
             return UIImage(named: imageName) != nil
         }
-        
+         
         guard !validSpecies.isEmpty else {
             catchOfTheWeek = nil
             return
         }
+         
+        // Calculate a stable index based on the current calendar week and year
+        let calendar = Calendar.current
+        let weekOfYear = calendar.component(.weekOfYear, from: Date())
+        let year = calendar.component(.year, from: Date())
         
-        catchOfTheWeek = validSpecies.randomElement()
+        // Combine year and week to create a unique seed for this specific week
+        let weeklySeed = year * 100 + weekOfYear
+        let index = abs(weeklySeed) % validSpecies.count
+         
+        catchOfTheWeek = validSpecies[index]
     }
     
    
@@ -145,21 +155,21 @@ final class SpeciesStore: ObservableObject {
         guard caughtFish > 0 else { return 0 }
         let safeOtherFish = max(otherFish, 0)
         if caughtFish == 1 { return 90 }
-        
+         
         let caughtMinRaw = 15 + abs(Double(safeOtherFish - 5) / 3.0)
         let caughtMin = min(caughtMinRaw, 30)
         guard caughtMin > 2 else { return 50 }
-        
+         
         let pointsRaw = 50 - Double(caughtFish - 2) * (30 / (caughtMin - 2))
         let speciesPoints = max(pointsRaw, 20)
-        
+         
         var timeBonus: Double = 0
         if let prevDate = previousFishDate {
             let daysSincePrevious = Calendar.current.dateComponents([.day], from: prevDate, to: Date()).day ?? 0
             let rawTimeBonus = 12.0 * log(Double(daysSincePrevious) + 1) / log(61.0)
             timeBonus = min(rawTimeBonus, 12.0)
         }
-        
+         
         return Int((speciesPoints + timeBonus).rounded())
     }
     
@@ -220,6 +230,3 @@ final class SpeciesStore: ObservableObject {
         objectWillChange.send()
     }
 }
-    
-    
-

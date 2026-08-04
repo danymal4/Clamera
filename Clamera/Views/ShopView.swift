@@ -1,11 +1,25 @@
+//
+//  ShopView.swift
+//  Clamera
+//
+//  Created by Kaes van Dolder on 2026-08.
+//
+
 import SwiftUI
 
-// Dynamic item registry structural data type
 struct ShopItem: Identifiable, Equatable {
     let id: String
     let name: String
     let iconName: String
     let baseCost: Int
+    let category: ShopCategory
+}
+
+enum ShopCategory: String, CaseIterable {
+    case all = "All"
+    case icons = "Icons"
+    case boosts = "Boosts"
+    case points = "Earn Points"
 }
 
 struct ShopView: View {
@@ -13,18 +27,17 @@ struct ShopView: View {
     @State private var floatUpDown = false
     @EnvironmentObject var user: User
     
-    // Alert state handling for purchases
     @State private var showAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     
-    // All available storefront catalog configurations
+    @State private var selectedCategory: ShopCategory = .all
+    
     private var completeCatalog: [ShopItem] { ShopCatalog.items }
     
-    // MARK: - Dynamic Rotation Resolver
     private var dailyItems: (saleItem: ShopItem, regularItems: [ShopItem]) {
         guard !completeCatalog.isEmpty else {
-            let defaultItem = ShopItem(id: "fallback", name: "Walleye Icon", iconName: "WalleyeIcon", baseCost: 350)
+            let defaultItem = ShopItem(id: "fallback", name: "Walleye Icon", iconName: "WalleyeIcon", baseCost: 350, category: .icons)
             return (defaultItem, [])
         }
         let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0
@@ -36,7 +49,6 @@ struct ShopView: View {
         return (sale, remaining)
     }
     
-    // Adaptive multi-column grid layout rules
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -50,7 +62,7 @@ struct ShopView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     
-                    // Header Bar
+                    // MARK: - Header Bar
                     HStack {
                         (
                             Text("Happy Shopping ")
@@ -63,7 +75,6 @@ struct ShopView: View {
                         )
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
-                        .truncationMode(.tail)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [Color.black.opacity(0.75), Color.cyan.opacity(0.6)],
@@ -90,9 +101,9 @@ struct ShopView: View {
                         .cornerRadius(10)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 24) // Clean, precise top margins below Dynamic Island
+                    .padding(.top, 24)
                     
-                    // Dynamic Login Streak Banner Interface
+                    // MARK: - Login Streak Banner
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(
@@ -118,9 +129,7 @@ struct ShopView: View {
                                     .foregroundColor(.white)
                                     .font(.footnote)
                             }
-                            
                             Spacer()
-                            
                             Image(systemName: "flame.fill")
                                 .foregroundColor(.purple)
                                 .font(.title2)
@@ -129,118 +138,138 @@ struct ShopView: View {
                     }
                     .padding(.horizontal, 20)
                     
-                    // MARK: - Sale of the Day (Big Featured Card)
-                    Button(action: {
-                        handlePurchase(item: saleItem, isSaleItem: true)
-                    }) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 30)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color.blue.opacity(0.45), Color.blue.opacity(0.20)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 30)
-                                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                                )
-                            
-                            VStack {
-                                Spacer()
-                                
-                                Image(saleItem.iconName)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: ui.width * 0.45, height: ui.width * 0.45)
-                                    .offset(y: floatUpDown ? -6 : 6)
-                                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: floatUpDown)
-                                
-                                Spacer()
-                                Text("Sale of the Day")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                
-                                HStack {
-                                    
-                                    Text(saleItem.name.replacingOccurrences(of: " Icon", with: ""))
+                    // MARK: - Category Filter Tabs
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(ShopCategory.allCases, id: \.self) { category in
+                                Button(action: {
+                                    withAnimation(.snappy) {
+                                        selectedCategory = category
+                                    }
+                                }) {
+                                    Text(category.rawValue)
+                                        .font(.subheadline)
                                         .bold()
-                                        .foregroundColor(.white)
-                                    
-                                    Spacer()
-                                    
-                                    Text(user.unlockedShopItems.contains(saleItem.id) ? "Unlocked" : "Cost: \(calculateCost(for: saleItem, isSaleItem: true)) pts")
-                                        .bold()
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .background(Color.black.opacity(0.25))
-                                        .cornerRadius(10)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(selectedCategory == category ? Color.cyan : Color.black.opacity(0.05))
+                                        .foregroundColor(selectedCategory == category ? .white : .secondary)
+                                        .cornerRadius(20)
                                 }
-                                .padding(16)
                             }
                         }
-                        .frame(height: ui.width * 0.75)
+                        .padding(.horizontal, 20)
                     }
-                    .buttonStyle(ScaleButtonStyle())
-                    .padding(.horizontal, 20)
                     
-                    // MARK: - Standard Catalog Grid Layout
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(rotation.regularItems) { item in
+                    // MARK: - Dynamic Content Based on Selected Tab
+                    if selectedCategory == .points {
+                        // Rewarded Ad Option for Free Clam Points
+                        VStack(spacing: 16) {
+                            Text("Free Clam Points")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
                             Button(action: {
-                                handlePurchase(item: item, isSaleItem: false)
+                                // Partner can wire up RewardedAdManager here later!
+                                user.speciesStore.totalClamPoints += 50
+                                alertTitle = "Clam Points Earned!"
+                                alertMessage = "You earned +50 Clam Points for watching an ad!"
+                                showAlert = true
                             }) {
-                                ZStack(alignment: .bottom) {
-                                    RoundedRectangle(cornerRadius: 25)
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color.cyan.opacity(0.45), Color.blue.opacity(0.20)],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 25)
-                                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                        )
+                                HStack {
+                                    Image(systemName: "play.rectangle.fill")
+                                        .font(.title2)
+                                    VStack(alignment: .leading) {
+                                        Text("Watch Ad for Clams")
+                                            .bold()
+                                        Text("Earn +50 Clam Points instantly")
+                                            .font(.caption)
+                                            .opacity(0.8)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(
+                                    LinearGradient(colors: [Color.cyan, Color.blue], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .cornerRadius(16)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        
+                    } else {
+                        
+                        if selectedCategory == .all {
+                            Button(action: { handlePurchase(item: saleItem, isSaleItem: true) }) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .fill(LinearGradient(colors: [Color.blue.opacity(0.45), Color.blue.opacity(0.20)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.white.opacity(0.15), lineWidth: 1))
                                     
-                                    VStack(spacing: 8) {
+                                    VStack {
                                         Spacer()
-                                        
-                                        Image(item.iconName)
+                                        Image(saleItem.iconName)
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(height: 55)
-                                            .offset(y: floatUpDown ? -2 : 4)
-                                            .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: floatUpDown)
-                                        
+                                            .frame(width: ui.width * 0.45, height: ui.width * 0.45)
                                         Spacer()
-                                        Text(item.name.replacingOccurrences(of: " Icon", with: ""))
-                                        Text(user.unlockedShopItems.contains(item.id) ? "Unlocked" : "\(calculateCost(for: item, isSaleItem: false)) pts")
-                                            .font(.caption)
-                                            .bold()
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(Color.black.opacity(0.25))
-                                            .cornerRadius(8)
-                                            .padding(.bottom, 12)
+                                        Text("Sale of the Day").bold().foregroundColor(.white)
+                                        HStack {
+                                            Text(saleItem.name.replacingOccurrences(of: " Icon", with: "")).bold().foregroundColor(.white)
+                                            Spacer()
+                                            Text(user.unlockedShopItems.contains(saleItem.id) ? "Unlocked" : "Cost: \(calculateCost(for: saleItem, isSaleItem: true)) pts")
+                                                .bold().foregroundColor(.white).padding(6).background(Color.black.opacity(0.25)).cornerRadius(10)
+                                        }
+                                        .padding(16)
                                     }
                                 }
-                                .frame(height: ui.width * 0.38)
+                                .frame(height: ui.width * 0.75)
                             }
                             .buttonStyle(ScaleButtonStyle())
+                            .padding(.horizontal, 20)
                         }
+                        
+                        let filteredItems = selectedCategory == .all
+                            ? rotation.regularItems
+                            : rotation.regularItems.filter { $0.category == selectedCategory }
+                        
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(filteredItems) { item in
+                                Button(action: { handlePurchase(item: item, isSaleItem: false) }) {
+                                    ZStack(alignment: .bottom) {
+                                        RoundedRectangle(cornerRadius: 25)
+                                            .fill(LinearGradient(colors: [Color.cyan.opacity(0.45), Color.blue.opacity(0.20)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                            .overlay(RoundedRectangle(cornerRadius: 25).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                                        
+                                        VStack(spacing: 8) {
+                                            Spacer()
+                                            Image(item.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(height: 55)
+                                            Spacer()
+                                            Text(item.name.replacingOccurrences(of: " Icon", with: ""))
+                                            Text(user.unlockedShopItems.contains(item.id) ? "Unlocked" : "\(calculateCost(for: item, isSaleItem: false)) pts")
+                                                .font(.caption).bold().foregroundColor(.white)
+                                                .padding(.horizontal, 8).padding(.vertical, 4)
+                                                .background(Color.black.opacity(0.25)).cornerRadius(8)
+                                                .padding(.bottom, 12)
+                                        }
+                                    }
+                                    .frame(height: ui.width * 0.38)
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                            }
+                        }
+                        .padding(.horizontal, 20)
                     }
-                    .padding(.horizontal, 20)
                     
-                    // Extra buffer space to ensure user content can comfortably scroll clear of the custom Tab Bar overlay
                     Spacer(minLength: 140)
                 }
             }
             
-            // Bottom Tab Bar Mask Layer
             Rectangle()
                 .fill(Color.white)
                 .overlay(Color.blue.opacity(0.06))
@@ -265,7 +294,6 @@ struct ShopView: View {
         }
     }
     
-    // MARK: - Transaction Engine & Helper Computations
     private func calculateCost(for item: ShopItem, isSaleItem: Bool) -> Int {
         let discountMultiplier = 1.0 - (user.shopDiscountPercentage / 100.0)
         let intermediateCost = Double(item.baseCost) * discountMultiplier
@@ -297,7 +325,6 @@ struct ShopView: View {
     }
 }
 
-// Custom button style to prevent standard SwiftUI button fades on deep backgrounds
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
