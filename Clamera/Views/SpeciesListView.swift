@@ -1,11 +1,10 @@
-//
+////
 //  SpeciesListView.swift
 //  Clamera
 //
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
 import SwiftUI
-
 
 struct SpeciesListView: View {
 
@@ -24,9 +23,36 @@ struct SpeciesListView: View {
     @State private var selectedFilter: FilterOption = .newest
     @State private var showPinnedOnly: Bool = false
 
+    private var effectiveFishList: [Fish] {
+        if !species.fishList.isEmpty {
+            return species.fishList
+        }
+        
+        let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+        let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
+            let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+            return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
+        }
+        
+        if isUnlockedInStore {
+            return [
+                Fish(
+                    photo: "\(species.name)Icon",
+                    speciesName: species.name,
+                    description: "Unlocked from the shop!",
+                    dateCaught: Date(),
+                    isPinned: false,
+                    isAquarium: false,
+                    fishWeight: 1
+                )
+            ]
+        }
+        
+        return []
+    }
     
     var filteredFish: [Fish] {
-        species.fishList
+        effectiveFishList
             .filter { !showPinnedOnly || $0.isPinned }
             .sorted {
                 selectedFilter == .oldest
@@ -40,6 +66,7 @@ struct SpeciesListView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
+                    // Species Header with clear Add/Remove Aquarium labels
                     HStack(spacing: 16) {
 
                         Image("\(species.name)Icon")
@@ -55,11 +82,12 @@ struct SpeciesListView: View {
                             Text(species.name)
                                 .font(.system(size: 20, weight: .bold)).lineLimit(2).minimumScaleFactor(0.7)
 
-                            Text("\(species.fishList.count) Fish")
+                            let totalCount = effectiveFishList.count
+                            Text("\(totalCount) Fish")
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
 
-                            if let heaviest = species.fishList.max(by: {
+                            if let heaviest = effectiveFishList.max(by: {
                                 ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0)
                             }) {
                                 Text("Heaviest: \(heaviest.fishWeight ?? 0) lbs")
@@ -70,84 +98,93 @@ struct SpeciesListView: View {
 
                         Spacer()
 
-                        HStack(spacing: 12) {
+                        HStack(spacing: 16) {
+                            let hasAvailableToAdd = effectiveFishList.contains { !$0.isAquarium } && !aquarium.checkAll()
+                            let hasAvailableToRemove = effectiveFishList.contains { $0.isAquarium }
 
-                           
-                            let hasAvailableToAdd = species.fishList.contains { !$0.isAquarium } && !aquarium.checkAll()
-                            let hasAvailableToRemove = species.fishList.contains { $0.isAquarium }
+                            // add fish to aquarium
+                            VStack(spacing: 2) {
+                                Button {
+                                    if let newestAvailableFish = effectiveFishList
+                                        .filter({ !$0.isAquarium })
+                                        .max(by: { $0.dateCaught < $1.dateCaught }) {
 
-                            // add fish
-                            Button {
-                                if let newestAvailableFish = species.fishList
-                                    .filter({ !$0.isAquarium })
-                                    .max(by: { $0.dateCaught < $1.dateCaught }) {
+                                        aquarium.addFish(
+                                            with: "\(species.name)Icon",
+                                            speciesID: species.id,
+                                            size: newestAvailableFish.getSize()
+                                        )
 
-                                    aquarium.addFish(
-                                        with: "\(species.name)Icon",
-                                        speciesID: species.id,
-                                        size: newestAvailableFish.getSize()
-                                    )
-
-                                    newestAvailableFish.isAquarium = true
-                                }
-
-                                aquarium.refresh()
-                                Task{
-                                    if let user = AuthManager.shared.user {
-                                        await FirestoreManager.shared.saveUser(user: user)
-                                    }
-                                }
-                            } label: {
-                                Image(systemName: "plus.circle.fill")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToAdd ? .cyan : .gray)
-                                    .opacity(hasAvailableToAdd ? 1 : 0.5)
-                                    .shadow(
-                                        color: hasAvailableToAdd ? Color.cyan.opacity(0.3) : .clear,
-                                        radius: 3,
-                                        x: 0,
-                                        y: 2
-                                    )
-                            }
-                            .disabled(!hasAvailableToAdd)
-
-
-                            // remove fish
-                            Button {
-                                if let newestAquariumFish = species.fishList
-                                    .filter({ $0.isAquarium })
-                                    .max(by: { $0.dateCaught < $1.dateCaught }) {
-
-                                    if let aquaFish = aquarium.fish.first(where: {
-                                        $0.isActive &&
-                                        $0.imageName == "\(species.name)Icon"
-                                    }) {
-                                        aquaFish.isActive = false
+                                        newestAvailableFish.isAquarium = true
                                     }
 
-                                    newestAquariumFish.isAquarium = false
                                     aquarium.refresh()
                                     Task{
                                         if let user = AuthManager.shared.user {
                                             await FirestoreManager.shared.saveUser(user: user)
                                         }
                                     }
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .foregroundColor(hasAvailableToAdd ? .cyan : .gray)
+                                        .opacity(hasAvailableToAdd ? 1 : 0.5)
+                                        .shadow(
+                                            color: hasAvailableToAdd ? Color.cyan.opacity(0.3) : .clear,
+                                            radius: 3,
+                                            x: 0,
+                                            y: 2
+                                        )
                                 }
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundColor(hasAvailableToRemove ? Color(red: 0.0, green: 0.5, blue: 0.65)  : .gray)
-                                    .opacity(hasAvailableToRemove ? 1 : 0.5)
-                                    .shadow(
-                                        color: hasAvailableToRemove ? Color.cyan.opacity(0.3) : .clear,
-                                        radius: 3,
-                                        x: 0,
-                                        y: 2
-                                    )
+                                .disabled(!hasAvailableToAdd)
+                                
+                                Text("Aquarium")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
                             }
-                            .disabled(!hasAvailableToRemove)
+
+                            // remove fish from aquarium
+                            VStack(spacing: 2) {
+                                Button {
+                                    if let newestAquariumFish = effectiveFishList
+                                        .filter({ $0.isAquarium })
+                                        .max(by: { $0.dateCaught < $1.dateCaught }) {
+
+                                        if let aquaFish = aquarium.fish.first(where: {
+                                            $0.isActive &&
+                                            $0.imageName == "\(species.name)Icon"
+                                        }) {
+                                            aquaFish.isActive = false
+                                        }
+
+                                        newestAquariumFish.isAquarium = false
+                                        aquarium.refresh()
+                                        Task{
+                                            if let user = AuthManager.shared.user {
+                                                await FirestoreManager.shared.saveUser(user: user)
+                                            }
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .foregroundColor(hasAvailableToRemove ? Color(red: 0.0, green: 0.5, blue: 0.65)  : .gray)
+                                        .opacity(hasAvailableToRemove ? 1 : 0.5)
+                                        .shadow(
+                                            color: hasAvailableToRemove ? Color.cyan.opacity(0.3) : .clear,
+                                            radius: 3,
+                                            x: 0,
+                                            y: 2
+                                        )
+                                }
+                                .disabled(!hasAvailableToRemove)
+                                
+                                Text("Remove")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
                     .padding(.horizontal, 16)
@@ -168,15 +205,12 @@ struct SpeciesListView: View {
                             .fontWeight(.bold)
 
                         HStack(spacing: 10) {
-
-                            // Segmented control (main filter)
                             Picker("", selection: $selectedFilter) {
                                 Text("Newest").tag(FilterOption.newest)
                                 Text("Oldest").tag(FilterOption.oldest)
                             }
                             .pickerStyle(.segmented)
 
-                            // Small pinned toggle (blends in, not a second bar)
                             Button {
                                 showPinnedOnly.toggle()
                                 Task{
@@ -199,9 +233,7 @@ struct SpeciesListView: View {
                     .padding(.top, 15)
                     .padding(.bottom, 6)
 
-                
                     VStack(spacing: 10) {
-
                         ForEach(filteredFish) { fish in
                             FishGridItem(
                                 fish: fish,
@@ -212,7 +244,6 @@ struct SpeciesListView: View {
                                 fish.isPinned.toggle()
                             }
                         }
-
                     }
                     .padding(.horizontal, 15)
                     .padding(.bottom, 120)
@@ -224,32 +255,9 @@ struct SpeciesListView: View {
         }
         .background(Color.blue.opacity(0.01))
     }
-
-    
-    @ViewBuilder
-    private func filterButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
-
-        Button(action: action) {
-
-            ZStack {
-
-                if selected {
-                    SmallRoundedCard()
-                } else {
-                    SmallRoundedCard().opacity(0)
-                }
-
-                Text(title)
-                               .foregroundStyle(selected ? .cyan : .secondary) // cyan if active, gray otherwise
-                               .fontWeight(selected ? .semibold : .regular)
-                               .padding(.horizontal, 12)
-                               .frame(height: 35)
-            }
-        } .buttonStyle(PlainButtonStyle())
-    }
 }
 
-// grid that's passed the same species speciesList recived (neccesary for delte button functionality) and in addition is passed
+// grid item view with fully functional deletion logic
 struct FishGridItem: View {
 
     @EnvironmentObject var speciesStore: SpeciesStore
@@ -258,7 +266,6 @@ struct FishGridItem: View {
     @EnvironmentObject var user: User
     @State private var showDeleteFishConfirm = false
     @Binding var showPinnedOnly: Bool
-    
 
     let clickable: Bool
     var onTogglePinned: (() -> Void)?
@@ -266,7 +273,6 @@ struct FishGridItem: View {
     private var cardWidth: CGFloat { UIScreen.main.bounds.width - 32 }
     private var cardHeight: CGFloat { cardWidth * 0.35 }
 
-    
     init(fish: Fish,
            species: Species,
            clickable: Bool,
@@ -279,13 +285,21 @@ struct FishGridItem: View {
           self.onTogglePinned = onTogglePinned
       }
 
-    
-    
-    
     var body: some View {
+        Group {
+            if clickable {
+                NavigationLink(destination: FishDetailsView(speciesStore: user.speciesStore, aquarium: user.aquarium, fishID: fish.id)) {
+                    fishCardContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                fishCardContent
+            }
+        }
+    }
 
+    private var fishCardContent: some View {
         ZStack {
-
             RoundedRectangle(cornerRadius: 25)
                 .fill(
                     LinearGradient(
@@ -293,21 +307,18 @@ struct FishGridItem: View {
                             ? [
                                 Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.28),
                                 Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.12)
-                            ]
+                              ]
                             : [Color.white, Color.white],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .frame(width: cardWidth, height: cardWidth * 0.45)
-                // Premium shadow for pinned cards
                 .shadow(
-                    color:
-                         Color.black.opacity(0.06),
+                    color: Color.black.opacity(0.06),
                     radius: 16,
                     y: 6
                 )
-                // Thin glow/border for pinned cards
                 .overlay(
                     RoundedRectangle(cornerRadius: 25)
                         .stroke(
@@ -319,12 +330,10 @@ struct FishGridItem: View {
                 )
 
             HStack(spacing: 20) {
-
                 VStack {
-
                     Image(fishPhoto: fish.photo)
-                        .resizable() // allows resizing
-                        .frame(width: cardHeight, height: cardHeight) // forces square size
+                        .resizable()
+                        .frame(width: cardHeight, height: cardHeight)
                         .cornerRadius(16)
                         .clipped()
                         .opacity(clickable ? 1 : 0.4)
@@ -334,9 +343,7 @@ struct FishGridItem: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-
                     HStack(spacing: 8) {
-
                         if let weight = fish.fishWeight {
                             let isHeaviest = fish == species.fishList.max(by: { ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0) })
 
@@ -344,9 +351,6 @@ struct FishGridItem: View {
                                 .font(.system(size: UIScreen.main.bounds.width * 0.04))
                                 .bold()
                                 .foregroundColor(isHeaviest ? .yellow : .primary)
-                                .shadow(color: isHeaviest ? .yellow.opacity(0.7) : .clear,
-                                        radius: isHeaviest ? 6 : 0,
-                                        x: 0, y: 0)
                         }
                         
                         Text(fish.dateCaught.formatted(date: .abbreviated, time: .omitted))
@@ -369,9 +373,7 @@ struct FishGridItem: View {
                                     await FirestoreManager.shared.saveUser(user: user)
                                 }
                             }
-    
                         } label: {
-
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")
                                 .resizable()
                                 .frame(
@@ -380,14 +382,6 @@ struct FishGridItem: View {
                                 )
                                 .scaleEffect(fish.isPinned ? 1 : 0.95)
                                 .opacity(fish.isPinned ? 1 : 0.8)
-                                .shadow(
-                                    color: fish.isPinned
-                                        ? Color(red: 1.0, green: 0.85, blue: 0.4).opacity(0.7)
-                                        : Color.clear,
-                                    radius: fish.isPinned ? 4 : 0,
-                                    x: 0,
-                                    y: 0
-                                )
                         }
                         .padding(.top)
                     }
@@ -400,54 +394,44 @@ struct FishGridItem: View {
                     Spacer()
 
                     HStack {
-
                         Spacer()
 
-                        if species.fishList.count > 1 {
-                            Button {
-                                showDeleteFishConfirm = true
-                            } label: {
-                                Image(systemName: "trash.fill")
-                                    .foregroundColor(.red.opacity(0.85)).shadow(color: Color.red.opacity(0.3), radius: 2, x: 0, y: 1)
-                            }
-                            .padding(.bottom)
-                            
-                            .confirmationDialog("Delete this fish? This cannot be undone.",
-                                                isPresented: $showDeleteFishConfirm,
-                                                titleVisibility: .visible) {
-                                
-                                Button("Delete", role: .destructive) {
-                                    
-                                    let targetSize = fish.getSize()
+                        // Working Delete Button
+                        Button {
+                            showDeleteFishConfirm = true
+                        } label: {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.red.opacity(0.85))
+                                .shadow(color: Color.red.opacity(0.3), radius: 2, x: 0, y: 1)
+                        }
+                        .padding(.bottom)
+                        .confirmationDialog("Delete this fish? This cannot be undone.",
+                                        isPresented: $showDeleteFishConfirm,
+                                        titleVisibility: .visible) {
+                            Button("Delete", role: .destructive) {
+                                let targetSize = fish.getSize()
 
-                                    if fish == user.speciesStore.pinnedDisplay {
-                                        fish.isPinned.toggle()
-                                        user.speciesStore.assignPinnedDisplay()
-                                    }
-                                    
-                                    if fish.isAquarium {
-                                        user.aquarium.removeFish(
-                                            with: "\(species.name)Icon",
-                                            targetSize: targetSize
-                                        )
-                                        user.aquarium.refresh()
-                                    }
-                                    
-                                    species.fishList.removeAll { $0.id == fish.id }
-                                    Task{
-                                        if let user = AuthManager.shared.user {
-                                            await FirestoreManager.shared.saveUser(user: user)
-                                        }
+                                if fish == user.speciesStore.pinnedDisplay {
+                                    fish.isPinned.toggle()
+                                    user.speciesStore.assignPinnedDisplay()
+                                }
+
+                                if fish.isAquarium {
+                                    user.aquarium.removeFish(
+                                        with: "\(species.name)Icon",
+                                        targetSize: targetSize
+                                    )
+                                    user.aquarium.refresh()
+                                }
+
+                                species.fishList.removeAll { $0.id == fish.id }
+                                Task {
+                                    if let user = AuthManager.shared.user {
+                                        await FirestoreManager.shared.saveUser(user: user)
                                     }
                                 }
-                                
-                                Button("Cancel", role: .cancel) { }
                             }
-
-                        } else {
-                            Image(systemName: "trash.fill")
-                                .foregroundColor(.gray.opacity(0.85))
-                                .padding(.bottom)
+                            Button("Cancel", role: .cancel) { }
                         }
                     }
                 }
@@ -456,7 +440,8 @@ struct FishGridItem: View {
         }
     }
 }
-// helper I got from chat so that fish photos can actually compile and be displayed once uploaded to documents from catch view
+
+// helper
 extension Image {
     init(fishPhoto name: String) {
         let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -470,61 +455,14 @@ extension Image {
     }
 }
 
-
-struct SmallRoundedCard: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .frame(
-                width: UIScreen.main.bounds.width * 0.265,
-                height: UIScreen.main.bounds.width * 0.105
-            )
-            .foregroundStyle(Color.cyan.opacity(0.5))   .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.cyan.opacity(0.65), lineWidth: 1)
-            )
-            .opacity(0.1)
-        
-    }
-}
-
 #Preview {
     let user = User()
 
-    let fish1 = Fish(
-        photo: "clownfish1",
-        speciesName: "Largemouth Bass",
-        description: "Caught near the dock at sunset.",
-        dateCaught: Date(),
-        isPinned: false,
-        isAquarium: false,
-        fishWeight: 4
-    )
-
-    let fish2 = Fish(
-        photo: "clownfish2",
-        speciesName: "Largemouth Bass",
-        description: "Big one by the weeds.",
-        dateCaught: Calendar.current.date(byAdding: .day, value: -3, to: Date())!,
-        isPinned: false,
-        isAquarium: true,
-        fishWeight: 6
-    )
-
-    let fish3 = Fish(
-        photo: "clownfish3",
-        speciesName: "Largemouth Bass",
-        description: "Small but fought hard.",
-        dateCaught: Calendar.current.date(byAdding: .day, value: -10, to: Date())!,
-        isPinned: false,
-        isAquarium: false,
-        fishWeight: 3
-    )
-
     let sampleSpecies = Species(
-        name: "Largemouth Bass",
-        imageName: "largemouthBassPhoto",
+        name: "European Pilchard",
+        imageName: "europeanPilchardPhoto",
         icon: "clownfishIcon",
-        fishList: [fish1, fish2, fish3]
+        fishList: []
     )
 
     NavigationStack {

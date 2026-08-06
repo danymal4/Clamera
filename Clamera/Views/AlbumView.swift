@@ -20,8 +20,6 @@ struct FishData: Codable, Identifiable {
     }
 }
 
-
-
 struct AlbumView: View {
     
     @EnvironmentObject var user: User
@@ -58,11 +56,29 @@ struct AlbumView: View {
             filtered.sort { $0.name < $1.name }
             
         case .caught:
-            filtered = filtered.filter { !$0.fishList.isEmpty }
+            filtered = filtered.filter { species in
+                let hasFish = !species.fishList.isEmpty
+                let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                
+                let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
+                    let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                    return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
+                }
+                return hasFish || isUnlockedInStore
+            }
             filtered.sort { $0.name < $1.name }
             
         case .notCaught:
-            filtered = filtered.filter { $0.fishList.isEmpty }
+            filtered = filtered.filter { species in
+                let hasFish = !species.fishList.isEmpty
+                let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                
+                let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
+                    let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                    return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
+                }
+                return !hasFish && !isUnlockedInStore
+            }
             filtered.sort { $0.name < $1.name }
         }
 
@@ -117,9 +133,14 @@ struct AlbumView: View {
                                     
                                     let letter = String(species.name.prefix(1)).uppercased()
                                     let hasFish = !species.fishList.isEmpty
+                                    let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                                    let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
+                                        let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                                        return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
+                                    }
                                     
                                     Group {
-                                        if hasFish {
+                                        if hasFish || isUnlockedInStore {
                                             NavigationLink(
                                                 destination: SpeciesListView(
                                                     aquarium: user.aquarium,
@@ -130,7 +151,6 @@ struct AlbumView: View {
                                             }
                                         } else {
                                             SpeciesRow(species: species)
-                                              
                                         }
                                     }
                                     .background(
@@ -178,7 +198,7 @@ struct AlbumView: View {
                     .padding(.trailing, 4)
                 }
             }
-            
+             
             // SEARCH BAR (UNCHANGED)
             .overlay(alignment: .bottom) {
                 ZStack(alignment: .trailing) {
@@ -258,14 +278,21 @@ struct AlbumView: View {
 struct SpeciesRow: View {
     
     @ObservedObject var species: Species
+    @EnvironmentObject var user: User
     
     var body: some View {
         let hasFish = species.fishList.count > 0
+        let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
         
+        let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
+            let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+            return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
+        }
+        
+        let isAccessible = hasFish || isUnlockedInStore
+         
         HStack(spacing: 16) {
-            
-       
-                
+             
             Image(UIImage(named: "\(species.name)Icon") != nil ? "\(species.name)Icon" : "Atlantic CodIcon")
                 .resizable()
                 .scaledToFit()
@@ -274,28 +301,33 @@ struct SpeciesRow: View {
                 .overlay(
                     Circle().stroke(Color.gray.opacity(0.2), lineWidth: 1)
                 )
-                .shadow(color: Color.cyan.opacity(hasFish ? 0.08 : 0.03), radius: 2, x: 0, y: 1)
-            
-            
+                .shadow(color: Color.cyan.opacity(isAccessible ? 0.08 : 0.03), radius: 2, x: 0, y: 1)
+             
             VStack(alignment: .leading, spacing: 4) {
-                
+                 
                 Text(species.name)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(hasFish ? .primary : .secondary)
-                
-                Text("\(species.fishList.count) Fish")
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-                
-                if let heaviest = species.fishList.max(by: {
-                    ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0)
-                }) {
-                    Text("Heaviest: \(heaviest.fishWeight ?? 0) lbs")
+                    .foregroundColor(isAccessible ? .primary : .secondary)
+                 
+                if hasFish {
+                    Text("\(species.fishList.count) Fish")
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
+                    
+                    if let heaviest = species.fishList.max(by: {
+                        ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0)
+                    }) {
+                        Text("Heaviest: \(heaviest.fishWeight ?? 0) lbs")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                } else if isUnlockedInStore {
+                    Text("Unlocked via Shop")
+                        .font(.system(size: 13))
+                        .foregroundColor(.cyan)
                 }
             }
-            
+             
             Spacer()
         }
         .contentShape(Rectangle())
@@ -303,15 +335,16 @@ struct SpeciesRow: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 22)
-                .foregroundStyle(hasFish ? Color.cyan.opacity(0.2) : Color.white)
+                .foregroundStyle(isAccessible ? Color.cyan.opacity(0.2) : Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.cyan.opacity(hasFish ? 0.15 : 0.08))
+                        .stroke(Color.cyan.opacity(isAccessible ? 0.15 : 0.08))
                 )
-                .shadow(color: Color.cyan.opacity(hasFish ? 0.05 : 0.02), radius: 3, y: 1)
+                .shadow(color: Color.cyan.opacity(isAccessible ? 0.05 : 0.02), radius: 3, y: 1)
         )
     }
 }
+
 #Preview {
     AlbumView()
         .environmentObject(User())

@@ -3,10 +3,10 @@
 //  Clamera
 //
 //  Created by Kaes van Dolder on 2026-08.
-//
 
 import SwiftUI
 
+// MARK: - Shop Structural Types
 struct ShopItem: Identifiable, Equatable {
     let id: String
     let name: String
@@ -22,15 +22,19 @@ enum ShopCategory: String, CaseIterable {
     case points = "Earn Points"
 }
 
+// MARK: - Main Shop View
 struct ShopView: View {
     private let ui = UIScreen.main.bounds
     @State private var floatUpDown = false
     @EnvironmentObject var user: User
+    @StateObject private var adManager = RewardedAdManager()
     
+    // Alert state handling for purchases & rewards
     @State private var showAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     
+    // Category state tracking
     @State private var selectedCategory: ShopCategory = .all
     
     private var completeCatalog: [ShopItem] { ShopCatalog.items }
@@ -163,18 +167,19 @@ struct ShopView: View {
                     
                     // MARK: - Dynamic Content Based on Selected Tab
                     if selectedCategory == .points {
-                        // Rewarded Ad Option for Free Clam Points
+                        // Rewarded Video Ad Option for Free Clam Points
                         VStack(spacing: 16) {
                             Text("Free Clam Points")
                                 .font(.headline)
                                 .foregroundColor(.primary)
                             
                             Button(action: {
-                                // Partner can wire up RewardedAdManager here later!
-                                user.speciesStore.totalClamPoints += 50
-                                alertTitle = "Clam Points Earned!"
-                                alertMessage = "You earned +50 Clam Points for watching an ad!"
-                                showAlert = true
+                                adManager.showAd {
+                                    user.speciesStore.totalClamPoints += 50
+                                    alertTitle = "Clam Points Earned!"
+                                    alertMessage = "You earned +50 Clam Points for watching an ad!"
+                                    showAlert = true
+                                }
                             }) {
                                 HStack {
                                     Image(systemName: "play.rectangle.fill")
@@ -182,7 +187,7 @@ struct ShopView: View {
                                     VStack(alignment: .leading) {
                                         Text("Watch Ad for Clams")
                                             .bold()
-                                        Text("Earn +50 Clam Points instantly")
+                                        Text(adManager.adLoaded ? "Earn +50 Clam Points instantly" : "Loading video ad...")
                                             .font(.caption)
                                             .opacity(0.8)
                                     }
@@ -192,15 +197,21 @@ struct ShopView: View {
                                 .foregroundColor(.white)
                                 .padding()
                                 .background(
-                                    LinearGradient(colors: [Color.cyan, Color.blue], startPoint: .leading, endPoint: .trailing)
+                                    LinearGradient(
+                                        colors: adManager.adLoaded ? [Color.cyan, Color.blue] : [Color.gray, Color.gray.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
                                 )
                                 .cornerRadius(16)
                             }
+                            .disabled(!adManager.adLoaded)
                         }
                         .padding(.horizontal, 20)
                         
                     } else {
                         
+                        // Sale of the Day card (only rendered on the All tab)
                         if selectedCategory == .all {
                             Button(action: { handlePurchase(item: saleItem, isSaleItem: true) }) {
                                 ZStack {
@@ -214,6 +225,8 @@ struct ShopView: View {
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: ui.width * 0.45, height: ui.width * 0.45)
+                                            .offset(y: floatUpDown ? -6 : 6)
+                                            .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: floatUpDown)
                                         Spacer()
                                         Text("Sale of the Day").bold().foregroundColor(.white)
                                         HStack {
@@ -249,6 +262,8 @@ struct ShopView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(height: 55)
+                                                .offset(y: floatUpDown ? -2 : 4)
+                                                .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: floatUpDown)
                                             Spacer()
                                             Text(item.name.replacingOccurrences(of: " Icon", with: ""))
                                             Text(user.unlockedShopItems.contains(item.id) ? "Unlocked" : "\(calculateCost(for: item, isSaleItem: false)) pts")
@@ -270,6 +285,7 @@ struct ShopView: View {
                 }
             }
             
+            // Bottom Tab Bar Mask Layer
             Rectangle()
                 .fill(Color.white)
                 .overlay(Color.blue.opacity(0.06))
@@ -325,6 +341,7 @@ struct ShopView: View {
     }
 }
 
+// Custom button scale effect style
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -333,6 +350,7 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Canvas Preview
 #Preview {
     ShopView()
         .environmentObject(User())

@@ -13,194 +13,161 @@ struct FishDetailsView: View {
     
     let fishID: UUID
 
+    @State private var isEditing = false
+    @State private var editedDescription = ""
+    @State private var editedWeightString = ""
+
     var body: some View {
-      
-        if let binding = findFishBinding() {
-            let fish = binding.wrappedValue
+        ZStack {
+            WaterView().opacity(0.3)
+                .ignoresSafeArea()
 
-            ZStack {
-                WaterView().opacity(0.3)
-                IconView()
-                    .padding(.top, 55)
+            if let binding = findFishBinding() {
+                let fish = binding.wrappedValue
 
-                ZStack {
-                    Rectangle()
-                        .cornerRadius(20)
-                        .foregroundStyle(.white)
-                        .opacity(0.5)
-                        .frame(
-                            width: min(UIScreen.main.bounds.width * 0.9, 1800),
-                            height: min(UIScreen.main.bounds.width * 0.48, 2000)
-                        )
-                        .padding(.top, 320).shadow(color: .black.opacity(0.1), radius: 10)
-                }
-
-                // Add to Aquarium
-                HStack {
-                    Spacer()
-
-                    Button {
-                     
-                    } label: {
-                        Image("\(fish.speciesName)Icon")
-                            .resizable()
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                height: min(UIScreen.main.bounds.width * 0.13, 180)
+                ScrollView {
+                    VStack(spacing: 16) {
+                        
+                        // Species Title Header
+                        Text(fish.speciesName)
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.black.opacity(0.8), Color.cyan.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
                             )
-                            .opacity(0.9)
-                    }
-                    .padding(.top, 305)
-                    .padding(.trailing, 45)
-                }
+                            .padding(.top, 10)
 
-                // Remove from Aquarium
-                HStack {
-                    Spacer()
+                        // Top Icon Header
+                        IconView()
 
-                    Button {
-                     
-                    } label: {
-                        Image("\(fish.speciesName)Icon")
-                            .resizable()
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.13, 180),
-                                height: min(UIScreen.main.bounds.width * 0.13, 180)
-                            )
-                            .colorMultiply(.gray)
-                            .opacity(0.2)
-                    }
-                    .padding(.top, 410)
-                    .padding(.trailing, 45)
-                }
-
-                // Species + Date
-                HStack {
-                    Text("Species: \(fish.speciesName)")
-                        .font(.system(size: UIScreen.main.bounds.width * 0.03))
-                        .opacity(0.8)
-                        .padding(.top, 550)
-                    Spacer()
-                }
-                .padding().padding()
-                
-                HStack {
-                    Spacer()
-                    Text("Caught: \(Text(fish.dateCaught, format: .dateTime.year().month(.wide).day()))")
-                        .font(.system(size: UIScreen.main.bounds.width * 0.03))
-                        .opacity(0.8)
-                        .padding(.top, 550)
-                }
-                .padding().padding()
-
-                Rectangle()
-                    .cornerRadius(45)
-                    .foregroundStyle(.blue)
-                    .opacity(0.15)
-                    .frame(
-                        width: min(UIScreen.main.bounds.width * 0.88, 1800),
-                        height: min(UIScreen.main.bounds.width * 0.83, 2000)
-                    )
-                    .padding(.bottom, 250)
-
-                Text("Image Not Found")
-                    .font(.custom("", size: 40))
-                    .foregroundStyle(.red)
-                    .padding(.bottom, 210)
-
-                Image(fishPhoto: fish.photo)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(
-                        width: min(UIScreen.main.bounds.width * 0.85, 1800),
-                        height: min(UIScreen.main.bounds.width * 0.8, 2000)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 40))
-                    .padding(.bottom, 250)
-
-                // Pin Button
-                HStack {
-                    Spacer()
-                    Button {
-                        // 1. Unpin all other fish first so only ONE fish is ever pinned at a time
-                        for speciesIndex in speciesStore.speciesList.indices {
-                            for fishIndex in speciesStore.speciesList[speciesIndex].fishList.indices {
-                                speciesStore.speciesList[speciesIndex].fishList[fishIndex].isPinned = false
+                        // Main Image Card with Pin Overlay
+                        ZStack(alignment: .topTrailing) {
+                            ZStack(alignment: .bottom) {
+                                Image(fishPhoto: fish.photo)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width * 0.85)
+                                    .clipShape(RoundedRectangle(cornerRadius: 30))
+                                    .shadow(color: .black.opacity(0.12), radius: 10, y: 5)
                             }
-                        }
-                        
-                        // 2. Toggle the tapped fish's pin state
-                        binding.isPinned.wrappedValue.toggle()
-                        
-                        // 3. Update the store's pinned display reference immediately
-                        speciesStore.assignPinnedDisplay()
-                        
-                        Task {
-                            if let user = AuthManager.shared.user {
-                                await FirestoreManager.shared.saveUser(user: user)
+
+                            // Pin Button Overlay
+                            Button {
+                                for speciesIndex in speciesStore.speciesList.indices {
+                                    for fishIndex in speciesStore.speciesList[speciesIndex].fishList.indices {
+                                        speciesStore.speciesList[speciesIndex].fishList[fishIndex].isPinned = false
+                                    }
+                                }
+                                
+                                binding.isPinned.wrappedValue.toggle()
+                                speciesStore.assignPinnedDisplay()
+                                
+                                Task {
+                                    if let user = AuthManager.shared.user {
+                                        await FirestoreManager.shared.saveUser(user: user)
+                                    }
+                                }
+                            } label: {
+                                Image(fish.isPinned ? "anchor" : "anchorUnpinned")
+                                    .resizable()
+                                    .frame(width: 32, height: 40)
+                                    .shadow(color: fish.isPinned ? Color.yellow.opacity(0.6) : .clear, radius: 4)
                             }
+                            .padding(20)
                         }
-                    } label: {
-                        Image(fish.isPinned ? "anchorUnpinned" : "anchor")
-                            .resizable()
-                            .frame(
-                                width: min(UIScreen.main.bounds.width * 0.08, 180),
-                                height: min(UIScreen.main.bounds.width * 0.1, 180)
-                            )
-                            .foregroundStyle(.white)
-                            .opacity(0.9)
+                        .padding(.horizontal)
+
+                        // Details & Description Card
+                        VStack(alignment: .leading, spacing: 14) {
+                            
+                            // Catch Date Header
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Caught: \(Text(fish.dateCaught, format: .dateTime.year().month(.wide).day()))")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+
+                            Divider()
+
+                            // Description Section with Edit Toggle
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Description")
+                                        .font(.headline)
+                                        .bold()
+                                    Spacer()
+                                    
+                                    Button(isEditing ? "Done" : "Edit") {
+                                        if isEditing {
+                                            binding.description.wrappedValue = editedDescription
+                                            if let weight = Double(editedWeightString) {
+                                                binding.fishWeight.wrappedValue = Int(weight)
+                                            }
+                                            
+                                            Task {
+                                                if let user = AuthManager.shared.user {
+                                                    await FirestoreManager.shared.saveUser(user: user)
+                                                }
+                                            }
+                                        } else {
+                                            editedDescription = fish.description
+                                            editedWeightString = fish.fishWeight != nil ? "\(fish.fishWeight!)" : ""
+                                        }
+                                        isEditing.toggle()
+                                    }
+                                    .font(.subheadline)
+                                    .bold()
+                                    .foregroundColor(.cyan)
+                                }
+
+                                if isEditing {
+                                    VStack(spacing: 10) {
+                                        TextField("Description", text: $editedDescription)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        
+                                        HStack {
+                                            Text("Weight (lbs):")
+                                                .font(.caption)
+                                            TextField("Weight", text: $editedWeightString)
+                                                .keyboardType(.decimalPad)
+                                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        }
+                                    }
+                                } else {
+                                    Text(fish.description)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .padding(.vertical, 18)
+                        .background(
+                            RoundedRectangle(cornerRadius: 25)
+                                .fill(Color.white.opacity(0.85))
+                                .shadow(color: .black.opacity(0.06), radius: 10, y: 4)
+                        )
+                        .padding(.horizontal, 16)
+                        
+                        Spacer(minLength: 100)
                     }
-                    .padding(.trailing, 30)
-                    .padding(.top, 190)
                 }
-
-                VStack {
-                    Text("Description")
-                        .font(.title2)
-                        .bold()
-                        .padding(.top, 8)
-
-                    Text(fish.description)
-                        .opacity(0.6)
-
-                    Text("Add to Aquarium")
-                        .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                        .opacity(0.8)
-                        .bold()
-                        .padding(.bottom)
-                        .frame(
-                            width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                            alignment: .leading
-                        )
-                        .padding()
-
-                    Text("Remove From Aquarium")
-                        .font(.system(size: UIScreen.main.bounds.width * 0.04))
-                        .opacity(0.8)
-                        .bold()
-                        .padding(.bottom)
-                        .frame(
-                            width: min(UIScreen.main.bounds.width * 0.8, 2000),
-                            alignment: .leading
-                        )
-                }
-                .padding(.top, 300)
-
-                Rectangle()
-                    .fill(Color.white.opacity(0.6))
-                    .frame(height: 83)
-                    .padding(.top, 790).shadow(color: .black.opacity(0.1), radius: 10)
+            } else {
+                Text("Fish not found")
+                    .foregroundColor(.red)
+                    .bold()
             }
-            .padding(.top, -10).background(Color.blue.opacity(0.08))
-
-        } else {
-            Text("Fish not found")
-                .foregroundColor(.red)
-                .bold()
         }
+        .background(Color.blue.opacity(0.08).ignoresSafeArea())
     }
 
-   // binding I looked up so structs can actually be modifiable
     private func findFishBinding() -> Binding<Fish>? {
         for speciesIndex in speciesStore.speciesList.indices {
             if let fishIndex = speciesStore.speciesList[speciesIndex]
@@ -214,7 +181,6 @@ struct FishDetailsView: View {
         return nil
     }
 }
-
 #Preview {
     let store = SpeciesStore()
     let firstFishID = store.speciesList.first?.fishList.first?.id ?? UUID()
@@ -222,6 +188,5 @@ struct FishDetailsView: View {
     
     NavigationStack {
         FishDetailsView(speciesStore: store, aquarium: aquarium, fishID: firstFishID)
-         
     }
 }
