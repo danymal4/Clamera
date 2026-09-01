@@ -8,7 +8,7 @@
 import Foundation
 
 class Fish: Identifiable, ObservableObject, Hashable {
-    let id = UUID()
+    let id: UUID
     var photo: String
     let speciesName: String
     @Published var description: String
@@ -18,7 +18,8 @@ class Fish: Identifiable, ObservableObject, Hashable {
     @Published var isDeleted: Bool
     @Published var fishWeight: Int?
     
-    init(photo: String,
+    init(id: UUID = UUID(),
+         photo: String,
          speciesName: String,
          description: String = "cool fish I found with sam",
          dateCaught: Date = Date(),
@@ -26,6 +27,7 @@ class Fish: Identifiable, ObservableObject, Hashable {
          isAquarium: Bool = false,
          isDeleted: Bool = false,
          fishWeight: Int? = nil) {
+        self.id = id
         self.photo = photo
         self.speciesName = speciesName
         self.description = description
@@ -40,6 +42,11 @@ class Fish: Identifiable, ObservableObject, Hashable {
     }
     
     init(dictionary: [String: String]) {
+        if let uuidString = dictionary["id"], let uuid = UUID(uuidString: uuidString) {
+            self.id = uuid
+        } else {
+            self.id = UUID()
+        }
         self.photo = dictionary["photo"] ?? ""
         self.speciesName = dictionary["speciesName"] ?? ""
         self.description = dictionary["description"] ?? ""
@@ -58,14 +65,15 @@ class Fish: Identifiable, ObservableObject, Hashable {
     func getDictionary() -> [String : String] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        let dict: [String : String] =
-        ["photo":self.photo,
-         "speciesName":self.speciesName,
-         "description":self.description,
-         "dateCaught":dateFormatter.string(from: self.dateCaught),
-         "isPinned":String(isPinned),
-         "isDeleted":String(isDeleted),
-         "fishWeight":String(fishWeight ?? -1)
+        let dict: [String : String] = [
+            "id": self.id.uuidString,
+            "photo": self.photo,
+            "speciesName": self.speciesName,
+            "description": self.description,
+            "dateCaught": dateFormatter.string(from: self.dateCaught),
+            "isPinned": String(isPinned),
+            "isDeleted": String(isDeleted),
+            "fishWeight": String(fishWeight ?? -1)
         ]
         return dict
     }
@@ -81,7 +89,7 @@ class Fish: Identifiable, ObservableObject, Hashable {
 
         switch weight {
         case 0...5:
-            dimension = 20 + CGFloat(weight) / 5 * 22     // 20–42
+            dimension = 20 + CGFloat(weight) / 5 * 22    // 20–42
         case 5...10:
             dimension = 42 + CGFloat(weight - 5) / 5 * 22 // 42–64
         case 10...20:

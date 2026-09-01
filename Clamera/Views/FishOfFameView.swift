@@ -1,5 +1,5 @@
 //
-//  HallOfFishView.swift
+//  FishOfFameView.swift
 //  Clamera
 //
 //  Created by Dany Malaeb on 8/5/26.
@@ -15,23 +15,29 @@ struct FishPost: Identifiable, Codable {
     let datePosted: Date
 }
 
-struct HallOfFishView: View {
+struct FishOfFameView: View {
     @EnvironmentObject var user: User
     @State private var showAlbumPicker = false
-    @State private var hallOfFishPosts: [FishPost] = []
     @State private var postToDelete: FishPost? = nil
     @State private var showDeleteConfirm = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                
+                 
                 // Header & Add Button
                 HStack {
-                    Text("Hall of Fish")
+                    Text("Fish of Fame")
                         .font(.system(size: 32, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.blue, Color.blue, Color.blue, Color.cyan],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                     Spacer()
-                    
+                     
                     Button {
                         showAlbumPicker = true
                     } label: {
@@ -51,7 +57,7 @@ struct HallOfFishView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
 
-                if hallOfFishPosts.isEmpty {
+                if user.fishOfFamePosts.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 48))
@@ -69,77 +75,8 @@ struct HallOfFishView: View {
                 } else {
                     // Instagram-style Feed
                     LazyVStack(spacing: 24) {
-                        ForEach(hallOfFishPosts) { post in
-                            VStack(alignment: .leading, spacing: 10) {
-                                
-                                // Profile / Username Header matching Account Profile Picture
-                                HStack(spacing: 10) {
-                                    if user.profilePicture.hasPrefix("http"), let url = URL(string: user.profilePicture) {
-                                        AsyncImage(url: url) { image in
-                                            image.resizable().scaledToFill()
-                                        } placeholder: {
-                                            ProgressView()
-                                        }
-                                        .frame(width: 32, height: 32)
-                                        .clipShape(Circle())
-                                    } else {
-                                        Circle()
-                                            .fill(Color.cyan.opacity(0.3))
-                                            .frame(width: 32, height: 32)
-                                            .overlay(
-                                                Text(user.username.prefix(1).uppercased())
-                                                    .bold()
-                                                    .foregroundColor(.cyan)
-                                            )
-                                    }
-                                    
-                                    Text(user.username)
-                                        .font(.system(size: 15, weight: .semibold))
-                                    
-                                    Spacer()
-                                    
-                                    Text(post.datePosted.formatted(date: .abbreviated, time: .omitted))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
-                                    // Remove/Delete Post Button
-                                    Button {
-                                        postToDelete = post
-                                        showDeleteConfirm = true
-                                    } label: {
-                                        Image(systemName: "trash")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.red.opacity(0.8))
-                                    }
-                                    .padding(.leading, 6)
-                                }
-                                .padding(.horizontal, 16)
-
-                                // Post Image
-                                Image(fishPhoto: post.photo)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: UIScreen.main.bounds.width - 32, height: UIScreen.main.bounds.width - 32)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                                    .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-
-                                // Caption & Species
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(post.speciesName)
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.primary)
-                                    
-                                    Text(post.caption)
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.black.opacity(0.8))
-                                }
-                                .padding(.horizontal, 16)
-                            }
-                            .padding(.vertical, 12)
-                            .background(Color.white)
-                            .cornerRadius(24)
-                            .shadow(color: .black.opacity(0.04), radius: 10, y: 4)
-                            .padding(.horizontal, 16)
+                        ForEach(user.fishOfFamePosts) { post in
+                            fishPostRow(post: post)
                         }
                     }
                 }
@@ -149,25 +86,113 @@ struct HallOfFishView: View {
         .background(Color.blue.opacity(0.01))
         .sheet(isPresented: $showAlbumPicker) {
             PostPreviewPickerView { selectedFish, speciesName in
-                let newPost = FishPost(
-                    id: UUID(),
-                    photo: selectedFish.photo,
-                    speciesName: speciesName,
-                    caption: selectedFish.description,
-                    datePosted: Date()
-                )
-                hallOfFishPosts.insert(newPost, at: 0)
+                if !user.fishOfFamePosts.contains(where: { $0.id == selectedFish.id }) {
+                    let newPost = FishPost(
+                        id: selectedFish.id,
+                        photo: selectedFish.photo,
+                        speciesName: speciesName,
+                        caption: selectedFish.description,
+                        datePosted: selectedFish.dateCaught
+                    )
+                    user.fishOfFamePosts.insert(newPost, at: 0)
+                    
+                    Task {
+                        if let authUser = AuthManager.shared.user {
+                            await FirestoreManager.shared.saveUser(user: authUser)
+                        }
+                    }
+                }
             }
             .environmentObject(user)
         }
-        .confirmationDialog("Remove this post from your Hall of Fish?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+        .confirmationDialog("Remove this post from your Fish of Fame?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
             Button("Remove", role: .destructive) {
                 if let post = postToDelete {
-                    hallOfFishPosts.removeAll { $0.id == post.id }
+                    user.fishOfFamePosts.removeAll { $0.id == post.id }
+                    
+                    Task {
+                        if let authUser = AuthManager.shared.user {
+                            await FirestoreManager.shared.saveUser(user: authUser)
+                        }
+                    }
                 }
             }
             Button("Cancel", role: .cancel) {}
         }
+    }
+     
+    @ViewBuilder
+    private func fishPostRow(post: FishPost) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+             
+            // Profile / Username Header matching Account Profile Picture
+            HStack(spacing: 10) {
+                if user.profilePicture.hasPrefix("http"), let url = URL(string: user.profilePicture) {
+                    AsyncImage(url: url) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        ProgressView()
+                    }
+                    .frame(width: 32, height: 32)
+                    .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color.cyan.opacity(0.3))
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text(user.username.prefix(1).uppercased())
+                                .bold()
+                                .foregroundColor(.cyan)
+                        )
+                }
+                 
+                Text(user.username)
+                    .font(.system(size: 15, weight: .semibold))
+                 
+                Spacer()
+                 
+                Text(post.datePosted.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                 
+                // Remove/Delete Post Button
+                Button {
+                    postToDelete = post
+                    showDeleteConfirm = true
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 14))
+                        .foregroundColor(.red.opacity(0.8))
+                }
+                .padding(.leading, 6)
+            }
+            .padding(.horizontal, 16)
+
+            // Post Image loaded via fishPhoto helper
+            Image(fishPhoto: post.photo)
+                .resizable()
+                .scaledToFill()
+                .frame(width: UIScreen.main.bounds.width - 32, height: UIScreen.main.bounds.width - 32)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+
+            // Caption & Species
+            VStack(alignment: .leading, spacing: 4) {
+                Text(post.speciesName)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.primary)
+                 
+                Text(post.caption)
+                    .font(.system(size: 14))
+                    .foregroundColor(.black.opacity(0.8))
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 12)
+        .background(Color.white)
+        .cornerRadius(24)
+        .shadow(color: .black.opacity(0.04), radius: 10, y: 4)
+        .padding(.horizontal, 16)
     }
 }
 
@@ -175,7 +200,7 @@ struct HallOfFishView: View {
 struct PostPreviewPickerView: View {
     @EnvironmentObject var user: User
     @Environment(\.dismiss) var dismiss
-    
+     
     var onPublish: (Fish, String) -> Void
     @State private var selectedFishToPreview: Fish? = nil
     @State private var parentSpeciesName: String = ""
@@ -201,7 +226,7 @@ struct PostPreviewPickerView: View {
 
                                 Text(parentSpeciesName)
                                     .font(.headline)
-                                
+                                 
                                 Text(fish.description)
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
@@ -216,7 +241,7 @@ struct PostPreviewPickerView: View {
                                 onPublish(fish, parentSpeciesName)
                                 dismiss()
                             } label: {
-                                Text("Share to Hall of Fish")
+                                Text("Share to Fish of Fame")
                                     .font(.headline)
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
@@ -278,6 +303,6 @@ struct PostPreviewPickerView: View {
 }
 
 #Preview {
-    HallOfFishView()
+    FishOfFameView()
         .environmentObject(User())
 }

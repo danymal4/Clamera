@@ -58,11 +58,14 @@ final class SpeciesStore: ObservableObject {
                 }
             }
         }
+        
+        // Recalculates pinned display state properly on data update/fetch
+        assignPinnedDisplay()
+        
         if let array = weekSpecies {
             catchOfTheWeek = Species(array: array)
         }
         catchOfTheWeekPoints = weekPoints
-        
     }
     
     // declares url from fish data json
@@ -72,7 +75,7 @@ final class SpeciesStore: ObservableObject {
             print("Cant find fish data")
             return
         }
-        
+         
         do {
          
           // if successful then trys to get data from the url
@@ -94,6 +97,8 @@ final class SpeciesStore: ObservableObject {
             }
            
             print("Loaded \(speciesList.count) species")
+            // Ensure global synchronization happens after loading JSON data
+            assignCatchOfTheWeek()
         } catch {
              
             // do/catch is here to see precise errors
@@ -118,26 +123,21 @@ final class SpeciesStore: ObservableObject {
     }
     
     func assignCatchOfTheWeek() {
-        let validSpecies = speciesList.filter { species in
-            let imageName = "\(species.name)Icon"
-            return UIImage(named: imageName) != nil
-        }
-         
-        guard !validSpecies.isEmpty else {
+        guard !speciesList.isEmpty else {
             catchOfTheWeek = nil
             return
         }
          
-        // Calculate a stable index based on the current calendar week and year
+        // Calculate a stable index based on the current calendar week and year globally for all accounts
         let calendar = Calendar.current
         let weekOfYear = calendar.component(.weekOfYear, from: Date())
         let year = calendar.component(.year, from: Date())
-        
-        // Combine year and week to create a unique seed for this specific week
-        let weeklySeed = year * 100 + weekOfYear
-        let index = abs(weeklySeed) % validSpecies.count
          
-        catchOfTheWeek = validSpecies[index]
+        // Combine year and week to create a unique seed for this specific week globally
+        let weeklySeed = year * 100 + weekOfYear
+        let index = abs(weeklySeed) % speciesList.count
+         
+        catchOfTheWeek = speciesList[index]
     }
     
    
@@ -177,11 +177,11 @@ final class SpeciesStore: ObservableObject {
     func getSpecies() -> Int {
         speciesList.filter { !$0.fishList.isEmpty }.count
     }
-    
+   
     func getFish() -> Int {
         speciesList.reduce(0) { $0 + $1.fishList.count }
     }
-    
+   
     func randomPoints() -> Int {
         Int.random(in: 30...40) * 5
     }

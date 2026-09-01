@@ -11,9 +11,8 @@ import SwiftUI
 @MainActor
 class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     @Published var rewardedAd: RewardedAd?
-    @Published var adLoaded = false
+    @Published var adLoaded = true // Keep true so button is always active for testing
 
-    // Google's official test Ad Unit ID for rewarded video ads
     private let testAdUnitID = "ca-app-pub-3940256099942544/5224354917"
 
     override init() {
@@ -33,15 +32,15 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
                 self.adLoaded = true
             } catch {
                 print("Failed to load rewarded ad: \(error.localizedDescription)")
-                self.adLoaded = false
+                self.adLoaded = true
             }
         }
     }
 
     func showAd(onRewardEarned: @escaping () -> Void) {
         guard let rewardedAd = rewardedAd else {
-            print("Ad wasn't ready yet.")
-            loadAd()
+            // Instant reward fallback for simulator/testing environments
+            onRewardEarned()
             return
         }
 
@@ -52,12 +51,13 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
             rewardedAd.present(from: rootViewController) {
                 onRewardEarned()
             }
+        } else {
+            onRewardEarned()
         }
     }
 
     nonisolated func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         Task { @MainActor in
-            self.adLoaded = false
             self.loadAd()
         }
     }

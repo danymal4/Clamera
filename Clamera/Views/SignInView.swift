@@ -1,3 +1,10 @@
+//
+//  SignInView.swift
+//  Clamera
+//
+//  Created by Dany Malaeb on 8/31/26.
+//
+
 import SwiftUI
 
 struct SignInView: View {
@@ -10,6 +17,7 @@ struct SignInView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showSignUp = false
+    @State private var showPassword = false // Controls visibility toggle
     
     enum SignInStep {
         case email
@@ -21,7 +29,7 @@ struct SignInView: View {
             ZStack {
                 Color(.systemBackground)
                     .ignoresSafeArea()
-                
+                 
                 
                 VStack {
                     Spacer()
@@ -30,12 +38,12 @@ struct SignInView: View {
                         .opacity(0.4)
                         .ignoresSafeArea(edges: .bottom)
                 }
-                
+                 
                 // MARK: - Rigid Content Container (Matched geometry, zero bouncing)
                 VStack(spacing: 24) {
                     Color.clear
                         .frame(height: 10)
-                    
+                     
                     // MARK: - Logo & Title Header
                     VStack(spacing: 12) {
                         Image("logo white")
@@ -43,7 +51,7 @@ struct SignInView: View {
                             .scaledToFit()
                             .frame(width: 110, height: 110)
                             .shadow(color: .cyan.opacity(0.4), radius: 10, x: 0, y: 5)
-                        
+                         
                         Text("Clamera")
                             .font(.custom("ChalkboardSE-Bold", size: 50))
                             .foregroundStyle(
@@ -53,13 +61,13 @@ struct SignInView: View {
                                     endPoint: .trailing
                                 )
                             )
-                        
+                         
                         Text(step == .email ? "Sign In To Your Account" : "Welcome Back!")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.bottom, 10)
-                    
+                     
                     // MARK: - Progressive Form Fields
                     VStack(spacing: 16) {
                         if step == .email {
@@ -68,7 +76,7 @@ struct SignInView: View {
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
-                                
+                                 
                                 TextField("Enter your email or username", text: $emailOrUsername)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
@@ -80,7 +88,7 @@ struct SignInView: View {
                                 insertion: .move(edge: .leading).combined(with: .opacity),
                                 removal: .move(edge: .leading).combined(with: .opacity)
                             ))
-                            
+                             
                             Button {
                                 guard !emailOrUsername.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -102,7 +110,7 @@ struct SignInView: View {
                                 .shadow(color: .cyan.opacity(0.3), radius: 6, x: 0, y: 3)
                             }
                             .padding(.top, 8)
-                            
+                             
                         } else {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
@@ -122,24 +130,40 @@ struct SignInView: View {
                                         .lineLimit(1)
                                 }
                                 .padding(.horizontal, 4)
-                                
+                                 
                                 Text("Password")
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
-                                
-                                SecureField("Enter your password", text: $password)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(16)
+                                 
+                                // Password field with visibility toggle
+                                HStack {
+                                    if showPassword {
+                                        TextField("Enter your password", text: $password)
+                                            .textInputAutocapitalization(.never)
+                                            .autocorrectionDisabled()
+                                    } else {
+                                        SecureField("Enter your password", text: $password)
+                                            .textInputAutocapitalization(.never)
+                                            .autocorrectionDisabled()
+                                    }
+                                    
+                                    Button {
+                                        showPassword.toggle()
+                                    } label: {
+                                        Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(16)
                             }
                             .transition(.asymmetric(
                                 insertion: .move(edge: .trailing).combined(with: .opacity),
                                 removal: .move(edge: .trailing).combined(with: .opacity)
                             ))
-                            
+                             
                             Button {
                                 handleSignIn()
                             } label: {
@@ -168,32 +192,34 @@ struct SignInView: View {
                     .frame(maxWidth: 350)
                     .padding(.horizontal, 20)
                     .transaction { $0.animation = nil }
-                    
+                     
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.caption)
                             .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
                     }
-                    
+                     
                     Spacer()
-                    
+                     
                     // MARK: - Secondary Options (Fixed at bottom)
                     VStack(spacing: 14) {
                         Divider()
                             .padding(.horizontal, 40)
-                        
+                         
                         HStack {
                             Text("Don't have an account?")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                            
+                             
                             Button("Sign Up") {
                                 showSignUp = true
                             }
                             .font(.subheadline.bold())
                             .foregroundColor(.cyan)
                         }
-                        
+                         
                         Button {
                             Task {
                                 do {
@@ -219,15 +245,25 @@ struct SignInView: View {
             }
         }
     }
-    
+     
     private func handleSignIn() {
-        isLoading = true
-        errorMessage = nil
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            isLoading = false
+            isLoading = true
+            errorMessage = nil
+             
+            Task {
+                do {
+                    try await AuthManager.shared.signIn(loginInput: emailOrUsername, password: password)
+                    await MainActor.run {
+                        isLoading = false
+                    }
+                } catch {
+                    await MainActor.run {
+                        isLoading = false
+                        errorMessage = "Incorrect password or email. Please try again."
+                    }
+                }
+            }
         }
-    }
 }
 
 #Preview {

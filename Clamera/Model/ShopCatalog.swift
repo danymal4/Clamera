@@ -165,15 +165,15 @@ struct ShopCatalog {
                 .replacingOccurrences(of: "(", with: "")
                 .replacingOccurrences(of: ")", with: "")
                 .replacingOccurrences(of: "'", with: "") + "_cosmetic"
-            
+             
             let dynamicCost = 250 + (name.count * 12)
-            
+             
             return ShopItem(
                 id: safeId,
                 name: "\(name) Icon",
                 iconName: "\(name)Icon",
                 baseCost: dynamicCost,
-                category: .icons
+                category: .all
             )
         }
     }

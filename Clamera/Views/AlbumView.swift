@@ -44,7 +44,6 @@ struct AlbumView: View {
         var filtered = user.speciesStore.speciesList
 
         if !searchText.isEmpty {
-            didSearchChange = true
             
             filtered = filtered.filter {
                 $0.name.lowercased().contains(searchText.lowercased())

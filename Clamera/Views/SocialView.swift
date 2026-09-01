@@ -32,20 +32,20 @@ struct SocialView: View {
                         )
                     }
                      
-                    NavigationLink(destination: FriendsListView()) {
-                        socialRow(
-                            imageName: "friends",
-                            title: "Friends",
-                            subtitle: "10 friends",
-                            isHighlighted: false
-                        )
-                    }
+                    NavigationLink(destination: FriendsListView(user: user)) {
+                                            socialRow(
+                                                imageName: "friends",
+                                                title: "Friends",
+                                                subtitle: "10 friends",
+                                                isHighlighted: false
+                                            )
+                                        }
                      
                     // Replaced Leaderboard with Hall of Fish
-                    NavigationLink(destination: HallOfFishView()) {
+                    NavigationLink(destination: FishOfFameView()) {
                         socialRow(
                             imageName: "Trophy", // You can keep or change this image asset
-                            title: "Hall of Fish",
+                            title: "Fish of Fame",
                             subtitle: "Manage your trophy catalog & posts",
                             isHighlighted: false
                         )

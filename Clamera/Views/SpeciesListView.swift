@@ -1,4 +1,4 @@
-////
+//
 //  SpeciesListView.swift
 //  Clamera
 //
@@ -274,10 +274,10 @@ struct FishGridItem: View {
     private var cardHeight: CGFloat { cardWidth * 0.35 }
 
     init(fish: Fish,
-           species: Species,
-           clickable: Bool,
-           showPinnedOnly: Binding<Bool>,
-           onTogglePinned: (() -> Void)? = nil) {
+         species: Species,
+         clickable: Bool,
+         showPinnedOnly: Binding<Bool>,
+         onTogglePinned: (() -> Void)? = nil) {
           self.fish = fish
           self.species = species
           self.clickable = clickable
@@ -406,8 +406,8 @@ struct FishGridItem: View {
                         }
                         .padding(.bottom)
                         .confirmationDialog("Delete this fish? This cannot be undone.",
-                                        isPresented: $showDeleteFishConfirm,
-                                        titleVisibility: .visible) {
+                                            isPresented: $showDeleteFishConfirm,
+                                            titleVisibility: .visible) {
                             Button("Delete", role: .destructive) {
                                 let targetSize = fish.getSize()
 
@@ -441,17 +441,23 @@ struct FishGridItem: View {
     }
 }
 
-// helper
+// Robust helper extension to load saved catch photos from the document directory or fallback assets
 extension Image {
     init(fishPhoto name: String) {
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(name)
+        let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileURL = documentDirectory.appendingPathComponent(name)
         
-        if let uiImage = UIImage(contentsOfFile: url.path) {
+        if let uiImage = UIImage(contentsOfFile: fileURL.path) {
             self.init(uiImage: uiImage)
-        } else {
-            self.init(name)
+            return
         }
+        
+        if let uiImage = UIImage(contentsOfFile: name) {
+            self.init(uiImage: uiImage)
+            return
+        }
+        
+        self.init(name)
     }
 }
 

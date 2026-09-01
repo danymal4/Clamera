@@ -285,7 +285,7 @@ struct HologramHeaderView: View {
                                 .offset(y: floatUpDown ? -6 : 6)
                                 .animation(
                                     .easeInOut(duration: 1.6)
-                                    .repeatForever(autoreverses: true),
+                                        .repeatForever(autoreverses: true),
                                     value: floatUpDown
                                 )
                                 .onTapGesture {
@@ -326,7 +326,7 @@ struct HologramHeaderView: View {
                                     .offset(y: floatUpDown ? cardWidth * 0.12 : cardWidth * 0.08)
                                     .animation(
                                         .easeInOut(duration: 1.6)
-                                        .repeatForever(autoreverses: true),
+                                            .repeatForever(autoreverses: true),
                                         value: floatUpDown
                                     )
                                 

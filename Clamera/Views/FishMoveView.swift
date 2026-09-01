@@ -1,5 +1,40 @@
+//
+//  FishMoveView.swift
+//  Clamera
+//
+//  Created by Dany Malaeb (student LM) on 1/28/26.
+//
+
 import SwiftUI
 import AVFoundation
+
+final class SoundManager {
+    static let shared = SoundManager()
+    private var player: AVAudioPlayer?
+
+    private init() {}
+
+    func playPlopp(size: CGFloat) {
+        guard let url = Bundle.main.url(forResource: "plopp", withExtension: "wav") else { return }
+        
+        do {
+            player = try AVAudioPlayer(contentsOf: url)
+            player?.enableRate = true
+            player?.rate = Float.random(in: 0.97...1.03)
+
+            let minSize: CGFloat = 20
+            let maxSize: CGFloat = 200
+            let minVolume: Float = 0.2
+            let maxVolume: Float = 1.0
+            let clampedSize = max(min(size, maxSize), minSize)
+
+            player?.volume = minVolume + Float((clampedSize - minSize) / (maxSize - minSize)) * (maxVolume - minVolume)
+            player?.play()
+        } catch {
+            print("Error playing plopp sound: \(error)")
+        }
+    }
+}
 
 struct FishMoveView: View {
 
@@ -18,9 +53,6 @@ struct FishMoveView: View {
 
     @State private var startTime: TimeInterval = Date().timeIntervalSinceReferenceDate
     @State private var verticalOffsets: [UUID: CGFloat] = [:]
-
-    // Sound player
-    @State private var audioPlayer: AVAudioPlayer?
 
     var body: some View {
         GeometryReader { geo in
@@ -54,7 +86,7 @@ struct FishMoveView: View {
 
                         // Horizontal motion
                         let xOffset = fish.horizontalRange.lowerBound +
-                                      (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
+                                    (fish.horizontalRange.upperBound - fish.horizontalRange.lowerBound) * ((progress + 1) / 2)
 
                         // Vertical drifting & bobbing
                         let padding: CGFloat = 20
@@ -100,8 +132,8 @@ struct FishMoveView: View {
                                         withAnimation(.linear(duration: 0.5)) { speedMultipliers[fish.id] = 1.0 }
                                     }
 
-                                    // Play plopp sound
-                                    playPloppSound(for: fish)
+                                    // Play plopp sound via shared SoundManager
+                                    SoundManager.shared.playPlopp(size: fish.size.width)
 
                                     addRipple(for: fish, at: fishCenter)
 
@@ -172,33 +204,6 @@ struct FishMoveView: View {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
             ripples.removeAll { $0.id == ripple.id }
-        }
-    }
-
-   
-    private func playPloppSound(for fish: AquariumFish) {
-        guard let url = Bundle.main.url(forResource: "plopp", withExtension: "wav") else { return }
-
-        do {
-            // Use shared @State audioPlayer
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.enableRate = true
-
-            // Small random pitch variation (subtle)
-            audioPlayer?.rate = Float.random(in: 0.97...1.03)
-
-            // Volume scales with fish size (small fish quieter, big fish louder)
-            let minSize: CGFloat = 20
-            let maxSize: CGFloat = 200
-            let minVolume: Float = 0.2
-            let maxVolume: Float = 1.0
-            let clampedSize = max(min(fish.size.width, maxSize), minSize)
-
-            audioPlayer?.volume = minVolume + Float((clampedSize - minSize) / (maxSize - minSize)) * (maxVolume - minVolume)
-
-            audioPlayer?.play()
-        } catch {
-            print("Error playing plopp sound: \(error)")
         }
     }
     

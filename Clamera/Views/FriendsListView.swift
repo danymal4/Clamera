@@ -1,240 +1,395 @@
-//
-//  FriendsListView.swift
-//  Clamera
-//
-//  Created by Ellis Kamplain (student Lower Merion High School) on 4/9/26.
-//
-
 import SwiftUI
-
-struct Friend: Identifiable, Equatable {
-    let id: String // Modified to match Firestore User ID
-    let name: String
-    let username: String
-    let imageName: String
-    let isOnline: Bool
-}
+import FirebaseFirestore
 
 struct FriendsListView: View {
-    @EnvironmentObject var user: User
+    @ObservedObject var user: User
+    @State private var selectedTab: FriendTab = .friends
     
-    @State private var searchText = ""
-    @State private var friends: [Friend] = []
+    @State private var friendObjects: [Friend] = []
+    @State private var incomingProfiles: [(id: String, name: String, profilePic: String)] = []
+    @State private var outgoingProfiles: [(id: String, name: String, profilePic: String)] = []
     
-    // Alert state for adding new friends
-    @State private var showAddFriendAlert = false
-    @State private var friendUsernameInput = ""
-    @State private var statusAlertMessage = ""
-    @State private var showStatusAlert = false
-    @State private var isLoading = false
+    @State private var showAddFriend = false
     
-    // Filter friends list based on the search bar input
-    var filteredFriends: [Friend] {
-        if searchText.isEmpty {
-            return friends
-        } else {
-            return friends.filter { $0.name.localizedCaseInsensitiveContains(searchText) || $0.username.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-    
-    var body: some View {
-        NavigationView {
-            Group {
-                if isLoading {
-                    ProgressView("Loading Friends...")
-                } else if friends.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "person.2.fill")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray.opacity(0.6))
-                        Text("No friends added yet")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                        Text("Tap the + button to search and add real accounts!")
-                            .font(.subheadline)
-                            .foregroundColor(.gray.opacity(0.8))
-                    }
-                } else {
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            ForEach(filteredFriends) { friend in
-                                friendRow(friend)
-                            }
-                        }
-                        .padding()
-                    }
-                }
-            }
-            .navigationTitle("Friends")
-            .searchable(text: $searchText, prompt: "Search friends")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        friendUsernameInput = ""
-                        showAddFriendAlert = true
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.cyan)
-                    }
-                }
-            }
-            .background(Color(.systemGray6))
-            .onAppear {
-                loadFriendsList()
-            }
-            // Alert 1: Prompt to enter friend's username
-            .alert("Add Friend", isPresented: $showAddFriendAlert) {
-                TextField("Exact Username", text: $friendUsernameInput)
-                    .autocapitalization(.none)
-                Button("Cancel", role: .cancel) { }
-                Button("Add") {
-                    addNewFriend(username: friendUsernameInput.trimmingCharacters(in: .whitespacesAndNewlines))
-                }
-            } message: {
-                Text("Enter the exact username of the account you want to add.")
-            }
-            // Alert 2: Success / Failure feedback
-            .alert("Friend Status", isPresented: $showStatusAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(statusAlertMessage)
-            }
-        }
-    }
-    
-    // MARK: - Core Logic Helpers
-    
-    private func loadFriendsList() {
-        guard !user.friends.isEmpty else {
-            self.friends = []
-            return
-        }
-        
-        Task {
-            let list = await FirestoreManager.shared.fetchUsers(byIds: user.friends)
-            await MainActor.run {
-                self.friends = list
-            }
-        }
-    }
-    
-    private func addNewFriend(username: String) {
-        guard !username.isEmpty else { return }
-        
-        if username.lowercased() == user.username.lowercased() {
-            statusAlertMessage = "You cannot add yourself as a friend!"
-            showStatusAlert = true
-            return
-        }
-        
-        isLoading = true
-        Task {
-            // Find the user in Firestore
-            if let foundUser = await FirestoreManager.shared.findUserByUsername(username) {
-                
-                // Check if they are already on your list
-                if user.friends.contains(foundUser.id) {
-                    await MainActor.run {
-                        statusAlertMessage = "\(username) is already in your friends list."
-                        showStatusAlert = true
-                        isLoading = false
-                    }
-                    return
-                }
-                
-                // Add to local app memory state
-                await MainActor.run {
-                    user.friends.append(foundUser.id)
-                }
-                
-                // Save updated user data to cloud
-                await FirestoreManager.shared.saveUser(user: user)
-                
-                // Reload UI
-                loadFriendsList()
-                
-                await MainActor.run {
-                    statusAlertMessage = "Successfully added \(username)!"
-                    showStatusAlert = true
-                    isLoading = false
-                }
-            } else {
-                await MainActor.run {
-                    statusAlertMessage = "No user found with the username: \"\(username)\""
-                    showStatusAlert = true
-                    isLoading = false
-                }
-            }
-        }
+    enum FriendTab {
+        case friends, pending
     }
 
-    // MARK: - Friend Row View Builder
-    private func friendRow(_ friend: Friend) -> some View {
-        HStack(spacing: 15) {
-            
-            // Profile Image
-            ZStack(alignment: .bottomTrailing) {
-                if friend.imageName.hasPrefix("http") {
-                    AsyncImage(url: URL(string: friend.imageName)) { image in
-                        image.resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        ProgressView()
-                    }
-                    .frame(width: 55, height: 55)
-                    .clipShape(Circle())
-                } else {
-                    Image(friend.imageName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 55, height: 55)
-                        .clipShape(Circle())
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header Tabs
+            HStack(spacing: 0) {
+                TabButton(title: "Friends", isSelected: selectedTab == .friends) {
+                    selectedTab = .friends
                 }
-                
-                // Online indicator
-                Circle()
-                    .fill(friend.isOnline ? Color.green : Color.gray)
-                    .frame(width: 14, height: 14)
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                TabButton(title: "Pending Requests", isSelected: selectedTab == .pending) {
+                    selectedTab = .pending
+                }
             }
-            
-            // Name + Username info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(friend.name)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.black.opacity(0.85))
-                
-                Text(friend.username)
-                    .font(.system(size: 13))
-                    .foregroundColor(.gray)
+            .padding(.horizontal)
+            .padding(.top, 10)
+
+            if selectedTab == .friends {
+                friendsContent
+            } else {
+                pendingContent
             }
             
             Spacer()
-            
-            // Action button
-            Button {
-                // View profile or look at their species index
-            } label: {
-                Text("View")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.cyan)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(Color.cyan.opacity(0.12))
-                    .cornerRadius(12)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showAddFriend = true
+                } label: {
+                    Image(systemName: "person.badge.plus")
+                        .font(.system(size: 18, weight: .semibold))
+                }
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
-        )
+        .sheet(isPresented: $showAddFriend) {
+            AddFriendSheet(user: user, isPresented: $showAddFriend)
+        }
+        .onAppear {
+            loadFriendData()
+        }
+        .onChange(of: user.friends) { loadFriendData() }
+        .onChange(of: user.incomingRequests) { loadFriendData() }
+        .onChange(of: user.outgoingRequests) { loadFriendData() }
+    }
+
+    private var friendsContent: some View {
+        List {
+            if friendObjects.isEmpty {
+                VStack(spacing: 16) {
+                    Text("No friends added yet!")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Button {
+                        showAddFriend = true
+                    } label: {
+                        Text("Add Friend")
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 24)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 60)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets())
+            } else {
+                ForEach(friendObjects) { friend in
+                    NavigationLink(destination: FriendProfileView(friendId: friend.id)) {
+                        HStack(spacing: 12) {
+                            Image(uiImage: UIImage(named: friend.imageName) ?? UIImage(systemName: "person.circle")!)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 45, height: 45)
+                                .clipShape(Circle())
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(friend.name)
+                                    .font(.headline)
+                                Text(friend.username)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        let friendId = user.friends[index]
+                        Task {
+                            await FirestoreManager.shared.removeFriend(friendId: friendId, currentUserId: user.id)
+                            user.friends.remove(at: index)
+                            loadFriendData()
+                        }
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+
+    private var pendingContent: some View {
+        List {
+            if !incomingProfiles.isEmpty {
+                Section(header: Text("Incoming Requests")) {
+                    ForEach(incomingProfiles, id: \.id) { req in
+                        HStack(spacing: 12) {
+                            Image(uiImage: UIImage(named: req.profilePic) ?? UIImage(systemName: "person.circle")!)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                            
+                            Text(req.name)
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            Button("Accept") {
+                                Task {
+                                    await FirestoreManager.shared.acceptFriendRequest(senderId: req.id, currentUserId: user.id)
+                                    user.incomingRequests.removeAll { $0 == req.id }
+                                    user.friends.append(req.id)
+                                    loadFriendData()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                            .controlSize(.small)
+                            
+                            Button("Decline") {
+                                Task {
+                                    await FirestoreManager.shared.declineFriendRequest(senderId: req.id, currentUserId: user.id)
+                                    user.incomingRequests.removeAll { $0 == req.id }
+                                    loadFriendData()
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+
+            if !outgoingProfiles.isEmpty {
+                Section(header: Text("Sent Requests")) {
+                    ForEach(outgoingProfiles, id: \.id) { req in
+                        HStack(spacing: 12) {
+                            Image(uiImage: UIImage(named: req.profilePic) ?? UIImage(systemName: "person.circle")!)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                            
+                            Text(req.name)
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            Button("Cancel") {
+                                Task {
+                                    await FirestoreManager.shared.cancelFriendRequest(targetUserId: req.id, currentUserId: user.id)
+                                    await MainActor.run {
+                                        user.outgoingRequests.removeAll { $0 == req.id }
+                                        loadFriendData()
+                                    }
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+            
+            if incomingProfiles.isEmpty && outgoingProfiles.isEmpty {
+                Text("No pending requests.")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 40)
+                    .listRowSeparator(.hidden)
+            }
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    private func loadFriendData() {
+        Task {
+            let db = Firestore.firestore()
+            
+            if let snapshot = try? await db.collection("users").document(user.id).getDocument(),
+               let data = snapshot.data() {
+                await MainActor.run {
+                    self.user.friends = data["friends"] as? [String] ?? self.user.friends
+                    self.user.incomingRequests = data["incoming_requests"] as? [String] ?? self.user.incomingRequests
+                    self.user.outgoingRequests = data["outgoing_requests"] as? [String] ?? self.user.outgoingRequests
+                }
+            }
+            
+            let fetched = await FirestoreManager.shared.fetchUsers(byIds: user.friends)
+            
+            var incomingData: [(id: String, name: String, profilePic: String)] = []
+            for id in user.incomingRequests {
+                if let profile = await FirestoreManager.shared.fetchFriendProfile(userId: id) {
+                    incomingData.append((id: id, name: profile.username, profilePic: profile.profilePicture))
+                }
+            }
+            
+            var outgoingData: [(id: String, name: String, profilePic: String)] = []
+            for id in user.outgoingRequests {
+                if let profile = await FirestoreManager.shared.fetchFriendProfile(userId: id) {
+                    outgoingData.append((id: id, name: profile.username, profilePic: profile.profilePicture))
+                }
+            }
+            
+            await MainActor.run {
+                self.friendObjects = fetched
+                self.incomingProfiles = incomingData
+                self.outgoingProfiles = outgoingData
+            }
+        }
+    }
+}
+
+struct TabButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .bold : .medium)
+                    .foregroundColor(isSelected ? .primary : .secondary)
+                
+                Rectangle()
+                    .fill(isSelected ? Color.accentColor : Color.clear)
+                    .frame(height: 2)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct AddFriendSheet: View {
+    @ObservedObject var user: User
+    @Binding var isPresented: Bool
+    
+    @State private var searchUsername = ""
+    @State private var searchResult: (id: String, name: String, profilePic: String)? = nil
+    @State private var errorMessage: String? = nil
+    @State private var isLoading = false
+    @State private var requestSent = false
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                TextField("Enter exact username", text: $searchUsername)
+                    .textFieldStyle(.roundedBorder)
+                    .autocapitalization(.none)
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+
+                Button("Search") {
+                    Task {
+                        isLoading = true
+                        errorMessage = nil
+                        searchResult = nil
+                        
+                        let result = await FirestoreManager.shared.findUserByUsername(searchUsername)
+                        await MainActor.run {
+                            isLoading = false
+                            if let result = result {
+                                if result.id == user.id {
+                                    errorMessage = "You cannot add yourself."
+                                } else if user.friends.contains(result.id) {
+                                    errorMessage = "You are already friends with this user."
+                                } else if user.outgoingRequests.contains(result.id) {
+                                    errorMessage = "Friend request already sent."
+                                } else if user.incomingRequests.contains(result.id) {
+                                    errorMessage = "This user has already sent you a request! Check your pending tab."
+                                } else {
+                                    searchResult = result
+                                }
+                            } else {
+                                errorMessage = "User not found."
+                            }
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal)
+
+                if isLoading {
+                    ProgressView()
+                }
+
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                }
+
+                if let result = searchResult {
+                    VStack(spacing: 14) {
+                        HStack(spacing: 12) {
+                            Image(uiImage: UIImage(named: result.profilePic) ?? UIImage(systemName: "person.circle")!)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+
+                            Text(result.name)
+                                .font(.headline)
+
+                            Spacer()
+                        }
+
+                        if requestSent {
+                            Text("Sent")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(Color.gray.opacity(0.15))
+                                .cornerRadius(8)
+                        } else {
+                            Button {
+                                Task {
+                                    await FirestoreManager.shared.sendFriendRequest(targetUserId: result.id, currentUserId: user.id)
+                                    await MainActor.run {
+                                        user.outgoingRequests.append(result.id)
+                                        requestSent = true
+                                    }
+                                }
+                            } label: {
+                                Text("Add Friend")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
+
+                Spacer()
+            }
+            .navigationTitle("Add Friend")
+            .navigationBarItems(trailing: Button("Done") {
+                isPresented = false
+            })
+        }
     }
 }
 
 #Preview {
-    FriendsListView().environmentObject(User())
+    NavigationView {
+        FriendsListView(user: {
+            let mockUser = User()
+            mockUser.id = "mockUserId"
+            mockUser.friends = []
+            mockUser.incomingRequests = []
+            mockUser.outgoingRequests = []
+            return mockUser
+        }())
+    }
 }
-

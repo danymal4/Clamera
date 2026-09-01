@@ -48,8 +48,11 @@ struct FishDetailsView: View {
                             ZStack(alignment: .bottom) {
                                 Image(fishPhoto: fish.photo)
                                     .resizable()
-                                    .scaledToFill()
-                                    .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width * 0.85)
+                                    .scaledToFit()
+                                    .frame(width: UIScreen.main.bounds.width * 0.9)
+                                    .frame(minHeight: 220, maxHeight: 320)
+                                    .padding(24)
+                                    .background(Color.white)
                                     .clipShape(RoundedRectangle(cornerRadius: 30))
                                     .shadow(color: .black.opacity(0.12), radius: 10, y: 5)
                             }
@@ -181,6 +184,7 @@ struct FishDetailsView: View {
         return nil
     }
 }
+
 #Preview {
     let store = SpeciesStore()
     let firstFishID = store.speciesList.first?.fishList.first?.id ?? UUID()
