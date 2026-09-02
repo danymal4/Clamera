@@ -1,3 +1,10 @@
+//
+//  SignUpView.swift
+//  Clamera
+//
+//  Created by Dany Malaeb on 8/31/26.
+//
+
 import SwiftUI
 
 struct SignUpView: View {
@@ -198,11 +205,7 @@ struct SignUpView: View {
                         
                         Button {
                             Task {
-                                do {
-                                    try await AuthManager.shared.signInWithGoogle()
-                                } catch {
-                                    print("Google Sign-In failed: \(error.localizedDescription)")
-                                }
+                                await AuthManager.shared.signInWithGoogle()
                             }
                         } label: {
                             Image("GoogleIcon")

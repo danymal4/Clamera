@@ -8,17 +8,28 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var authManager: AuthManager
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if authManager.isLoading {
+                ProgressView("Loading...")
+            } else if authManager.user != nil {
+                Text("Welcome to Clamera, \(authManager.user?.username ?? "User")!")
+                    .font(.title)
+                    .bold()
+            } else {
+                SignInView()
+            }
         }
-        .padding()
+        .sheet(item: $authManager.pendingGoogleUser) { _ in
+            GoogleUsernameSetupView()
+                .environmentObject(authManager)
+        }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AuthManager.shared)
 }

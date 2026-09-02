@@ -1,16 +1,24 @@
+//
+//  FriendsListView.swift
+//  Clamera
+//
+//  Created by Isaac Clavijo on 3/25/26.
+//
+
 import SwiftUI
 import FirebaseFirestore
 
 struct FriendsListView: View {
     @ObservedObject var user: User
     @State private var selectedTab: FriendTab = .friends
-    
+     
     @State private var friendObjects: [Friend] = []
     @State private var incomingProfiles: [(id: String, name: String, profilePic: String)] = []
     @State private var outgoingProfiles: [(id: String, name: String, profilePic: String)] = []
-    
+     
     @State private var showAddFriend = false
-    
+    @State private var listenerRegistration: ListenerRegistration? = nil
+     
     enum FriendTab {
         case friends, pending
     }
@@ -34,7 +42,7 @@ struct FriendsListView: View {
             } else {
                 pendingContent
             }
-            
+             
             Spacer()
         }
         .toolbar {
@@ -52,10 +60,31 @@ struct FriendsListView: View {
         }
         .onAppear {
             loadFriendData()
+            startListeningToUserChanges()
+        }
+        .onDisappear {
+            listenerRegistration?.remove()
         }
         .onChange(of: user.friends) { loadFriendData() }
         .onChange(of: user.incomingRequests) { loadFriendData() }
         .onChange(of: user.outgoingRequests) { loadFriendData() }
+    }
+
+    private func startListeningToUserChanges() {
+        guard !user.id.isEmpty else { return }
+        listenerRegistration?.remove()
+        
+        let db = Firestore.firestore()
+        listenerRegistration = db.collection("users").document(user.id).addSnapshotListener { snapshot, error in
+            guard let document = snapshot, document.exists, let data = document.data() else { return }
+            
+            Task { @MainActor in
+                self.user.friends = data["friends"] as? [String] ?? self.user.friends
+                self.user.incomingRequests = data["incoming_requests"] as? [String] ?? self.user.incomingRequests
+                self.user.outgoingRequests = data["outgoing_requests"] as? [String] ?? self.user.outgoingRequests
+                loadFriendData()
+            }
+        }
     }
 
     private var friendsContent: some View {
@@ -65,7 +94,7 @@ struct FriendsListView: View {
                     Text("No friends added yet!")
                         .font(.headline)
                         .foregroundColor(.secondary)
-                    
+                     
                     Button {
                         showAddFriend = true
                     } label: {
@@ -84,12 +113,31 @@ struct FriendsListView: View {
                 ForEach(friendObjects) { friend in
                     NavigationLink(destination: FriendProfileView(friendId: friend.id)) {
                         HStack(spacing: 12) {
-                            Image(uiImage: UIImage(named: friend.imageName) ?? UIImage(systemName: "person.circle")!)
-                                .resizable()
-                                .scaledToFill()
+                            if friend.imageName.hasPrefix("http") {
+                                AsyncImage(url: URL(string: friend.imageName)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
+                                }
                                 .frame(width: 45, height: 45)
                                 .clipShape(Circle())
-                            
+                            } else if let data = Data(base64Encoded: friend.imageName),
+                                      let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 45, height: 45)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 45, height: 45)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                    .background(Circle().fill(Color(.systemGray5)))
+                                    .clipShape(Circle())
+                            }
+                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(friend.name)
                                     .font(.headline)
@@ -97,7 +145,7 @@ struct FriendsListView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
-                            
+                             
                             Spacer()
                         }
                         .padding(.vertical, 4)
@@ -124,17 +172,36 @@ struct FriendsListView: View {
                 Section(header: Text("Incoming Requests")) {
                     ForEach(incomingProfiles, id: \.id) { req in
                         HStack(spacing: 12) {
-                            Image(uiImage: UIImage(named: req.profilePic) ?? UIImage(systemName: "person.circle")!)
-                                .resizable()
-                                .scaledToFill()
+                            if req.profilePic.hasPrefix("http") {
+                                AsyncImage(url: URL(string: req.profilePic)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
+                                }
                                 .frame(width: 40, height: 40)
                                 .clipShape(Circle())
-                            
+                            } else if let data = Data(base64Encoded: req.profilePic),
+                                      let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 40, height: 40)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 40, height: 40)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                    .background(Circle().fill(Color(.systemGray5)))
+                                    .clipShape(Circle())
+                            }
+                             
                             Text(req.name)
                                 .font(.headline)
-                            
+                             
                             Spacer()
-                            
+                             
                             Button("Accept") {
                                 Task {
                                     await FirestoreManager.shared.acceptFriendRequest(senderId: req.id, currentUserId: user.id)
@@ -146,7 +213,7 @@ struct FriendsListView: View {
                             .buttonStyle(.borderedProminent)
                             .tint(.green)
                             .controlSize(.small)
-                            
+                             
                             Button("Decline") {
                                 Task {
                                     await FirestoreManager.shared.declineFriendRequest(senderId: req.id, currentUserId: user.id)
@@ -166,17 +233,36 @@ struct FriendsListView: View {
                 Section(header: Text("Sent Requests")) {
                     ForEach(outgoingProfiles, id: \.id) { req in
                         HStack(spacing: 12) {
-                            Image(uiImage: UIImage(named: req.profilePic) ?? UIImage(systemName: "person.circle")!)
-                                .resizable()
-                                .scaledToFill()
+                            if req.profilePic.hasPrefix("http") {
+                                AsyncImage(url: URL(string: req.profilePic)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
+                                }
                                 .frame(width: 40, height: 40)
                                 .clipShape(Circle())
-                            
+                            } else if let data = Data(base64Encoded: req.profilePic),
+                                      let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 40, height: 40)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 40, height: 40)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                    .background(Circle().fill(Color(.systemGray5)))
+                                    .clipShape(Circle())
+                            }
+                             
                             Text(req.name)
                                 .font(.headline)
-                            
+                             
                             Spacer()
-                            
+                             
                             Button("Cancel") {
                                 Task {
                                     await FirestoreManager.shared.cancelFriendRequest(targetUserId: req.id, currentUserId: user.id)
@@ -193,7 +279,7 @@ struct FriendsListView: View {
                     }
                 }
             }
-            
+             
             if incomingProfiles.isEmpty && outgoingProfiles.isEmpty {
                 Text("No pending requests.")
                     .foregroundColor(.secondary)
@@ -207,33 +293,22 @@ struct FriendsListView: View {
 
     private func loadFriendData() {
         Task {
-            let db = Firestore.firestore()
-            
-            if let snapshot = try? await db.collection("users").document(user.id).getDocument(),
-               let data = snapshot.data() {
-                await MainActor.run {
-                    self.user.friends = data["friends"] as? [String] ?? self.user.friends
-                    self.user.incomingRequests = data["incoming_requests"] as? [String] ?? self.user.incomingRequests
-                    self.user.outgoingRequests = data["outgoing_requests"] as? [String] ?? self.user.outgoingRequests
-                }
-            }
-            
             let fetched = await FirestoreManager.shared.fetchUsers(byIds: user.friends)
-            
+             
             var incomingData: [(id: String, name: String, profilePic: String)] = []
             for id in user.incomingRequests {
                 if let profile = await FirestoreManager.shared.fetchFriendProfile(userId: id) {
                     incomingData.append((id: id, name: profile.username, profilePic: profile.profilePicture))
                 }
             }
-            
+             
             var outgoingData: [(id: String, name: String, profilePic: String)] = []
             for id in user.outgoingRequests {
                 if let profile = await FirestoreManager.shared.fetchFriendProfile(userId: id) {
                     outgoingData.append((id: id, name: profile.username, profilePic: profile.profilePicture))
                 }
             }
-            
+             
             await MainActor.run {
                 self.friendObjects = fetched
                 self.incomingProfiles = incomingData
@@ -255,7 +330,7 @@ struct TabButton: View {
                     .font(.subheadline)
                     .fontWeight(isSelected ? .bold : .medium)
                     .foregroundColor(isSelected ? .primary : .secondary)
-                
+                 
                 Rectangle()
                     .fill(isSelected ? Color.accentColor : Color.clear)
                     .frame(height: 2)
@@ -268,7 +343,7 @@ struct TabButton: View {
 struct AddFriendSheet: View {
     @ObservedObject var user: User
     @Binding var isPresented: Bool
-    
+     
     @State private var searchUsername = ""
     @State private var searchResult: (id: String, name: String, profilePic: String)? = nil
     @State private var errorMessage: String? = nil
@@ -289,7 +364,7 @@ struct AddFriendSheet: View {
                         isLoading = true
                         errorMessage = nil
                         searchResult = nil
-                        
+                         
                         let result = await FirestoreManager.shared.findUserByUsername(searchUsername)
                         await MainActor.run {
                             isLoading = false
@@ -327,11 +402,30 @@ struct AddFriendSheet: View {
                 if let result = searchResult {
                     VStack(spacing: 14) {
                         HStack(spacing: 12) {
-                            Image(uiImage: UIImage(named: result.profilePic) ?? UIImage(systemName: "person.circle")!)
-                                .resizable()
-                                .scaledToFill()
+                            if result.profilePic.hasPrefix("http") {
+                                AsyncImage(url: URL(string: result.profilePic)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    ProgressView()
+                                }
                                 .frame(width: 50, height: 50)
                                 .clipShape(Circle())
+                            } else if let data = Data(base64Encoded: result.profilePic),
+                                      let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                    .background(Circle().fill(Color(.systemGray5)))
+                                    .clipShape(Circle())
+                            }
 
                             Text(result.name)
                                 .font(.headline)
@@ -353,7 +447,9 @@ struct AddFriendSheet: View {
                                 Task {
                                     await FirestoreManager.shared.sendFriendRequest(targetUserId: result.id, currentUserId: user.id)
                                     await MainActor.run {
-                                        user.outgoingRequests.append(result.id)
+                                        if !user.outgoingRequests.contains(result.id) {
+                                            user.outgoingRequests.append(result.id)
+                                        }
                                         requestSent = true
                                     }
                                 }
@@ -380,7 +476,6 @@ struct AddFriendSheet: View {
         }
     }
 }
-
 #Preview {
     NavigationView {
         FriendsListView(user: {

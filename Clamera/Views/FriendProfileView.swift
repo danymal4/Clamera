@@ -37,11 +37,22 @@ struct FriendProfileView: View {
                                 .clipShape(Circle())
                                 .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                                 .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
-                            } else {
-                                Image(friendUser.profilePicture)
+                            } else if let data = Data(base64Encoded: friendUser.profilePicture),
+                                      let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
                                     .resizable()
-                                    .aspectRatio(contentMode: .fill)
+                                    .scaledToFill()
                                     .frame(width: 140, height: 140)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
+                                    .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 140, height: 140)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                    .background(Circle().fill(Color(.systemGray5)))
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                                     .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
@@ -185,14 +196,12 @@ struct FriendProfileView: View {
     @ViewBuilder
     private func friendAquariumDestination(friendUser: User) -> some View {
         ScrollView {
-            // Using a ZStack with an invisible tap barrier over the aquarium to block any touch interaction
             ZStack {
                 AquariumView(showBottomBar: .constant(false))
                     .environmentObject(friendUser)
                     .frame(height: 500)
                     .padding()
-                
-                // Invisible overlay that intercepts and blocks all touch events so nobody can move or tap their fish
+                 
                 Color.clear
                     .contentShape(Rectangle())
                     .frame(height: 500)
@@ -223,7 +232,6 @@ struct FriendProfileView: View {
                                 .background(Color.cyan.opacity(0.1))
                                 .cornerRadius(16)
                             } else {
-                                // Fallback for local testing if a post has a local path
                                 let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
                                 let fileURL = documentsDirectory?.appendingPathComponent(post.photo)
                                 let loadedImage = fileURL.flatMap { UIImage(contentsOfFile: $0.path) } ?? UIImage(named: post.photo) ?? UIImage(systemName: "photo")!
@@ -236,11 +244,11 @@ struct FriendProfileView: View {
                                     .background(Color.cyan.opacity(0.1))
                                     .cornerRadius(16)
                             }
-                            
+                           
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(post.speciesName.capitalized)
                                     .font(.title3.bold())
-                                
+                               
                                 if !post.caption.isEmpty {
                                     Text(post.caption)
                                         .font(.body)

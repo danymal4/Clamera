@@ -12,30 +12,75 @@ import GoogleSignIn
 import FirebaseCore
 import FirebaseFirestore
 
+struct PendingGoogleUser: Identifiable {
+    let id: String
+    let firebaseUser: FirebaseAuth.User
+    
+    init(_ firebaseUser: FirebaseAuth.User) {
+        self.id = firebaseUser.uid
+        self.firebaseUser = firebaseUser
+    }
+}
+
 class AuthManager: ObservableObject {
     static let shared = AuthManager()
     
     @Published var user: User?
     @Published var needsUsernameSetup: Bool = false
-    @Published var pendingGoogleUser: FirebaseAuth.User? = nil
+    @Published var pendingGoogleUser: PendingGoogleUser? = nil
     @Published var isLoading: Bool = true
     
     init() {
         _ = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
+            guard let self = self else { return }
+            
             if let firebaseUser = firebaseUser {
-                let email = firebaseUser.email ?? ""
                 let uid = firebaseUser.uid
-                self?.user = User(id: uid, email: email)
+                let email = firebaseUser.email ?? ""
                  
                 Task {
-                    if let user = self?.user {
-                        await FirestoreManager.shared.fetchUser(user: user)
+                    let db = Firestore.firestore()
+                    do {
+                        let userDoc = try await db.collection("users").document(uid).getDocument()
+                        
+                        if userDoc.exists, let data = userDoc.data(), let username = data["username"] as? String, !username.isEmpty {
+                            print("AuthManager: [listener] User document found with valid username: \(username)")
+                            let fetchedUser = User(id: uid, email: email)
+                            await FirestoreManager.shared.fetchUser(user: fetchedUser)
+                            
+                            await MainActor.run {
+                                self.user = fetchedUser
+                                self.needsUsernameSetup = false
+                                self.pendingGoogleUser = nil
+                                self.isLoading = false
+                            }
+                        } else {
+                            print("AuthManager: [listener] User document missing or username empty.")
+                            await MainActor.run {
+                                self.pendingGoogleUser = PendingGoogleUser(firebaseUser)
+                                self.needsUsernameSetup = true
+                                self.user = nil
+                                self.isLoading = false
+                            }
+                        }
+                    } catch {
+                        print("AuthManager: Error fetching user doc (\(error.localizedDescription)). Forcing setup view as fallback.")
+                        await MainActor.run {
+                            self.pendingGoogleUser = PendingGoogleUser(firebaseUser)
+                            self.needsUsernameSetup = true
+                            self.user = nil
+                            self.isLoading = false
+                        }
                     }
                 }
             } else {
-                self?.user = nil
+                Task { @MainActor in
+                    self.user = nil
+                    self.needsUsernameSetup = false
+                    self.pendingGoogleUser = nil
+                    self.isLoading = false
+                }
             }
-            self?.isLoading = false
         }
     }
      
@@ -44,6 +89,9 @@ class AuthManager: ObservableObject {
         guard let result = try? await Auth.auth().createUser(withEmail: email, password: password) else {
             return
         }
+        
+        // Reserve public username mapping for email signups too
+        _ = await FirestoreManager.shared.reserveUsername(username, uid: result.user.uid, email: email)
          
         user = User(id: result.user.uid, username: username, email: result.user.email ?? "")
     }
@@ -54,16 +102,15 @@ class AuthManager: ObservableObject {
          
         if !loginInput.contains("@") {
             let db = Firestore.firestore()
+            let cleanedInput = loginInput.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
              
-            let snapshot = try await db.collection("users")
-                .whereField("username", isEqualTo: loginInput)
-                .getDocuments()
+            let mappingDoc = try await db.collection("usernames").document(cleanedInput).getDocument()
              
-            guard let document = snapshot.documents.first else {
+            guard mappingDoc.exists, let data = mappingDoc.data() else {
                 throw NSError(domain: "AuthError", code: 404, userInfo: [NSLocalizedDescriptionKey: "No account found with that username."])
             }
              
-            guard let fetchedEmail = document.data()["email"] as? String else {
+            guard let fetchedEmail = data["email"] as? String else {
                 throw NSError(domain: "AuthError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Could not find an email attached to this username."])
             }
              
@@ -72,19 +119,19 @@ class AuthManager: ObservableObject {
          
         let result = try await Auth.auth().signIn(withEmail: emailToUse, password: password)
          
-        user = User(id: result.user.uid, email: result.user.email ?? emailToUse)
-        await FirestoreManager.shared.fetchUser(user: user ?? User())
+        let tempUser = User(id: result.user.uid, email: result.user.email ?? emailToUse)
+        await FirestoreManager.shared.fetchUser(user: tempUser)
+        user = tempUser
         print("Signed in successfully!")
     }
      
     @MainActor
-    func signInWithGoogle() async throws {
+    func signInWithGoogle() async {
         guard let clientID = FirebaseApp.app()?.options.clientID else {
-            print("AuthManager: Could not retrieve client ID from Firebase configuration.")
+            print("AuthManager: Could not retrieve client ID.")
             return
         }
-        let config = GIDConfiguration(clientID: clientID)
-        GIDSignIn.sharedInstance.configuration = config
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
          
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
@@ -92,36 +139,72 @@ class AuthManager: ObservableObject {
             return
         }
          
-        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
-        let googleUser = result.user
-        guard let idToken = googleUser.idToken?.tokenString else {
-            print("AuthManager Line 80: idToken not found")
-            return
-        }
-         
-        let credential = GoogleAuthProvider.credential(withIDToken: idToken,
-                                                     accessToken: googleUser.accessToken.tokenString)
-        
-        let authResult = try await Auth.auth().signIn(with: credential)
-         
-        let db = Firestore.firestore()
-        let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
-         
-        if userDoc.exists {
-            self.user = User(id: authResult.user.uid, email: authResult.user.email ?? "")
-            await FirestoreManager.shared.fetchUser(user: self.user ?? User())
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            let googleUser = result.user
+            guard let idToken = googleUser.idToken?.tokenString else {
+                print("AuthManager: idToken not found")
+                return
+            }
              
-            print("Successfully signed in! User: \(authResult.user.uid)")
-        } else {
-            print("New Google user detected! Stopping login to prompt for username.")
-            self.pendingGoogleUser = authResult.user
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken,
+                                                         accessToken: googleUser.accessToken.tokenString)
+            
+            let authResult = try await Auth.auth().signIn(with: credential)
+            print("Successfully signed in with Google! UID: \(authResult.user.uid)")
+             
+            await checkUserDocumentAndRoute(firebaseUser: authResult.user)
+        } catch {
+            print("GOOGLE SIGN-IN ERROR: \(error.localizedDescription)")
+        }
+    }
+    
+    @MainActor
+    private func checkUserDocumentAndRoute(firebaseUser: FirebaseAuth.User) async {
+        let db = Firestore.firestore()
+        let uid = firebaseUser.uid
+        let email = firebaseUser.email ?? ""
+         
+        do {
+            let userDoc = try await db.collection("users").document(uid).getDocument()
+             
+            if userDoc.exists, let data = userDoc.data(), let username = data["username"] as? String, !username.isEmpty {
+                print("AuthManager: [google] User document found with valid username: \(username)")
+                let fetchedUser = User(id: uid, email: email)
+                await FirestoreManager.shared.fetchUser(user: fetchedUser)
+                 
+                self.user = fetchedUser
+                self.needsUsernameSetup = false
+                self.pendingGoogleUser = nil
+                self.isLoading = false
+            } else {
+                print("AuthManager: [google] User document missing or username empty. Forcing setup view.")
+                self.pendingGoogleUser = PendingGoogleUser(firebaseUser)
+                self.needsUsernameSetup = true
+                self.user = nil
+                self.isLoading = false
+            }
+        } catch {
+            print("AuthManager: [google] Error fetching user doc (\(error.localizedDescription)). Forcing setup view as fallback.")
+            self.pendingGoogleUser = PendingGoogleUser(firebaseUser)
             self.needsUsernameSetup = true
+            self.user = nil
+            self.isLoading = false
         }
     }
      
     @MainActor
     func finalizeGoogleSignUp(chosenUsername: String) async {
-        guard let googleUser = pendingGoogleUser else { return }
+        guard let pending = pendingGoogleUser else { return }
+        let googleUser = pending.firebaseUser
+        let email = googleUser.email ?? ""
+         
+        // Ensure username is reserved in the public /usernames collection so search works
+        let reserved = await FirestoreManager.shared.reserveUsername(chosenUsername, uid: googleUser.uid, email: email)
+        guard reserved else {
+            print("AuthManager: Username '\(chosenUsername)' is already taken or reservation failed.")
+            return
+        }
          
         let db = Firestore.firestore()
         let lowercasedUsername = chosenUsername.lowercased()
@@ -129,20 +212,29 @@ class AuthManager: ObservableObject {
         let userData: [String: Any] = [
             "username": chosenUsername,
             "username_lowercase": lowercasedUsername,
-            "email": googleUser.email ?? "",
-            "friends": []
+            "email": email,
+            "profile picture": "fisherman",
+            "species list": [:],
+            "clampoints": 0,
+            "aquarium fish": [],
+            "fish of fame posts": [],
+            "friends": [],
+            "incoming_requests": [],
+            "outgoing_requests": [],
+            "unlocked shop items": []
         ]
          
         do {
             try await db.collection("users").document(googleUser.uid).setData(userData)
              
-            self.user = User(id: googleUser.uid, username: chosenUsername, email: googleUser.email ?? "")
-            await FirestoreManager.shared.fetchUser(user: self.user ?? User())
-             
+            let newUser = User(id: googleUser.uid, email: email)
+            await FirestoreManager.shared.fetchUser(user: newUser)
+            
             self.needsUsernameSetup = false
             self.pendingGoogleUser = nil
+            self.user = newUser
              
-            print("Account fully created with username: \(chosenUsername)")
+            print("Account fully created with complete profile structure for: \(chosenUsername)")
         } catch {
             print("Error saving new user data: \(error.localizedDescription)")
         }
@@ -152,6 +244,9 @@ class AuthManager: ObservableObject {
         do {
             try Auth.auth().signOut()
             user = nil
+            needsUsernameSetup = false
+            pendingGoogleUser = nil
+            isLoading = false
             print("signed out")
         } catch {
             print(error)

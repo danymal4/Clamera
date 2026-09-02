@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import FirebaseAuth
 
 struct EditProfileView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -18,9 +19,23 @@ struct EditProfileView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var profileImage: UIImage? = nil
     
+    // Password change states
+    @State private var showPasswordPrompt = false
+    @State private var currentPasswordInput = ""
+    @State private var newPasswordInput = ""
+    @State private var passwordErrorMessage: String? = nil
+    @State private var passwordSuccessMessage: String? = nil
+    @State private var isUpdatingPassword = false
+    
     init(user: User) {
         _username = State(initialValue: user.username)
         _email = State(initialValue: user.email)
+    }
+    
+    // Check if the current user signed in using email/password (hides for Google accounts)
+    private var isEmailUser: Bool {
+        guard let currentUser = Auth.auth().currentUser else { return false }
+        return currentUser.providerData.contains { $0.providerID == "password" }
     }
     
     var body: some View {
@@ -44,12 +59,19 @@ struct EditProfileView: View {
                                 }
                                 .frame(width: 120, height: 120)
                                 .clipShape(Circle())
-                            } else {
-                                Image(user.profilePicture)
+                            } else if let data = Data(base64Encoded: user.profilePicture),
+                                      let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 120, height: 120)
                                     .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 120, height: 120)
+                                    .foregroundColor(.gray.opacity(0.6))
                             }
 
                             PhotosPicker(selection: $selectedItem, matching: .images) {
@@ -69,7 +91,17 @@ struct EditProfileView: View {
                     TextField("Email", text: $email)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
-                    SecureField("New Password", text: $password)
+                    
+                    if isEmailUser {
+                        Button("Change Password") {
+                            currentPasswordInput = ""
+                            newPasswordInput = ""
+                            passwordErrorMessage = nil
+                            passwordSuccessMessage = nil
+                            showPasswordPrompt = true
+                        }
+                        .foregroundColor(.blue)
+                    }
                 }
             }
             .navigationTitle("Edit Profile")
@@ -79,43 +111,113 @@ struct EditProfileView: View {
                         user.username = username
                         user.email = email
                         user.leaderboardUser.name = username
-                        
+                       
                         Task {
                             if let profileImage = profileImage,
-                               let imageData = profileImage.jpegData(compressionQuality: 0.8) {
-                                do {
-                                    let urlString = try await FirestoreManager.shared.uploadProfileImage(data: imageData, userId: user.id)
-                                    user.profilePicture = urlString
-                                } catch {
-                                    print("Error uploading image: \(error)")
+                                let imageData = profileImage.jpegData(compressionQuality: 0.5) {
+                                let base64String = imageData.base64EncodedString()
+                                await MainActor.run {
+                                    user.profilePicture = base64String
                                 }
                             }
 
                             await FirestoreManager.shared.saveUser(user: user)
                             await MainActor.run {
-                        presentationMode.wrappedValue.dismiss()
-                }
-            }
+                                presentationMode.wrappedValue.dismiss()
+                            }
+                        }
                     }
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         presentationMode.wrappedValue.dismiss()
-                }
-            }
-
-            }
-
-
-            .onChange(of: selectedItem) { oldItem, newItem in
-                Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self),
-                       let uiImage = UIImage(data: data) {
-                        profileImage = uiImage
                     }
                 }
+            }
+            .onChange(of: selectedItem) { oldItem, newItem in
+                guard let newItem = newItem else { return }
+                Task {
+                    if let data = try? await newItem.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        await MainActor.run {
+                            self.profileImage = uiImage
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showPasswordPrompt) {
+                NavigationStack {
+                    Form {
+                        Section(header: Text("Security")) {
+                            SecureField("Current Password", text: $currentPasswordInput)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                            SecureField("New Password", text: $newPasswordInput)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                        }
+                        
+                        if let passwordErrorMessage {
+                            Section {
+                                Text(passwordErrorMessage)
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        
+                        if let passwordSuccessMessage {
+                            Section {
+                                Text(passwordSuccessMessage)
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
+                    .navigationTitle("Change Password")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                showPasswordPrompt = false
+                            }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Update") {
+                                isUpdatingPassword = true
+                                passwordErrorMessage = nil
+                                Task {
+                                    do {
+                                        guard let currentUser = Auth.auth().currentUser, let email = currentUser.email else {
+                                            throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No active user found."])
+                                        }
+                                        
+                                        let credential = EmailAuthProvider.credential(withEmail: email, password: currentPasswordInput)
+                                        try await currentUser.reauthenticate(with: credential)
+                                        try await currentUser.updatePassword(to: newPasswordInput)
+                                        
+                                        await MainActor.run {
+                                            isUpdatingPassword = false
+                                            passwordSuccessMessage = "Password updated successfully!"
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                                                showPasswordPrompt = false
+                                            }
+                                        }
+                                    } catch {
+                                        await MainActor.run {
+                                            isUpdatingPassword = false
+                                            passwordErrorMessage = "Failed to update password. Check your current password."
+                                        }
+                                    }
+                                }
+                            }
+                            .disabled(currentPasswordInput.isEmpty || newPasswordInput.isEmpty || isUpdatingPassword)
+                        }
+                    }
+                }
+                .presentationDetents([.medium])
             }
         }
     }
 }
 
+#Preview {
+    EditProfileView(user: User())
+        .environmentObject(User())
+}

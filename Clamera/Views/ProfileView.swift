@@ -45,11 +45,22 @@ struct ProfileView: View {
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                         .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
-                    } else {
-                        Image(user.profilePicture)
+                    } else if let data = Data(base64Encoded: user.profilePicture),
+                              let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
+                            .scaledToFill()
                             .frame(width: 140, height: 140)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
+                            .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
+                    } else {
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 140, height: 140)
+                            .foregroundColor(.gray.opacity(0.6))
+                            .background(Circle().fill(Color(.systemGray5)))
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                             .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
@@ -83,7 +94,7 @@ struct ProfileView: View {
                 .background(RoundedRectangle(cornerRadius: 25)
                     .fill(Color(.systemGray6))
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
-            .padding(.horizontal)
+                .padding(.horizontal)
 
 
                 Button {
@@ -143,4 +154,3 @@ struct ProfileView: View {
     ProfileView()
         .environmentObject(User())
 }
-

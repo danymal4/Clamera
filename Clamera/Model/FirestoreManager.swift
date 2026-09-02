@@ -77,7 +77,7 @@ class FirestoreManager: ObservableObject {
                     user.incomingRequests = data["incoming_requests"] as? [String] ?? []
                     user.outgoingRequests = data["outgoing_requests"] as? [String] ?? []
                     user.unlockedShopItems = Set(data["unlocked shop items"] as? [String] ?? [])
-                    
+                     
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
@@ -113,6 +113,24 @@ class FirestoreManager: ObservableObject {
 
 extension FirestoreManager {
     
+    /// Reserves a username in the public `usernames` collection.
+    func reserveUsername(_ username: String, uid: String, email: String) async -> Bool {
+        let lowercased = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let ref = db.collection("usernames").document(lowercased)
+         
+        do {
+            try await ref.setData([
+                "uid": uid,
+                "email": email,
+                "username": username
+            ])
+            return true
+        } catch {
+            print("Error reserving username '\(username)': \(error)")
+            return false
+        }
+    }
+    
     func fetchUsers(byIds ids: [String]) async -> [Friend] {
         guard !ids.isEmpty else { return [] }
         var fetchedFriends: [Friend] = []
@@ -139,20 +157,42 @@ extension FirestoreManager {
         return fetchedFriends
     }
      
+    /// Looks up a user by username via the public `usernames` mapping first,
+    /// with a robust fallback query directly against the `users` collection for older accounts.
     func findUserByUsername(_ username: String) async -> (id: String, name: String, profilePic: String)? {
-        let queryClean = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        var queryClean = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if queryClean.hasPrefix("@") {
+            queryClean.removeFirst()
+        }
          
         do {
-            let snapshot = try await db.collection("users")
+            // 1. Try public usernames mapping first
+            let mappingDoc = try await db.collection("usernames").document(queryClean).getDocument()
+            if mappingDoc.exists, let mappingData = mappingDoc.data(), let uid = mappingData["uid"] as? String {
+                let actualName = mappingData["username"] as? String ?? username
+                
+                // Try to grab their profile pic from their user doc if accessible
+                var profilePic = "fisherman"
+                if let userDoc = try? await db.collection("users").document(uid).getDocument(),
+                   let userData = userDoc.data(),
+                   let pic = userData["profile picture"] as? String {
+                    profilePic = pic
+                }
+                
+                return (id: uid, name: actualName, profilePic: profilePic)
+            }
+            
+            // 2. Fallback: Query users collection directly (for older accounts lacking a usernames mapping doc)
+            let userSnapshot = try await db.collection("users")
                 .whereField("username_lowercase", isEqualTo: queryClean)
                 .limit(to: 1)
                 .getDocuments()
-                 
-            if let doc = snapshot.documents.first {
+            
+            if let doc = userSnapshot.documents.first {
                 let data = doc.data()
-                let actualUsername = data["username"] as? String ?? username
+                let actualName = data["username"] as? String ?? username
                 let profilePic = data["profile picture"] as? String ?? "fisherman"
-                return (id: doc.documentID, name: actualUsername, profilePic: profilePic)
+                return (id: doc.documentID, name: actualName, profilePic: profilePic)
             }
         } catch {
             print("Error finding user: \(error)")
@@ -169,7 +209,7 @@ extension FirestoreManager {
                     friendUser.username = data["username"] as? String ?? ""
                     friendUser.email = data["email"] as? String ?? ""
                     friendUser.profilePicture = data["profile picture"] as? String ?? ""
-                    
+                     
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
@@ -184,7 +224,7 @@ extension FirestoreManager {
                             return FishPost(id: uuid, photo: photo, speciesName: speciesName, caption: caption, datePosted: date)
                         }
                     }
-                    
+                     
                     friendUser.speciesStore.update(
                         speciesList: data["species list"] as? [String:[[String:String]]] ?? [:],
                         clamPoints: data["clampoints"] as? Int ?? 0,
@@ -256,18 +296,28 @@ extension FirestoreManager {
     }
     
     func sendFriendRequest(targetUserId: String, currentUserId: String) async {
-        do {
-            try await db.collection("users").document(currentUserId).updateData([
-                "outgoing_requests": FieldValue.arrayUnion([targetUserId])
-            ])
-            try await db.collection("users").document(targetUserId).updateData([
-                "incoming_requests": FieldValue.arrayUnion([currentUserId])
-            ])
-            print("Friend request sent successfully.")
-        } catch {
-            print("Error sending friend request: \(error)")
+            do {
+                let currentUserRef = db.collection("users").document(currentUserId)
+                let targetUserRef = db.collection("users").document(targetUserId)
+
+                // Explicitly add target to current user's OUTGOING and ensure they are NOT in incoming
+                try await currentUserRef.updateData([
+                    "outgoing_requests": FieldValue.arrayUnion([targetUserId]),
+                    "incoming_requests": FieldValue.arrayRemove([targetUserId])
+                ])
+                
+                // Explicitly add current user to target user's INCOMING and ensure they are NOT in outgoing
+                try await targetUserRef.updateData([
+                    "incoming_requests": FieldValue.arrayUnion([currentUserId]),
+                    "outgoing_requests": FieldValue.arrayRemove([currentUserId])
+                ])
+                
+                print("Friend request sent successfully from \(currentUserId) to \(targetUserId)")
+            } catch {
+                print("Error sending friend request: \(error)")
+            }
         }
-    }
+    
 
     func cancelFriendRequest(targetUserId: String, currentUserId: String) async {
         do {

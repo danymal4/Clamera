@@ -30,7 +30,6 @@ struct SignInView: View {
                 Color(.systemBackground)
                     .ignoresSafeArea()
                  
-                
                 VStack {
                     Spacer()
                     WaterView()
@@ -90,15 +89,42 @@ struct SignInView: View {
                             ))
                              
                             Button {
-                                guard !emailOrUsername.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    step = .password
+                                let cleanedInput = emailOrUsername.trimmingCharacters(in: .whitespaces)
+                                guard !cleanedInput.isEmpty else { return }
+                                
+                                isLoading = true
+                                errorMessage = nil
+                                
+                                Task {
+                                    let exists: Bool
+                                    if cleanedInput.contains("@") {
+                                        exists = true
+                                    } else {
+                                        let profile = await FirestoreManager.shared.findUserByUsername(cleanedInput)
+                                        exists = (profile != nil)
+                                    }
+                                    
+                                    await MainActor.run {
+                                        isLoading = false
+                                        if exists {
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                                step = .password
+                                            }
+                                        } else {
+                                            errorMessage = "This username or email does not exist."
+                                        }
+                                    }
                                 }
                             } label: {
                                 HStack {
-                                    Text("Next")
-                                        .font(.headline)
-                                    Image(systemName: "arrow.right")
+                                    if isLoading {
+                                        ProgressView()
+                                            .tint(.white)
+                                    } else {
+                                        Text("Next")
+                                            .font(.headline)
+                                        Image(systemName: "arrow.right")
+                                    }
                                 }
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -109,6 +135,7 @@ struct SignInView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                                 .shadow(color: .cyan.opacity(0.3), radius: 6, x: 0, y: 3)
                             }
+                            .disabled(isLoading)
                             .padding(.top, 8)
                              
                         } else {
@@ -147,7 +174,7 @@ struct SignInView: View {
                                             .textInputAutocapitalization(.never)
                                             .autocorrectionDisabled()
                                     }
-                                    
+                                     
                                     Button {
                                         showPassword.toggle()
                                     } label: {
@@ -222,11 +249,7 @@ struct SignInView: View {
                          
                         Button {
                             Task {
-                                do {
-                                    try await AuthManager.shared.signInWithGoogle()
-                                } catch {
-                                    print("Google Sign-In failed: \(error.localizedDescription)")
-                                }
+                                await AuthManager.shared.signInWithGoogle()
                             }
                         } label: {
                             Image("GoogleIcon")
@@ -247,23 +270,23 @@ struct SignInView: View {
     }
      
     private func handleSignIn() {
-            isLoading = true
-            errorMessage = nil
-             
-            Task {
-                do {
-                    try await AuthManager.shared.signIn(loginInput: emailOrUsername, password: password)
-                    await MainActor.run {
-                        isLoading = false
-                    }
-                } catch {
-                    await MainActor.run {
-                        isLoading = false
-                        errorMessage = "Incorrect password or email. Please try again."
-                    }
+        isLoading = true
+        errorMessage = nil
+         
+        Task {
+            do {
+                try await AuthManager.shared.signIn(loginInput: emailOrUsername, password: password)
+                await MainActor.run {
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    errorMessage = "Incorrect password or email. Please try again."
                 }
             }
         }
+    }
 }
 
 #Preview {

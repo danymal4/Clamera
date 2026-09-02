@@ -161,8 +161,8 @@ struct AquariumView: View {
                             .background(.ultraThinMaterial)
                             .clipShape(Circle()) .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2)
                     }
-                    .padding(.trailing, 400)
-                    .padding(.top, 685)
+                    .padding(.trailing, 700)
+                    .padding(.top, 585)
                     .offset(y: showBottomBar ? 0 : 75)
                     .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
                 }

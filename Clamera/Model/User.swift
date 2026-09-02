@@ -18,7 +18,6 @@ class User: ObservableObject {
     @Published var leaderboardUser: LeaderboardUser
     @Published var fishOfFamePosts: [FishPost] = []
     
-    
     // Friends & Requests Tracking
     @Published var friends: [String] = []
     @Published var incomingRequests: [String] = []
@@ -29,37 +28,23 @@ class User: ObservableObject {
     @Published var lastLoginDate: Date? = nil
     @Published var lastDailyDiscountDate: Date? = nil
     @Published var unlockedShopItems: Set<String> = []
-    
-    let fishingUsernames = [
-        "FishHunter5", "AnglerAce", "ReelMaster", "HookedUp", "BassBoss",
-        "TroutTrooper", "CastingKing", "LureLegend", "SalmonSeeker", "CatchCraze",
-        "FinFanatic", "DeepSeaDave", "RiverRanger", "OceanObserver", "BaitBandit",
-        "TackleTitan", "MarlinManiac", "GuppyGuru", "HookLine", "DriftDude",
-        "SnapperSniper", "PikePirate", "RodRuler", "ChumChampion", "GillGrinder",
-        "FisherFrenzy", "AnglingAce", "BassBuster", "CodCommander", "ReelRanger",
-        "SeaSnatcher", "MinnowMaster", "TroutTracker", "HookerHustler", "BaitBrawler",
-        "SalmonSage", "CatchCaptain", "LureLover", "OceanOutlaw", "FinFinder",
-        "DriftKing", "TackleTamer", "GuppyGlider", "MarlinMaven", "ReelReaper",
-        "PikePatrol", "SnapperSurfer", "RodRider", "ChumChaser", "FishFiend"
-    ]
 
-    init(id: String = "", username: String? = nil,
+    init(id: String = "", username: String = "",
          email: String = "default@default.com",
          profilePicture: String = "fisherman",
          aquarium: AquariumFishList = AquariumFishList(),
          speciesStore: SpeciesStore = SpeciesStore(),
          aquariumState: AquariumState = AquariumState()) {
 
-        let finalUsername = username ?? fishingUsernames.randomElement() ?? "FishHunter5"
         self.id = id
-        self.username = finalUsername
+        self.username = username
         self.email = email
         self.profilePicture = profilePicture
         self.aquarium = aquarium
         self.speciesStore = speciesStore
         self.aquariumState = aquariumState
-        self.leaderboardUser = LeaderboardUser(name: finalUsername, points: speciesStore.totalClamPoints)
-        
+        self.leaderboardUser = LeaderboardUser(name: username, points: speciesStore.totalClamPoints)
+         
         checkLoginStreak()
     }
     

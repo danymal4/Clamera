@@ -25,7 +25,7 @@ struct SocialView: View {
                      
                     NavigationLink(destination: ProfileView()) {
                         socialRow(
-                            imageName: "fisherman",
+                            imageName: user.profilePicture,
                             title: user.username,
                             subtitle: "View your profile",
                             isHighlighted: true
@@ -33,18 +33,17 @@ struct SocialView: View {
                     }
                      
                     NavigationLink(destination: FriendsListView(user: user)) {
-                                            socialRow(
-                                                imageName: "friends",
-                                                title: "Friends",
-                                                subtitle: "10 friends",
-                                                isHighlighted: false
-                                            )
-                                        }
+                        socialRow(
+                            imageName: "friends",
+                            title: "Friends",
+                            subtitle: "10 friends",
+                            isHighlighted: false
+                        )
+                    }
                      
-                    // Replaced Leaderboard with Hall of Fish
                     NavigationLink(destination: FishOfFameView()) {
                         socialRow(
-                            imageName: "Trophy", // You can keep or change this image asset
+                            imageName: "Trophy",
                             title: "Fish of Fame",
                             subtitle: "Manage your trophy catalog & posts",
                             isHighlighted: false
@@ -75,16 +74,37 @@ struct SocialView: View {
                 .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
              
             HStack(spacing: 20) {
-                if isHighlighted && user.profilePicture.hasPrefix("http") {
-                    AsyncImage(url: URL(string: user.profilePicture)) { image in
-                        image.resizable().scaledToFill()
-                    } placeholder: {
-                        ProgressView()
+                if isHighlighted {
+                    if imageName.hasPrefix("http") {
+                        AsyncImage(url: URL(string: imageName)) { image in
+                            image.resizable().scaledToFill()
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
+                              height: min(UIScreen.main.bounds.width * 0.15, 120))
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                    } else if let data = Data(base64Encoded: imageName),
+                              let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
+                                  height: min(UIScreen.main.bounds.width * 0.15, 120))
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                    } else {
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
+                                  height: min(UIScreen.main.bounds.width * 0.15, 120))
+                            .foregroundColor(.gray.opacity(0.6))
+                            .background(Circle().fill(Color(.systemGray5)))
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                     }
-                    .frame(width: min(UIScreen.main.bounds.width * 0.15, 120),
-                           height: min(UIScreen.main.bounds.width * 0.15, 120))
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 } else {
                     Image(imageName)
                         .resizable()

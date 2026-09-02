@@ -26,10 +26,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
          
         return true
     }
+    
     func application(_ app: UIApplication,
                      open url: URL,
                      options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-         
         return GIDSignIn.sharedInstance.handle(url)
     }
 }
@@ -43,18 +43,25 @@ struct ClameraApp: App {
     var body: some Scene {
         WindowGroup {
             ClameraSplashView {
-                if auth.isLoading {
-                    // Holds the screen steady with a matching background while Firebase checks keychain
-                    Color.cyan
-                        .ignoresSafeArea()
-                } else if let user = auth.user {
-                    // If logged in, drops the curtain straight to HomerView
-                    HomerView()
-                        .environmentObject(user)
-                        .environmentObject(leaderboard)
-                } else {
-                    // Otherwise, drops the curtain to the sign-in flow
-                    SignInView()
+                Group {
+                    if auth.isLoading {
+                        // Holds the screen steady with a matching background while Firebase checks keychain
+                        Color.cyan
+                            .ignoresSafeArea()
+                    } else if let user = auth.user {
+                        // If logged in, drops the curtain straight to HomerView
+                        HomerView()
+                            .environmentObject(user)
+                            .environmentObject(leaderboard)
+                    } else {
+                        // Otherwise, drops the curtain to the sign-in flow
+                        SignInView()
+                    }
+                }
+                .environmentObject(auth)
+                .sheet(item: $auth.pendingGoogleUser) { _ in
+                    GoogleUsernameSetupView()
+                        .environmentObject(auth)
                 }
             }
         }
