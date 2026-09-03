@@ -333,7 +333,9 @@ struct FishGridItem: View {
                 VStack {
                     Image(fishPhoto: fish.photo)
                         .resizable()
+                        .scaledToFill()
                         .frame(width: cardHeight, height: cardHeight)
+                        .background(Color.cyan.opacity(0.08))
                         .cornerRadius(16)
                         .clipped()
                         .opacity(clickable ? 1 : 0.4)
@@ -441,23 +443,44 @@ struct FishGridItem: View {
     }
 }
 
-// Robust helper extension to load saved catch photos from the document directory or fallback assets
+// Robust helper extension to load saved catch photos from the document directory, Base64, or fallback assets
 extension Image {
     init(fishPhoto name: String) {
-        let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fileURL = documentDirectory.appendingPathComponent(name)
-        
-        if let uiImage = UIImage(contentsOfFile: fileURL.path) {
-            self.init(uiImage: uiImage)
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            self.init(systemName: "photo")
             return
         }
+
+        // 1. Try resolving as a document filename (e.g., UUID.jpg or full sandbox paths)
+        let filename = URL(fileURLWithPath: name).lastPathComponent
+        if let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let fileURL = documentDirectory.appendingPathComponent(filename)
+            if let uiImage = UIImage(contentsOfFile: fileURL.path) {
+                self.init(uiImage: uiImage)
+                return
+            }
+        }
         
+        // 2. Try raw direct path
         if let uiImage = UIImage(contentsOfFile: name) {
             self.init(uiImage: uiImage)
             return
         }
+
+        // 3. Try Base64 data
+        if let data = Data(base64Encoded: name), let uiImage = UIImage(data: data) {
+            self.init(uiImage: uiImage)
+            return
+        }
         
-        self.init(name)
+        // 4. Try Asset Catalog
+        if UIImage(named: name) != nil {
+            self.init(name)
+            return
+        }
+
+        // 5. Fallback icon
+        self.init(systemName: "photo")
     }
 }
 

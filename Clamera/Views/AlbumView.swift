@@ -44,7 +44,6 @@ struct AlbumView: View {
         var filtered = user.speciesStore.speciesList
 
         if !searchText.isEmpty {
-            
             filtered = filtered.filter {
                 $0.name.lowercased().contains(searchText.lowercased())
             }
@@ -53,27 +52,39 @@ struct AlbumView: View {
         switch selectedFilter {
         case .alphabetical:
             filtered.sort { $0.name < $1.name }
-            
+             
         case .caught:
             filtered = filtered.filter { species in
                 let hasFish = !species.fishList.isEmpty
-                let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
-                
+                let speciesClean = species.name.lowercased()
+                    .replacingOccurrences(of: "'", with: "")
+                    .replacingOccurrences(of: "’", with: "")
+                    .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                 
                 let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
-                    let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                    let itemClean = itemId.lowercased()
+                        .replacingOccurrences(of: "'", with: "")
+                        .replacingOccurrences(of: "’", with: "")
+                        .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
                     return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
                 }
                 return hasFish || isUnlockedInStore
             }
             filtered.sort { $0.name < $1.name }
-            
+             
         case .notCaught:
             filtered = filtered.filter { species in
                 let hasFish = !species.fishList.isEmpty
-                let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
-                
+                let speciesClean = species.name.lowercased()
+                    .replacingOccurrences(of: "'", with: "")
+                    .replacingOccurrences(of: "’", with: "")
+                    .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                 
                 let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
-                    let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                    let itemClean = itemId.lowercased()
+                        .replacingOccurrences(of: "'", with: "")
+                        .replacingOccurrences(of: "’", with: "")
+                        .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
                     return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
                 }
                 return !hasFish && !isUnlockedInStore
@@ -102,16 +113,16 @@ struct AlbumView: View {
     
     var body: some View {
         ZStack {
-            
+             
             ScrollViewReader { proxy in
-                
+                 
                 ScrollView {
                     VStack(spacing: 18) {
-                        
+                         
                         Text("Album")
                             .font(.system(size: 34, weight: .bold))
                             .padding(.top, 20)
-                        
+                         
                         Picker("", selection: $selectedFilter) {
                             ForEach(FilterOption.allCases) { option in
                                 Text(option.rawValue).tag(option)
@@ -121,23 +132,29 @@ struct AlbumView: View {
                         .padding(.horizontal, 20)
 
                         LazyVStack(spacing: 14) {
-                            
+                             
                             if sortedSpecies.isEmpty {
                                 Text("No fish found")
                                     .foregroundColor(.secondary)
                                     .padding(.top, 40)
                             } else {
-                                
+                                 
                                 ForEach(sortedSpecies) { species in
-                                    
+                                     
                                     let letter = String(species.name.prefix(1)).uppercased()
                                     let hasFish = !species.fishList.isEmpty
-                                    let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                                    let speciesClean = species.name.lowercased()
+                                        .replacingOccurrences(of: "'", with: "")
+                                        .replacingOccurrences(of: "’", with: "")
+                                        .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
                                     let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
-                                        let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                                        let itemClean = itemId.lowercased()
+                                            .replacingOccurrences(of: "'", with: "")
+                                            .replacingOccurrences(of: "’", with: "")
+                                            .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
                                         return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
                                     }
-                                    
+                                     
                                     Group {
                                         if hasFish || isUnlockedInStore {
                                             NavigationLink(
@@ -167,19 +184,19 @@ struct AlbumView: View {
                         .padding(.bottom, 120)
                     }
                 }
-                
+                 
                 // ALPHABET OVERLAY (FILTERED)
                 .overlay(alignment: .trailing) {
                     VStack(spacing: 2) {
                         ForEach(availableLetters, id: \.self) { letter in
-                            
+                             
                             let isActive = activeLetter == letter
-                            
+                             
                             ZStack {
                                 Rectangle()
                                     .fill(Color.clear)
                                     .frame(width: 30, height: 16)
-                                
+                                 
                                 Text(String(letter))
                                     .font(.system(size: isActive ? 14 : 11, weight: .bold))
                                     .foregroundColor(.black)
@@ -201,7 +218,7 @@ struct AlbumView: View {
             // SEARCH BAR (UNCHANGED)
             .overlay(alignment: .bottom) {
                 ZStack(alignment: .trailing) {
-                    
+                     
                     HStack {
                         TextField("Search", text: $searchText)
                             .padding(.leading, 10)
@@ -211,24 +228,24 @@ struct AlbumView: View {
                             .shadow(color: .black.opacity(0.1), radius: 8)
                             .offset(y: showSearch ? -35 : 100)
                             .animation(.easeInOut, value: showSearch)
-                        
+                         
                         Spacer()
                     }
                     .padding(.horizontal, 15)
-                    
+                     
                     Button {
                         withAnimation {
-                            
+                             
                             showSearch.toggle()
-                            
+                             
                             if showSearch == false {
-                                
+                                 
                                 if didSearchChange {
                                     activeLetter = "A"
                                 }
-                                
+                                 
                                 didSearchChange = false
-                                
+                                 
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                                     searchText = ""
                                 }
@@ -241,7 +258,7 @@ struct AlbumView: View {
                                 .frame(width: 55, height: 55)
                                 .shadow(color: .black.opacity(0.08), radius: 4)
                                 .opacity(showSearch ? 0 : 1)
-                            
+                             
                             Image(systemName: "magnifyingglass")
                                 .font(.system(size: 24))
                                 .foregroundColor(.cyan)
@@ -281,18 +298,49 @@ struct SpeciesRow: View {
     
     var body: some View {
         let hasFish = species.fishList.count > 0
-        let speciesClean = species.name.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
-        
+        let speciesClean = species.name.lowercased()
+            .replacingOccurrences(of: "'", with: "")
+            .replacingOccurrences(of: "’", with: "")
+            .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+         
         let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
-            let itemClean = itemId.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+            let itemClean = itemId.lowercased()
+                .replacingOccurrences(of: "'", with: "")
+                .replacingOccurrences(of: "’", with: "")
+                .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
             return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
         }
-        
+         
         let isAccessible = hasFish || isUnlockedInStore
+         
+        // Normalized asset name resolver (ignores spaces, casing, and punctuation typos)
+        let resolvedImageName: String = {
+            let normalizedName = species.name.lowercased()
+                .replacingOccurrences(of: " ", with: "")
+                .replacingOccurrences(of: "'", with: "")
+                .replacingOccurrences(of: "’", with: "")
+                .replacingOccurrences(of: "/", with: "")
+                .replacingOccurrences(of: "\\", with: "")
+            
+            let normalizedOverrides: [String: String] = [
+                "belangerscroaker": "Belanger's CroakerIcon",
+                "burtonsmouthbrooder": "Burton's MouthbrooderIcon",
+                "russelsnapper": "Russel's SnapperIcon",
+                "pinksquirrelfish": "Pink SquirrelfishIcon",
+                "saithecoalfish": "Saithe CoalfishIcon",
+                "peronsthreadfishbream": "Peron's Threadfish BreamIcon"
+            ]
+            
+            if let override = normalizedOverrides[normalizedName] {
+                return override
+            }
+            
+            return "\(species.name)Icon"
+        }()
          
         HStack(spacing: 16) {
              
-            Image(UIImage(named: "\(species.name)Icon") != nil ? "\(species.name)Icon" : "Atlantic CodIcon")
+            Image(resolvedImageName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 55, height: 55)

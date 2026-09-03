@@ -21,6 +21,19 @@ struct FishOfFameView: View {
     @State private var postToDelete: FishPost? = nil
     @State private var showDeleteConfirm = false
 
+    // Rich metallic gold gradient
+    private var goldGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 0.86, green: 0.65, blue: 0.18),
+                Color(red: 0.98, green: 0.82, blue: 0.38),
+                Color(red: 0.84, green: 0.58, blue: 0.12)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -61,7 +74,7 @@ struct FishOfFameView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 48))
-                            .foregroundColor(.secondary.opacity(0.6))
+                            .foregroundColor(Color.secondary.opacity(0.6))
                         Text("No trophy catches yet!")
                             .font(.headline)
                             .foregroundColor(.secondary)
@@ -73,7 +86,7 @@ struct FishOfFameView: View {
                     }
                     .padding(.top, 80)
                 } else {
-                    // Instagram-style Feed
+                    // Feed
                     LazyVStack(spacing: 24) {
                         ForEach(user.fishOfFamePosts) { post in
                             fishPostRow(post: post)
@@ -125,7 +138,7 @@ struct FishOfFameView: View {
     private func fishPostRow(post: FishPost) -> some View {
         VStack(alignment: .leading, spacing: 10) {
              
-            // Profile / Username Header matching Account Profile Picture
+            // Profile / Username Header
             HStack(spacing: 10) {
                 if user.profilePicture.hasPrefix("http"), let url = URL(string: user.profilePicture) {
                     AsyncImage(url: url) { image in
@@ -155,43 +168,46 @@ struct FishOfFameView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                  
-                // Remove/Delete Post Button
                 Button {
                     postToDelete = post
                     showDeleteConfirm = true
                 } label: {
                     Image(systemName: "trash")
                         .font(.system(size: 14))
-                        .foregroundColor(.red.opacity(0.8))
+                        .foregroundColor(Color.red.opacity(0.8))
                 }
                 .padding(.leading, 6)
             }
             .padding(.horizontal, 16)
 
-            // Post Image loaded via fishPhoto helper
+            // Post Image
             Image(fishPhoto: post.photo)
                 .resizable()
                 .scaledToFill()
                 .frame(width: UIScreen.main.bounds.width - 32, height: UIScreen.main.bounds.width - 32)
+                .background(Color.cyan.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
 
             // Caption & Species
             VStack(alignment: .leading, spacing: 4) {
                 Text(post.speciesName)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(goldGradient)
+                    .shadow(color: Color(red: 0.7, green: 0.5, blue: 0.1).opacity(0.25), radius: 1, x: 0.5, y: 0.5)
                  
-                Text(post.caption)
-                    .font(.system(size: 14))
-                    .foregroundColor(.black.opacity(0.8))
+                if !post.caption.isEmpty {
+                    Text(post.caption)
+                        .font(.system(size: 14))
+                        .foregroundColor(Color.black.opacity(0.8))
+                }
             }
             .padding(.horizontal, 16)
         }
         .padding(.vertical, 12)
         .background(Color.white)
         .cornerRadius(24)
-        .shadow(color: .black.opacity(0.04), radius: 10, y: 4)
+        .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
         .padding(.horizontal, 16)
     }
 }
@@ -205,11 +221,22 @@ struct PostPreviewPickerView: View {
     @State private var selectedFishToPreview: Fish? = nil
     @State private var parentSpeciesName: String = ""
 
+    private var goldGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 0.86, green: 0.65, blue: 0.18),
+                Color(red: 0.98, green: 0.82, blue: 0.38),
+                Color(red: 0.84, green: 0.58, blue: 0.12)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 if let fish = selectedFishToPreview {
-                    // PREVIEW STEP
                     ScrollView {
                         VStack(spacing: 20) {
                             Text("Post Preview")
@@ -222,19 +249,24 @@ struct PostPreviewPickerView: View {
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: UIScreen.main.bounds.width - 64, height: UIScreen.main.bounds.width - 64)
+                                    .background(Color.cyan.opacity(0.08))
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
 
                                 Text(parentSpeciesName)
-                                    .font(.headline)
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundStyle(goldGradient)
+                                    .shadow(color: Color(red: 0.7, green: 0.5, blue: 0.1).opacity(0.25), radius: 1, x: 0.5, y: 0.5)
                                  
-                                Text(fish.description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                if !fish.description.isEmpty {
+                                    Text(fish.description)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                             .padding(16)
                             .background(Color.white)
                             .cornerRadius(20)
-                            .shadow(color: .black.opacity(0.06), radius: 8)
+                            .shadow(color: Color.black.opacity(0.06), radius: 8)
                             .padding(.horizontal)
 
                             Button {
@@ -254,7 +286,6 @@ struct PostPreviewPickerView: View {
                         }
                     }
                 } else {
-                    // SELECTION STEP (Album of Caught Fish)
                     List {
                         ForEach(user.speciesStore.speciesList) { species in
                             if !species.fishList.isEmpty {
@@ -267,11 +298,13 @@ struct PostPreviewPickerView: View {
                                             HStack(spacing: 12) {
                                                 Image(fishPhoto: fish.photo)
                                                     .resizable()
+                                                    .scaledToFill()
                                                     .frame(width: 45, height: 45)
+                                                    .background(Color.cyan.opacity(0.08))
                                                     .clipShape(RoundedRectangle(cornerRadius: 8))
 
                                                 VStack(alignment: .leading) {
-                                                    Text(fish.description)
+                                                    Text(fish.description.isEmpty ? species.name : fish.description)
                                                         .font(.subheadline)
                                                         .foregroundColor(.primary)
                                                         .lineLimit(1)

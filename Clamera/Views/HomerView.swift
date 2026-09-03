@@ -3,13 +3,13 @@
 //  Clamera
 //
 //  Created by Ellis Kamplain (student LM) on 2/4/26.
+//
+
 import SwiftUI
-import AVFoundation
 
 enum ViewState {
     case home, aquarium, profile, caught, album, social, settings
 }
-
 
 final class TabRouter: ObservableObject {
     @Published var viewState: ViewState = .home
@@ -17,7 +17,6 @@ final class TabRouter: ObservableObject {
 
 struct HomerView: View {
     @EnvironmentObject var user: User
-    @EnvironmentObject var leaderboard: LeaderboardData
     @StateObject private var tabRouter = TabRouter()
     @State private var cleanTimer: Timer?
     @State private var lastUpdate: Date = Date()
@@ -27,8 +26,6 @@ struct HomerView: View {
     @State private var popupOffset: CGFloat = 150
     @State private var showAquariumBottomBar: Bool = true
     @State private var bottomBarWorkItem: DispatchWorkItem?
-    @State private var bubblePlayer: AVAudioPlayer?
-    @State private var fadeTimer: Timer?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -53,7 +50,6 @@ struct HomerView: View {
                             user.aquariumState.markInactive("aquarium")
                             bottomBarWorkItem?.cancel()
                             showAquariumBottomBar = true
-                            stopBubbleSound()
                         }
                     }
                 case .social: NavigationStack { SocialView() }
@@ -63,7 +59,6 @@ struct HomerView: View {
             .environmentObject(tabRouter)
             .environmentObject(user)
 
-   
             HStack(spacing: 0) {
                 customTabIcon(systemImage: "house", tab: .home)
                 customTabIcon(systemImage: "fish", tab: .caught)
@@ -79,7 +74,7 @@ struct HomerView: View {
             .offset(y: tabRouter.viewState == .aquarium && !showAquariumBottomBar ? 120 : 0)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: showAquariumBottomBar)
             .ignoresSafeArea(edges: .bottom)
-  
+
             VStack {
                 Spacer()
                 
@@ -100,11 +95,9 @@ struct HomerView: View {
                         .zIndex(1)
                         .padding(.bottom, 100)
                         .onAppear {
-                            // Bounce up
                             withAnimation(.interpolatingSpring(stiffness: 180, damping: 18)) {
                                 popupOffset = 0
                             }
-                            // Fade out after 3 seconds
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     showCatchSavedPopup = false
@@ -113,18 +106,16 @@ struct HomerView: View {
                                 }
                             }
                         }
-                    }
                 }
             }
+        }
         .edgesIgnoringSafeArea(.bottom)
         .onAppear { startCleanTimer() }
         .onDisappear {
             cleanTimer?.invalidate()
             cleanTimer = nil
             bottomBarWorkItem?.cancel()
-            stopBubbleSound()
         }
-   
         .onReceive(user.speciesStore.$popupType) { newValue in
             guard newValue > 0 else { return }
             var message = ""
@@ -138,27 +129,19 @@ struct HomerView: View {
                 color = .cyan
             case 3:
                 message = "Catch of the Week!"
-                color = Color(red: 1.0, green: 0.84, blue: 0.0) 
+                color = Color(red: 1.0, green: 0.84, blue: 0.0)
             default: break
             }
             triggerCatchPopup(message: message, color: color)
         }
-       
-        .onChange(of: tabRouter.viewState) { oldState, newState in
+        .onChange(of: tabRouter.viewState) { _, newState in
             if newState == .aquarium {
                 lastUpdate = Date()
                 user.aquariumState.commitPendingClean()
-                if user.aquariumState.bubbleAmount > 0 { startBubbleSound() }
-            } else { stopBubbleSound() }
-        }
-        .onReceive(user.aquariumState.$bubbleAmount) { newValue in
-            updateBubbleVolume()
-            if tabRouter.viewState == .aquarium {
-                if newValue > 0 && bubblePlayer == nil { startBubbleSound() }
-            } else { stopBubbleSound() }
+            }
         }
     }
-   
+    
     private func triggerCatchPopup(message: String, color: Color) {
         popupOffset = 150
         catchSavedMessage = message
@@ -191,7 +174,6 @@ struct HomerView: View {
         .frame(maxWidth: .infinity)
     }
 
-
     private func startCleanTimer() {
         cleanTimer?.invalidate()
         let totalDuration: TimeInterval = 60 * 60
@@ -215,7 +197,6 @@ struct HomerView: View {
         }
     }
 
-  
     func resetBottomBarTimer() {
         bottomBarWorkItem?.cancel()
         withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { showAquariumBottomBar = true }
@@ -225,37 +206,9 @@ struct HomerView: View {
         bottomBarWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
-
- 
-    private func startBubbleSound() {
-        guard bubblePlayer == nil else { return }
-        guard let url = Bundle.main.url(forResource: "bubble", withExtension: "wav") else { return }
-        do {
-            bubblePlayer = try AVAudioPlayer(contentsOf: url)
-            bubblePlayer?.numberOfLoops = -1
-            bubblePlayer?.volume = 0
-            bubblePlayer?.play()
-            updateBubbleVolume()
-        } catch {
-            print("Error playing bubble sound: \(error)")
-        }
-    }
-
-    private func stopBubbleSound() {
-        fadeTimer?.invalidate()
-        bubblePlayer?.stop()
-        bubblePlayer = nil
-    }
-
-    private func updateBubbleVolume() {
-        guard let player = bubblePlayer else { return }
-        let scaledVolume = Float(user.aquariumState.bubbleAmount) * 0.5
-        player.volume = scaledVolume
-    }
 }
 
 #Preview {
     HomerView()
         .environmentObject(User())
-        .environmentObject(LeaderboardData())
 }

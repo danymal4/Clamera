@@ -8,32 +8,38 @@
 import SwiftUI
 
 struct ProfileView: View {
-    
     @EnvironmentObject var user: User
     @State private var showingEditProfile = false
     
+    // Username editing states
+    @State private var showingUsernameAlert = false
+    @State private var newUsernameInput = ""
+    @State private var isCheckingUsername = false
+    @State private var errorMessage = ""
+    @State private var showingErrorAlert = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
                 
+                // Top Edit Profile Image/Info button
                 HStack {
                     Spacer()
                     Button(action: {
                         showingEditProfile = true
                     }) {
-                        Text("Edit")
+                        Text("Edit Profile")
                             .font(.system(size: 16, weight: .semibold))
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(10)
                     }
-                .padding(.top, 10)
+                    .padding(.top, 10)
                     .padding(.trailing, 10)
                 }
-    
-                VStack(spacing: 10) {
-                    
+
+                VStack(spacing: 12) {
                     // Profile picture
                     if user.profilePicture.hasPrefix("http") {
                         AsyncImage(url: URL(string: user.profilePicture)) { image in
@@ -66,21 +72,35 @@ struct ProfileView: View {
                             .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
                     }
 
-                    // Username
-                    Text(user.username)
-                        .font(.title2)
-                        .bold()
-                        .foregroundColor(.black.opacity(0.85))
-                }
-                .padding(.top, 40)
+                    // Username + Edit button row
+                    HStack(spacing: 8) {
+                        Text(user.username.isEmpty ? "Angler" : user.username)
+                            .font(.title2)
+                            .bold()
+                            .foregroundColor(.black.opacity(0.85))
 
+                        if isCheckingUsername {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Button {
+                                newUsernameInput = user.username
+                                showingUsernameAlert = true
+                            } label: {
+                                Image(systemName: "pencil.circle.fill")
+                                    .font(.system(size: 22))
+                                    .foregroundColor(.blue.opacity(0.85))
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 20)
 
                 VStack(spacing: 0) {
-                    
                     infoRow(title: "Email", value: user.email)
                     divider()
                     
-                    infoRow(title: "Password", value: "*****")
+                    infoRow(title: "Password", value: "•••••")
                     divider()
                     
                     infoRow(title: "Fish Caught", value: "\(user.speciesStore.getFish())")
@@ -96,11 +116,10 @@ struct ProfileView: View {
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
                 .padding(.horizontal)
 
-
                 Button {
-                    Task{
-                        if let user = AuthManager.shared.user {
-                            await FirestoreManager.shared.saveUser(user: user)
+                    Task {
+                        if let authUser = AuthManager.shared.user {
+                            await FirestoreManager.shared.saveUser(user: authUser)
                         }
                         AuthManager.shared.signOut()
                     }
@@ -124,8 +143,45 @@ struct ProfileView: View {
         .sheet(isPresented: $showingEditProfile) {
             EditProfileView(user: user)
         }
+        // Change username alert prompt
+        .alert("Change Username", isPresented: $showingUsernameAlert) {
+            TextField("New Username", text: $newUsernameInput)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+
+            Button("Cancel", role: .cancel) { }
+            Button("Save") {
+                validateAndSaveUsername()
+            }
+        } message: {
+            Text("Enter a unique handle for your profile.")
+        }
+        // Validation error feedback
+        .alert("Unavailable", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
 
+    private func validateAndSaveUsername() {
+        let clean = newUsernameInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.lowercased() == user.username.lowercased() {
+            return
+        }
+
+        isCheckingUsername = true
+        Task {
+            let result = await FirestoreManager.shared.changeUsername(newUsername: clean, user: user)
+            await MainActor.run {
+                isCheckingUsername = false
+                if !result.success {
+                    errorMessage = result.message
+                    showingErrorAlert = true
+                }
+            }
+        }
+    }
 
     private func infoRow(title: String, value: String) -> some View {
         HStack {
@@ -140,7 +196,6 @@ struct ProfileView: View {
         .padding(.horizontal)
         .padding(.vertical, 15)
     }
-
 
     private func divider() -> some View {
         Rectangle()

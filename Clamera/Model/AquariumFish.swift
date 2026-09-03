@@ -4,8 +4,8 @@
 //
 //  Created by Kaes van Dolder (student LM) on 3/2/26.
 //
-import SwiftUI
 
+import SwiftUI
 
 final class AquariumFish: Identifiable, ObservableObject {
     let id = UUID()
@@ -54,16 +54,36 @@ final class AquariumFish: Identifiable, ObservableObject {
         self.speciesID = dict["speciesID"]
     }
     
+    func update(from dict: [String:String]) {
+        self.imageName = dict["imageName"] ?? self.imageName
+        let newSize = NSCoder.cgSize(for: dict["size"] ?? "")
+        if newSize.width > 0 && newSize.height > 0 {
+            self.size = newSize
+        }
+        if let dur = Double(dict["swimDuration"] ?? "") {
+            self.swimDuration = dur
+        }
+        if let act = Bool(dict["isActive"] ?? "") {
+            self.isActive = act
+        }
+        if let shw = Bool(dict["isShown"] ?? "") {
+            self.isShown = shw
+        }
+        if let sID = dict["speciesID"] {
+            self.speciesID = sID
+        }
+    }
+    
     func getDictionary() -> [String:String]{
         var dict: [String:String] = [
-            "imageName":imageName,
-            "size":NSCoder.string(for: size),
-            "horizontalRange":"\(horizontalRange.lowerBound)...\(horizontalRange.upperBound)",
-            "verticalRange":"\(verticalRange.lowerBound)...\(verticalRange.upperBound)",
-            "swimDuration":String(swimDuration),
-            "phaseOffset":String(phaseOffset),
-            "isActive":String(isActive),
-            "isShown":String(isShown)
+            "imageName": imageName,
+            "size": NSCoder.string(for: size),
+            "horizontalRange": "\(horizontalRange.lowerBound)...\(horizontalRange.upperBound)",
+            "verticalRange": "\(verticalRange.lowerBound)...\(verticalRange.upperBound)",
+            "swimDuration": String(swimDuration),
+            "phaseOffset": String(phaseOffset),
+            "isActive": String(isActive),
+            "isShown": String(isShown)
         ]
         if let id = speciesID {
             dict["speciesID"] = id
@@ -81,6 +101,4 @@ final class AquariumFish: Identifiable, ObservableObject {
         }
         return range
     }
-    
-    
 }

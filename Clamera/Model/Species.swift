@@ -30,7 +30,7 @@ class Species: ObservableObject, Identifiable, Hashable {
         self.fishList = fishList
     }
     
-    init(array: [[String:String]]){
+    init(array: [[String:String]]) {
         var fishArr = array
         let specialDict = fishArr.removeLast()
         self.id = specialDict["name"] ?? ""
@@ -42,17 +42,17 @@ class Species: ObservableObject, Identifiable, Hashable {
     }
     
     func update(fishArray: [[String:String]]) {
-        var fishList: [Fish] = []
-        for fish in fishArray {
-            if fish != [:] {
-                fishList.append(Fish(dictionary: fish))
+        var list: [Fish] = []
+        for fishDict in fishArray {
+            if !fishDict.isEmpty {
+                list.append(Fish(dictionary: fishDict))
             }
         }
-        self.fishList = fishList
+        self.fishList = list
     }
 
     func getArray() -> [[String:String]] {
-        var fishArr: [[String:String]] = [[:]]
+        var fishArr: [[String:String]] = []
         for fish in fishList {
             fishArr.append(fish.getDictionary())
         }
@@ -62,9 +62,9 @@ class Species: ObservableObject, Identifiable, Hashable {
     func getFullArray() -> [[String:String]] {
         var fishArr: [[String:String]] = self.getArray()
         let specialDict: [String:String] = [
-            "name":name,
-            "imageName":imageName,
-            "icon":icon
+            "name": name,
+            "imageName": imageName,
+            "icon": icon
         ]
         fishArr.append(specialDict)
         return fishArr
@@ -74,10 +74,8 @@ class Species: ObservableObject, Identifiable, Hashable {
     static func == (lhs: Species, rhs: Species) -> Bool {
         lhs.id == rhs.id
     }
-    
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 }
-

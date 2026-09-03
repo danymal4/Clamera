@@ -259,8 +259,8 @@ struct SignInView: View {
                         }
                         .frame(maxWidth: 350)
                         .padding(.horizontal, 20)
-                    }
-                    .padding(.bottom, 20)
+                        }
+                        .padding(.bottom, 20)
                 }
             }
             .navigationDestination(isPresented: $showSignUp) {

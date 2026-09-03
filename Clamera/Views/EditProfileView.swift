@@ -13,9 +13,6 @@ struct EditProfileView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var user: User
     
-    @State private var username: String
-    @State private var email: String
-    @State private var password: String = ""
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var profileImage: UIImage? = nil
     
@@ -27,10 +24,7 @@ struct EditProfileView: View {
     @State private var passwordSuccessMessage: String? = nil
     @State private var isUpdatingPassword = false
     
-    init(user: User) {
-        _username = State(initialValue: user.username)
-        _email = State(initialValue: user.email)
-    }
+    init(user: User) { }
     
     // Check if the current user signed in using email/password (hides for Google accounts)
     private var isEmailUser: Bool {
@@ -87,10 +81,23 @@ struct EditProfileView: View {
                 }
 
                 Section(header: Text("Account Information")) {
-                    TextField("Username", text: $username)
-                    TextField("Email", text: $email)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
+                    // Read-only Username
+                    HStack {
+                        Text("Username")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(user.username.isEmpty ? "Angler" : user.username)
+                            .foregroundColor(.primary)
+                    }
+
+                    // Read-only Email
+                    HStack {
+                        Text("Email")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(user.email)
+                            .foregroundColor(.primary)
+                    }
                     
                     if isEmailUser {
                         Button("Change Password") {
@@ -108,13 +115,9 @@ struct EditProfileView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Apply") {
-                        user.username = username
-                        user.email = email
-                        user.leaderboardUser.name = username
-                       
                         Task {
                             if let profileImage = profileImage,
-                                let imageData = profileImage.jpegData(compressionQuality: 0.5) {
+                               let imageData = profileImage.jpegData(compressionQuality: 0.5) {
                                 let base64String = imageData.base64EncodedString()
                                 await MainActor.run {
                                     user.profilePicture = base64String
@@ -134,7 +137,7 @@ struct EditProfileView: View {
                     }
                 }
             }
-            .onChange(of: selectedItem) { oldItem, newItem in
+            .onChange(of: selectedItem) { _, newItem in
                 guard let newItem = newItem else { return }
                 Task {
                     if let data = try? await newItem.loadTransferable(type: Data.self),

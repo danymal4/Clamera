@@ -196,16 +196,11 @@ struct FriendProfileView: View {
     @ViewBuilder
     private func friendAquariumDestination(friendUser: User) -> some View {
         ScrollView {
-            ZStack {
-                AquariumView(showBottomBar: .constant(false))
-                    .environmentObject(friendUser)
-                    .frame(height: 500)
-                    .padding()
-                 
-                Color.clear
-                    .contentShape(Rectangle())
-                    .frame(height: 500)
-            }
+            AquariumView(showBottomBar: .constant(false), allowEditing: false)
+                .environmentObject(friendUser)
+                .frame(height: 500)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .padding()
         }
         .navigationTitle("\(friendUser.username)'s Aquarium")
     }
@@ -244,11 +239,11 @@ struct FriendProfileView: View {
                                     .background(Color.cyan.opacity(0.1))
                                     .cornerRadius(16)
                             }
-                           
+                            
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(post.speciesName.capitalized)
                                     .font(.title3.bold())
-                               
+                                
                                 if !post.caption.isEmpty {
                                     Text(post.caption)
                                         .font(.body)

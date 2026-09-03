@@ -166,7 +166,7 @@
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/St._Peter%27s_Fish.jpg/1280px-St._Peter%27s_Fish.jpg"
       },{
         "Species": "Astatotilapia burtoni",
-        "CommonName": "Burton’s Mouthbrooder",
+        "CommonName": "Burton's Mouthbrooder",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Astatotilapia_burtoni.png/1280px-Astatotilapia_burtoni.png"
       },{
         "Species": "Oreochromis mossambicus",
@@ -289,6 +289,10 @@
         "CommonName": "Blue Triggerfish",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Baliste_vermicul%C3%A9_%28Pseudobalistes_fuscus%29_%28Ifremer_00766-87767_-_46838%29.jpg/1280px-Baliste_vermicul%C3%A9_%28Pseudobalistes_fuscus%29_%28Ifremer_00766-87767_-_46838%29.jpg"
       },{
+          "Species": "Amphiprion ocellaris",
+          "CommonName": "Ocellaris Clownfish",
+          "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Amphiprion_ocellaris_%28Clown_anemonefish%29_by_Nick_Hobgood.jpg/1280px-Amphiprion_ocellaris_%28Clown_anemonefish%29_by_Nick_Hobgood.jpg"
+        },{
         "Species": "Sargocentron tiere",
         "CommonName": "Pink Squirrelfish",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/4/46/Satie_u0.gif"
@@ -669,10 +673,6 @@
         "CommonName": "Javelin Grunt (Indian variant)",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/1/1f/PomadasKaakanffish.asia_%281%29.jpg"
       },{
-        "Species": "Thryssa aestuaria",
-        "CommonName": "Estuarine Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Captured_bay_anchovy_%289601223064%29.jpg"
-      },{
         "Species": "Saurida umeyoshii",
         "CommonName": "Umeyoshi Lizardfish",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Saurida_umeyoshii.jpg"
@@ -696,10 +696,6 @@
         "Species": "Eleutheronema rhadinum",
         "CommonName": "East Asian Threadfin",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Eleutheronema_tetradactylum%28Shaw%2C_1804%29.jpg"
-      },{
-        "Species": "Thryssa kammalensis",
-        "CommonName": "Kammal Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Thryssa_kammalensis.jpg/1280px-Thryssa_kammalensis.jpg"
       },{
         "Species": "Ophichthus urolophus",
         "CommonName": "Finned Snake Eel",
@@ -736,10 +732,6 @@
         "Species": "Acanthopagrus australis",
         "CommonName": "Yellowfin Bream",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/1/15/Acanthopagrus_australis_ALA.jpg"
-      },{
-        "Species": "Thryssa mystax",
-        "CommonName": "Moustached Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Thryssa_mystax.jpg"
       },{
         "Species": "Sillago parvisquamis",
         "CommonName": "Smallscale Whiting",
@@ -789,10 +781,6 @@
         "CommonName": "Spotted Snake Eel",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/4/42/Ophichthus_punctifer.jpg"
       },{
-        "Species": "Thryssa setirostris",
-        "CommonName": "Longjaw Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Thryssa_setirostris.jpg/1280px-Thryssa_setirostris.jpg"
-      },{
         "Species": "Sillago indica",
         "CommonName": "Indian Whiting",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sillago_parvisquamis_01.JPG/1280px-Sillago_parvisquamis_01.JPG"
@@ -812,10 +800,6 @@
         "Species": "Acanthopagrus pacificus",
         "CommonName": "Pacific Seabream",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/%E3%82%AF%E3%83%AD%E3%83%80%E3%82%A4.jpg/1280px-%E3%82%AF%E3%83%AD%E3%83%80%E3%82%A4.jpg"
-      },{
-        "Species": "Thryssa hamiltonii",
-        "CommonName": "Hamilton’s Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/1/19/Thryssa_hamiltonii.jpg"
       },{
         "Species": "Oligoplites palometa",
         "CommonName": "Palometa",
@@ -874,7 +858,7 @@
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Osteoglossum_bicirrhosum.JPG/1280px-Osteoglossum_bicirrhosum.JPG"
       },{
         "Species": "Johnius belangerii",
-        "CommonName": "Belanger’s Croaker",
+        "CommonName": "Belanger's Croaker",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/8/87/Johnius_amblycephalus.jpg"
       },{
         "Species": "Arius maculatus",
@@ -1093,10 +1077,6 @@
         "CommonName": "European Sprat",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Sprattus_sprattus.jpg/1280px-Sprattus_sprattus.jpg"
       },{
-        "Species": "Engraulis encrasicolus",
-        "CommonName": "European Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Ansjovis.jpg"
-      },{
         "Species": "Sardina pilchardus",
         "CommonName": "European Pilchard",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Sardina_pilchardus_2011.jpg"
@@ -1240,10 +1220,6 @@
         "Species": "Spicara smaris",
         "CommonName": "Picarel",
         "Image": "https://upload.wikimedia.org/wikipedia/commons/4/44/Spicara_smaris_2.jpg"
-      },{
-        "Species": "Engraulis japonicus",
-        "CommonName": "Japanese Anchovy",
-        "Image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Engraulis_japonicus_01.JPG/1280px-Engraulis_japonicus_01.JPG"
       },{
         "Species": "Cynoscion nebulosus",
         "CommonName": "Spotted Seatrout",

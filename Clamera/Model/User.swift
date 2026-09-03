@@ -44,28 +44,33 @@ class User: ObservableObject {
         self.speciesStore = speciesStore
         self.aquariumState = aquariumState
         self.leaderboardUser = LeaderboardUser(name: username, points: speciesStore.totalClamPoints)
-         
-        checkLoginStreak()
     }
     
-    func checkLoginStreak() {
+    @discardableResult
+    func checkLoginStreak() -> Bool {
         let calendar = Calendar.current
         let today = Date()
          
         guard let lastLogin = lastLoginDate else {
+            // First recorded session
             self.loginStreak = 1
             self.lastLoginDate = today
-            return
+            return true
         }
          
         if calendar.isDateInToday(lastLogin) {
-            return
+            // Already checked in today; no changes needed
+            return false
         } else if calendar.isDateInYesterday(lastLogin) {
+            // Logged in on consecutive day -> advance streak
             self.loginStreak += 1
             self.lastLoginDate = today
+            return true
         } else {
+            // Missed a day or more -> reset streak
             self.loginStreak = 1
             self.lastLoginDate = today
+            return true
         }
     }
     

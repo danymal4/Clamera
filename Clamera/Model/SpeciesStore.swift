@@ -14,11 +14,114 @@ final class SpeciesStore: ObservableObject {
     
     @Published var pinnedDisplay: Fish?
     @Published var catchOfTheWeek: Species?
-    @Published var catchOfTheWeekPoints: Int = Int.random(in: 30...40) * 5
+    @Published var catchOfTheWeekPoints: Int = 180
     @Published var popupType: Int = 0
+
+    // Curated allowlist for Catch of the Week
+    private static let catchOfTheWeekAllowedNames: [String] = [
+        "Arctic Char",
+        "Atoll Butterflyfish",
+        "Black Crappie Variant",
+        "Black Rockfish",
+        "Black Seabass",
+        "Blackspot Seabream",
+        "Blacktip Shark",
+        "Blue Marlin",
+        "Blue Rockfish",
+        "Blue Triggerfish",
+        "Blue-spotted Cornetfish",
+        "Bluegill",
+        "Blue spine Unicornfish",
+        "Bluespot Whiting",
+        "Boarfish",
+        "Bocaccio Rockfish",
+        "Bogue",
+        "BogueIcon",
+        "Bombay Duck",
+        "Brassy Chub",
+        "Brook Trout",
+        "Brownstripe Red Snapper",
+        "Burton’s Mouthbrooder",
+        "Burton's Mouthbrooder",
+        "Cardinalfish",
+        "Catla",
+        "Chum Salmon",
+        "Common Chub",
+        "Common Dentex",
+        "Common Dragonet",
+        "Common Pandora",
+        "Common Porgy",
+        "Common Two-banded Seabream",
+        "Darkspotted Snake",
+        "Darkspotted Snake Eel",
+        "Elegant Firefish",
+        "Fourfinger Threadfin",
+        "Gilthead Seabream",
+        "Goldblotch Grouper",
+        "Golden Grey Mullet",
+        "Golden Redhorse",
+        "Golden Tilefish",
+        "Greater Amberjack",
+        "Green Sunfish",
+        "Hooded Wrassel",
+        "Hooded Wrasse",
+        "Indian Ocean Sweetlips",
+        "Indian Whiting",
+        "Japanese Horse Mackerel",
+        "Japanese Threadfin Bream",
+        "Leatherjacket",
+        "Leopard Coral Grouper",
+        "Longear Sunfish",
+        "Longspined Grunt",
+        "Mahi Mahi",
+        "Manyspined Butterflyfish",
+        "Milkfish",
+        "Ocean Sunfish",
+        "Ocellaris Clownfish",
+        "Opah",
+        "Orangethroat Darter",
+        "Obicular Batfish",
+        "Orbicular Batfish",
+        "Pacific Cod",
+        "Palette Surgeonfish",
+        "Palometa",
+        "Permit",
+        "Peron’s Threadfin Bream",
+        "Peron's Threadfin Bream",
+        "Picarel",
+        "Pinecone Soldierfish",
+        "Pink Squirrelfish",
+        "Pompano Dolphinfish",
+        "Puffer",
+        "Pumpkinseed Sunfish",
+        "Rainbow Darter",
+        "Red Emperor",
+        "Red Mullet",
+        "Red Snapper",
+        "Redear Sunfish",
+        "Sailfish",
+        "Salmon",
+        "Snubnose Pompano",
+        "Sockeye Salmon",
+        "Southern Kingfish",
+        "Spotfin Flying Gurnard",
+        "Spotted Catfish",
+        "Starspotted Rabbitfish",
+        "Striped Pompano",
+        "Striped Seabream",
+        "Swordfish",
+        "Twospot Threadfin",
+        "Western Yellowfin Bream",
+        "White Seabream",
+        "White Trevally",
+        "Yellow Perch",
+        "Yellowfin Bream",
+        "Yellowfin Grouper",
+        "Yellowfin Tuna",
+        "Yellowtail Amberjack"
+    ]
     
     init() {
-        // calls all the json logic upon loading
         loadFromJSON()
         assignCatchOfTheWeek()
     }
@@ -49,9 +152,9 @@ final class SpeciesStore: ObservableObject {
         return species
     }
     
-    func update(speciesList:[String:[[String:String]]], clamPoints: Int, weekSpecies: [[String:String]]?, weekPoints: Int) {
+    func update(speciesList: [String:[[String:String]]], clamPoints: Int, weekSpecies: [[String:String]]?, weekPoints: Int) {
         self.totalClamPoints = clamPoints
-        for (name, species) in speciesList{
+        for (name, species) in speciesList {
             for i in 0..<self.speciesList.count {
                 if self.speciesList[i].name == name && species != [] {
                     self.speciesList[i].update(fishArray: species)
@@ -59,16 +162,9 @@ final class SpeciesStore: ObservableObject {
             }
         }
         
-        // Recalculates pinned display state properly on data update/fetch
         assignPinnedDisplay()
-        
-        if let array = weekSpecies {
-            catchOfTheWeek = Species(array: array)
-        }
-        catchOfTheWeekPoints = weekPoints
+        assignCatchOfTheWeek()
     }
-    
-    // declares url from fish data json
     
     private func loadFromJSON() {
         guard let url = Bundle.main.url(forResource: "fish_data", withExtension: "json") else {
@@ -77,17 +173,9 @@ final class SpeciesStore: ObservableObject {
         }
          
         do {
-         
-          // if successful then trys to get data from the url
-            
             let data = try Data(contentsOf: url)
-           
-            // attempts to convert json into an array of fishdata objects (try throws error if neccesary)
-            // fish data neeeded to match the json's organization
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
            
-         
-            // takes the decoded fish data and adds it into speciesList class with the correct format
             self.speciesList = decoded.map { fish in
                 Species(
                     name: fish.CommonName,
@@ -95,13 +183,10 @@ final class SpeciesStore: ObservableObject {
                     fishList: []
                 )
             }
-           
+            
             print("Loaded \(speciesList.count) species")
-            // Ensure global synchronization happens after loading JSON data
             assignCatchOfTheWeek()
         } catch {
-             
-            // do/catch is here to see precise errors
             print("JSON error:", error)
         }
     }
@@ -127,25 +212,41 @@ final class SpeciesStore: ObservableObject {
             catchOfTheWeek = nil
             return
         }
+        
+        // Build normalized set of allowed names
+        let allowedNormalized = Set(SpeciesStore.catchOfTheWeekAllowedNames.map { normalizedSpeciesToken($0) })
+        
+        // Filter species down to allowed candidates
+        let candidatePool = speciesList.filter { species in
+            let normalizedName = normalizedSpeciesToken(species.name)
+            return allowedNormalized.contains(normalizedName)
+        }
+        
+        // Fallback to full speciesList if JSON names differ significantly
+        let poolToSelectFrom = candidatePool.isEmpty ? speciesList : candidatePool
          
-        // Calculate a stable index based on the current calendar week and year globally for all accounts
-        let calendar = Calendar.current
-        let weekOfYear = calendar.component(.weekOfYear, from: Date())
-        let year = calendar.component(.year, from: Date())
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2 // Lock weeks to start on Monday
+        
+        let now = Date()
+        let weekOfYear = calendar.component(.weekOfYear, from: now)
+        let year = calendar.component(.yearForWeekOfYear, from: now)
          
-        // Combine year and week to create a unique seed for this specific week globally
+        // Consistent global seed for the entire 7-day period
         let weeklySeed = year * 100 + weekOfYear
-        let index = abs(weeklySeed) % speciesList.count
+        let index = abs(weeklySeed) % poolToSelectFrom.count
          
-        catchOfTheWeek = speciesList[index]
+        catchOfTheWeek = poolToSelectFrom[index]
+        
+        // Deterministic points for the week (between 150 and 200)
+        let pointSeed = abs(weeklySeed * 31) % 11 // 0...10
+        catchOfTheWeekPoints = 150 + (pointSeed * 5)
     }
     
-   
     func catchOfTheWeekIcon() -> String? {
         guard let species = catchOfTheWeek else { return nil }
         return "\(species.name)Icon"
     }
-    
 
     func calculateClamPoints(
         totalOfSpecies caughtFish: Int,
@@ -173,7 +274,6 @@ final class SpeciesStore: ObservableObject {
         return Int((speciesPoints + timeBonus).rounded())
     }
     
-   
     func getSpecies() -> Int {
         speciesList.filter { !$0.fishList.isEmpty }.count
     }
@@ -224,7 +324,6 @@ final class SpeciesStore: ObservableObject {
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    
     
     func refresh() {
         objectWillChange.send()

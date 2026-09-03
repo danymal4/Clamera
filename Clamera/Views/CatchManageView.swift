@@ -4,6 +4,7 @@
 //
 //  Created by Ellis Kamplain (student LM) on 2/7/26.
 //
+
 import SwiftUI
 import PhotosUI
 
@@ -42,7 +43,7 @@ struct CatchManageView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 25) { // increased spacing for breathing room
+            VStack(spacing: 25) {
                 
                 // Top Navigation
                 HStack {
@@ -70,7 +71,7 @@ struct CatchManageView: View {
                 }
                 
                 // Input Fields as "cards"
-                VStack(spacing: 20) { // more spacing between fields
+                VStack(spacing: 20) {
                     
                     TextField("Description", text: $info)
                         .padding()
@@ -90,11 +91,11 @@ struct CatchManageView: View {
                                     .fill(Color(.systemGray6))
                                     .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
                             )
-                            .onChange(of: species) { oldState, newValue in
+                            .onChange(of: species) { _, newValue in
                                 showSpeciesSuggestions = !newValue.isEmpty
                                 updatePreviewPoints()
                             }
-                            .onChange(of: autoDetectedSpecies) { oldValue, newValue in
+                            .onChange(of: autoDetectedSpecies) { _, newValue in
                                 guard
                                     let suggested = newValue?.trimmingCharacters(in: .whitespacesAndNewlines),
                                     !suggested.isEmpty
@@ -107,7 +108,7 @@ struct CatchManageView: View {
                                 }
                             }
                         
-                        // Species Suggestions (keep existing padding/alignment)
+                        // Species Suggestions
                         if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
                             VStack(spacing: 0) {
                                 ForEach(speciesSuggestions.prefix(3).indices, id: \.self) { i in
@@ -145,12 +146,10 @@ struct CatchManageView: View {
                     .padding(.horizontal)
                     
                     // Points Preview
-                    // Points Preview (modern card style)
-                    // inside the Points Preview HStack in CatchManageView
                     if let points = previewPoints {
                         let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
                         let accentColor: Color = isCatchOfTheWeek
-                            ? Color(red: 1.0, green: 0.84, blue: 0.0) // gold
+                            ? Color(red: 1.0, green: 0.84, blue: 0.0)
                             : colorForPoints(points)
 
                         HStack {
@@ -174,34 +173,31 @@ struct CatchManageView: View {
                     }
                     
                     // Weight Field
-                    TextField("Weight (optional)                                          lbs", text: $weightText)
+                    TextField("Weight (optional)                                                  lbs", text: $weightText)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 15)
                                 .fill(Color(.systemGray6))
                                 .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
                         )
-                        .onChange(of: weightText) { oldState, newValue in
+                        .onChange(of: weightText) { _, newValue in
                             weight = Int(newValue)
                         }
                         .padding(.horizontal)
                 }
                 
-                // Spacer to push Confirm button lower
                 Spacer(minLength: 40)
                 
                 // Confirm Button
                 Button("Confirm") {
-                    Task{
+                    Task {
                         await saveCatch()
                     }
-                 
-               
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.cyan)
                 .padding(.horizontal)
-                .padding(.bottom, 120) // extra space for big tab bar
+                .padding(.bottom, 120)
                 .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
             .padding(.top, 10)
@@ -257,16 +253,18 @@ struct CatchManageView: View {
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else { return }
 
-        // Save photo if available
-        var photoFilename = ""
+        // Save photo as a cross-device compatible Base64 string
+        var photoPayload = ""
         if let image = selectedUIImage {
-            photoFilename = "\(UUID().uuidString).jpg"
-            try? saveImageToDocuments(image: image, key: photoFilename)
+            let resized = resizeImageIfNeeded(image, targetWidth: 400)
+            if let jpegData = resized.jpegData(compressionQuality: 0.6) {
+                photoPayload = jpegData.base64EncodedString()
+            }
         }
         
         // Add the fish to the list
         user.speciesStore.speciesList[index].fishList.append(
-            Fish(photo: photoFilename,
+            Fish(photo: photoPayload,
                  speciesName: user.speciesStore.speciesList[index].name,
                  description: info,
                  fishWeight: weight)
@@ -288,9 +286,6 @@ struct CatchManageView: View {
               )
         user.speciesStore.totalClamPoints += points
 
-        // Decide popup type
-  
-        
         let animationDuration = 0.2
 
         withAnimation(.easeInOut(duration: animationDuration)) {
@@ -299,29 +294,31 @@ struct CatchManageView: View {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
-            
             let isFirstOfSpecies = fishIndex == 1
             let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
 
             if isCatchOfTheWeek {
                 user.speciesStore.popupType = 3
-                user.speciesStore.catchOfTheWeek = nil// catch of the week
+                user.speciesStore.catchOfTheWeek = nil
             } else if isFirstOfSpecies {
-                user.speciesStore.popupType = 2 // first of species
+                user.speciesStore.popupType = 2
             } else {
-                user.speciesStore.popupType = 1 // normal fish
+                user.speciesStore.popupType = 1
             }
         }
-        await FirestoreManager.shared.saveUser(user: user)
         
-      
+        await FirestoreManager.shared.saveUser(user: user)
     }
     
-    func saveImageToDocuments(image: UIImage, key: String) throws {
-        guard let data = image.jpegData(compressionQuality: 0.8) else { return }
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(key)
-        try data.write(to: url)
+    private func resizeImageIfNeeded(_ image: UIImage, targetWidth: CGFloat) -> UIImage {
+        if image.size.width <= targetWidth { return image }
+        let scale = targetWidth / image.size.width
+        let targetHeight = image.size.height * scale
+        let size = CGSize(width: targetWidth, height: targetHeight)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
     }
 }
 

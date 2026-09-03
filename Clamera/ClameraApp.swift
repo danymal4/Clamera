@@ -15,7 +15,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
-         
+        
         // Configure global audio playback session so sounds play reliably across views and friends' aquariums
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
@@ -23,7 +23,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         } catch {
             print("Failed to set up audio session: \(error)")
         }
-         
+        
         return true
     }
     
@@ -37,9 +37,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct ClameraApp: App {
     @StateObject var auth = AuthManager.shared
-    @StateObject var leaderboard = LeaderboardData()
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-     
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some Scene {
         WindowGroup {
             ClameraSplashView {
@@ -52,7 +52,6 @@ struct ClameraApp: App {
                         // If logged in, drops the curtain straight to HomerView
                         HomerView()
                             .environmentObject(user)
-                            .environmentObject(leaderboard)
                     } else {
                         // Otherwise, drops the curtain to the sign-in flow
                         SignInView()
@@ -63,6 +62,24 @@ struct ClameraApp: App {
                     GoogleUsernameSetupView()
                         .environmentObject(auth)
                 }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    handleAppActive()
+                }
+            }
+        }
+    }
+
+    private func handleAppActive() {
+        guard let currentUser = auth.user, !currentUser.id.isEmpty else { return }
+
+        Task {
+            let streakChanged = await MainActor.run {
+                currentUser.checkLoginStreak()
+            }
+            if streakChanged {
+                await FirestoreManager.shared.saveUser(user: currentUser)
             }
         }
     }

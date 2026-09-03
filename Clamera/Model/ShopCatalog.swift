@@ -147,31 +147,83 @@ struct ShopCatalog {
         "Muskellunge",
         "Narrow-barred Spanish Mackerel",
         "Ocean Sunfish",
+        "Ocellaris Clownfish",
         "Orbicular Batfish",
         "Oriental Weatherfish",
         "Pacific Bonefish",
         "Pacific Cod",
         "Pacific Halibut",
         "Pacific Herring",
-        "Pacific Sardine"
+        "Pacific Sardine",
+        "Palette Surgeonfish",
+        "Peron's Threadfin Bream",
+        "Pink Squirrelfish",
+        "Rainbow Trout",
+        "Swordfish"
     ]
     
+    // Optional manual price overrides dictionary
+    static let manualPrices: [String: Int] = [
+        "Atlantic Salmon": 500,
+        "Ocellaris Clownfish": 1000,
+        "Pacific Halibut": 750,
+        "Black Crappie Variant": 900,
+        "Rainbow Trout": 800,
+        "Orbicular Batfish": 955,
+        "Boarfish": 890,
+        "Milkfish": 745,
+        "Monkfish": 700,
+        "Bombay Duck": 690,
+        "Chum Salmon": 750,
+        "Pacific Cod": 600,
+        "Ocean Sunfish": 950,
+        "Blacktip Shark": 1500,
+        "Longear Sunfish": 800,
+        "Goldbanded Jobfish": 555,
+        "Narrow-barred Spanish Mackerel": 800,
+        "Palette Surgeonfish": 1000,
+        "Swordfish": 950,
+        "Peron's Threadfin Bream": 975,
+        "Pink Squirrelfish": 825,
+        "Black Rockfish": 625
+    ]
+     
     // 2. Automated structural translation pipeline
     static var items: [ShopItem] {
         fishNames.map { name in
             let safeId = name.lowercased()
+                .replacingOccurrences(of: ", ", with: "_")
                 .replacingOccurrences(of: " ", with: "_")
                 .replacingOccurrences(of: "-", with: "_")
                 .replacingOccurrences(of: "(", with: "")
                 .replacingOccurrences(of: ")", with: "")
                 .replacingOccurrences(of: "'", with: "") + "_cosmetic"
-             
-            let dynamicCost = 250 + (name.count * 12)
-             
+              
+            // Explicit icon name mapping to match your asset catalog perfectly
+            let cleanIconName: String = {
+                let manualAssetOverrides: [String: String] = [
+                    "Belanger's Croaker": "Belanger's CroakerIcon",
+                    "Burton's Mouthbrooder": "Burton's MouthbrooderIcon",
+                    "Russel's Snapper": "Russel's SnapperIcon",
+                    "Pink Squirrelfish": "Pink SquirrelfishIcon",
+                    "Saithe / Coalfish": "Saithe CoalfishIcon",
+                    "Peron's Threadfin Bream": "Peron’s Threadfin BreamIcon"
+                ]
+                
+                if let override = manualAssetOverrides[name] {
+                    return override
+                }
+                
+                return "\(name)Icon"
+            }()
+              
+            // Check if a manual price exists for this fish, otherwise use the dynamic formula
+            let dynamicCost = manualPrices[name] ?? (250 + (name.count * 12))
+              
             return ShopItem(
                 id: safeId,
                 name: "\(name) Icon",
-                iconName: "\(name)Icon",
+                iconName: cleanIconName,
                 baseCost: dynamicCost,
                 category: .all
             )
