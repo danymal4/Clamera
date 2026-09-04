@@ -7,41 +7,25 @@
 
 import Foundation
 import UIKit
-
-private enum GeminiModel {
-    /// Must match REST `models/{name}` slug (lowercase); see Gemini API docs / AI Studio.
-    static let id = "gemini-3.1-flash-lite-preview"
-}
+import FirebaseFunctions
 
 enum GeminiFishVisionError: LocalizedError {
     case invalidImageData
-    case invalidURL
-    case geminiFailure(statusCode: Int, message: String?)
+    case functionFailure(message: String)
     case missingResponseText
-    case rateLimited(retryAfter: Int?, message: String?)
+    case rateLimited(message: String?)
     case throttled(waitSeconds: Int)
 
     var errorDescription: String? {
         switch self {
         case .invalidImageData:
             return "Could not read image data."
-        case .invalidURL:
-            return "Gemini endpoint URL is invalid."
-        case .geminiFailure(let statusCode, let message):
-            if let message, !message.isEmpty {
-                return message
-            }
-            return "Gemini request failed with status code \(statusCode)."
+        case .functionFailure(let message):
+            return message
         case .missingResponseText:
-            return "Gemini returned no species text."
-        case .rateLimited(let retryAfter, let message):
-            if let message, !message.isEmpty {
-                return message
-            }
-            if let retryAfter {
-                return "Rate limit reached. Try again in about \(retryAfter)s."
-            }
-            return "Rate limit reached. Please wait and try again."
+            return "Could not identify a species from that photo."
+        case .rateLimited(let message):
+            return message ?? "Rate limit reached. Please wait and try again."
         case .throttled(let waitSeconds):
             return "Please wait \(waitSeconds)s before another detection."
         }
@@ -51,17 +35,12 @@ enum GeminiFishVisionError: LocalizedError {
 actor GeminiFishVisionService {
     static let shared = GeminiFishVisionService()
 
-    private let apiKey = "AIzaSyC_v7VlUertFNmRVQudG2t27fy3lyWHghw"
-    private let session: URLSession
+    private lazy var functions = Functions.functions()
     private var lastRequestDate: Date?
     private var cachedPredictions: [String: String] = [:]
     private let minimumRequestInterval: TimeInterval = 2
 
-    init(session: URLSession = .shared) {
-        self.session = session
-    }
-
-    func detectFishName(from image: UIImage) async throws -> String {
+    func detectFishName(from image: UIImage, speciesList: [String]) async throws -> String {
         guard let imageData = image.jpegData(compressionQuality: 0.75) else {
             throw GeminiFishVisionError.invalidImageData
         }
@@ -79,44 +58,39 @@ actor GeminiFishVisionService {
             }
         }
 
-        let endpoint = "https://generativelanguage.googleapis.com/v1beta/models/\(GeminiModel.id):generateContent?key=\(apiKey)"
-        guard let url = URL(string: endpoint) else {
-            throw GeminiFishVisionError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody(base64Image: imageData.base64EncodedString()))
         lastRequestDate = Date()
+        let base64Image = imageData.base64EncodedString()
 
-        let (data, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw GeminiFishVisionError.geminiFailure(statusCode: -1, message: nil)
-        }
-        guard (200..<300).contains(httpResponse.statusCode) else {
-            let apiMessage = parseGeminiErrorMessage(from: data)
-            if httpResponse.statusCode == 429 {
-                let retryAfter = Int(httpResponse.value(forHTTPHeaderField: "Retry-After") ?? "")
-                throw GeminiFishVisionError.rateLimited(retryAfter: retryAfter, message: apiMessage)
+        do {
+            let callable = functions.httpsCallable("identifyFish")
+            let result = try await callable.call([
+                "imageBase64": base64Image,
+                "speciesList": speciesList
+            ])
+
+            guard let dict = result.data as? [String: Any],
+                  let species = dict["species"] as? String,
+                  !species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw GeminiFishVisionError.missingResponseText
             }
-            throw GeminiFishVisionError.geminiFailure(statusCode: httpResponse.statusCode, message: apiMessage)
+
+            let cleaned = species.trimmingCharacters(in: .whitespacesAndNewlines)
+            cachedPredictions[cacheKey] = cleaned
+            return cleaned
+        } catch let error as NSError {
+            if error.domain == FunctionsErrorDomain,
+               let code = FunctionsErrorCode(rawValue: error.code) {
+                switch code {
+                case .resourceExhausted:
+                    throw GeminiFishVisionError.rateLimited(message: error.localizedDescription)
+                case .unauthenticated:
+                    throw GeminiFishVisionError.functionFailure(message: "Please sign in to use fish detection.")
+                default:
+                    throw GeminiFishVisionError.functionFailure(message: "Couldn't identify the species. Please try again.")
+                }
+            }
+            throw GeminiFishVisionError.functionFailure(message: "Couldn't identify the species. Please try again.")
         }
-
-        let decoded = try JSONDecoder().decode(GeminiGenerateContentResponse.self, from: data)
-        guard let rawText = decoded.candidates.first?.content.parts.first?.text?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-              !rawText.isEmpty else {
-            throw GeminiFishVisionError.missingResponseText
-        }
-
-        let cleaned = rawText
-            .replacingOccurrences(of: "\"", with: "")
-            .replacingOccurrences(of: "`", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        cachedPredictions[cacheKey] = cleaned
-
-        return cleaned
     }
 
     private func makeCacheKey(for data: Data) -> String {
@@ -125,63 +99,4 @@ actor GeminiFishVisionService {
         }
         return "\(data.count)-\(prefixSum)"
     }
-
-    private func parseGeminiErrorMessage(from data: Data) -> String? {
-        guard
-            let decoded = try? JSONDecoder().decode(GeminiErrorEnvelope.self, from: data),
-            let message = decoded.error.message?.trimmingCharacters(in: .whitespacesAndNewlines),
-            !message.isEmpty
-        else {
-            return nil
-        }
-        return message
-    }
-
-    private func requestBody(base64Image: String) -> [String: Any] {
-        [
-            "contents": [
-                [
-                    "parts": [
-                        [
-                            "text": """
-                            Identify the fish species in this image.
-                            Return only a single common-name fish species string.
-                            If unsure, return exactly Unknown.
-                            """
-                        ],
-                        [
-                            "inlineData": [
-                                "mimeType": "image/jpeg",
-                                "data": base64Image
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    }
-}
-
-private struct GeminiGenerateContentResponse: Decodable {
-    let candidates: [GeminiCandidate]
-}
-
-private struct GeminiErrorEnvelope: Decodable {
-    let error: GeminiAPIError
-}
-
-private struct GeminiAPIError: Decodable {
-    let message: String?
-}
-
-private struct GeminiCandidate: Decodable {
-    let content: GeminiContent
-}
-
-private struct GeminiContent: Decodable {
-    let parts: [GeminiPart]
-}
-
-private struct GeminiPart: Decodable {
-    let text: String?
 }

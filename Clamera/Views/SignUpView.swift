@@ -63,7 +63,7 @@ struct SignUpView: View {
                                 )
                             )
                         
-                        Text(step == .username ? "Create an account" : "Set your password")
+                        Text(step == .username ? "Create an account" : "Set your email & password")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -93,6 +93,7 @@ struct SignUpView: View {
                             Button {
                                 guard !username.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    errorMessage = nil
                                     step = .password
                                 }
                             } label: {
@@ -117,6 +118,7 @@ struct SignUpView: View {
                                 HStack {
                                     Button {
                                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            errorMessage = nil
                                             step = .username
                                         }
                                     } label: {
@@ -132,10 +134,24 @@ struct SignUpView: View {
                                 }
                                 .padding(.horizontal, 4)
                                 
+                                Text("Email")
+                                    .font(.caption.bold())
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+                                
+                                TextField("your@email.com", text: $email)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .keyboardType(.emailAddress)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(16)
+                                
                                 Text("Password")
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
+                                    .padding(.top, 6)
                                 
                                 SecureField("Create a password", text: $password)
                                     .textInputAutocapitalization(.never)
@@ -152,7 +168,12 @@ struct SignUpView: View {
                             Button {
                                 Task {
                                     isLoading = true
-                                    await AuthManager.shared.signUp(username: username, email: email, password: password)
+                                    errorMessage = nil
+                                    do {
+                                        try await AuthManager.shared.signUp(username: username, email: email, password: password)
+                                    } catch {
+                                        errorMessage = error.localizedDescription
+                                    }
                                     isLoading = false
                                 }
                             } label: {
@@ -174,7 +195,7 @@ struct SignUpView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                                 .shadow(color: .cyan.opacity(0.3), radius: 6, x: 0, y: 3)
                             }
-                            .disabled(isLoading || password.isEmpty)
+                            .disabled(isLoading || email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty)
                             .padding(.top, 8)
                         }
                     }
@@ -186,6 +207,8 @@ struct SignUpView: View {
                         Text(errorMessage)
                             .font(.caption)
                             .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                     }
                     
                     Spacer()
@@ -218,9 +241,6 @@ struct SignUpView: View {
                     }
                     .padding(.bottom, 20)
                 }
-            }
-            .sheet(isPresented: $authManager.needsUsernameSetup) {
-                CreateUsernameView()
             }
             .navigationDestination(isPresented: $showSignIn) {
                 SignInView()

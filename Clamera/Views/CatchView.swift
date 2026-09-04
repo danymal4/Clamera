@@ -2,7 +2,7 @@
 //  CatchView.swift
 //  Clamera
 //
-//  Created by Dany Malaeb (student LM) on 1/28/26.
+//  Created by Dany Malaeb on 1/28/26.
 //
 import SwiftUI
 import PhotosUI
@@ -141,7 +141,7 @@ struct CatchView: View {
                                 Button("Cancel", role: .cancel) {}
                             }
                             .photosPicker(isPresented: $showPhotoPicker, selection: $selectedItem, matching: .images)
-                            .onChange(of: selectedItem) { oldItem, newItem in
+                            .onChange(of: selectedItem) { _, newItem in
                                 guard let newItem else { return }
                                 detectionTask?.cancel()
                                 detectionTask = Task {
@@ -210,7 +210,7 @@ struct CatchView: View {
                                 .transition(.scale.combined(with: .opacity))
                             }
                             
-                            // MARK: - Functional Recently Caught Section
+                            // MARK: - Recently Caught Section
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Recently Caught")
                                     .font(.system(size: 16, weight: .bold))
@@ -288,27 +288,30 @@ struct CatchView: View {
         isDetectingSpecies = true
         defer { isDetectingSpecies = false }
 
+        let speciesNames = user.speciesStore.speciesList.map { $0.name }
+
         do {
-            let prediction = try await GeminiFishVisionService.shared.detectFishName(from: image)
-            let validatedName = user.speciesStore.bestMatchingSpeciesName(for: prediction)
+            let prediction = try await GeminiFishVisionService.shared.detectFishName(from: image, speciesList: speciesNames)
+            print("🤖 Raw Gemini Vision Prediction: '\(prediction)'")
+            
+            let matchedName = user.speciesStore.bestMatchingSpeciesName(for: prediction)
+            print("🎯 Matched Species Name: '\(matchedName ?? "nil")'")
+            
             await MainActor.run {
-                detectedSpecies = validatedName
-                if validatedName == nil {
-                    detectionMessage = "AI could not match this fish in local species list."
-                } else {
+                if let matchedName {
+                    detectedSpecies = matchedName
                     detectionMessage = nil
+                } else {
+                    detectedSpecies = nil
+                    detectionMessage = "Couldn't confidently identify the species."
                 }
             }
         } catch {
+            print("❌ Gemini detection error: \(error.localizedDescription)")
             await MainActor.run {
                 detectedSpecies = nil
-                if let geminiError = error as? GeminiFishVisionError {
-                    detectionMessage = geminiError.localizedDescription
-                } else {
-                    detectionMessage = "Detection failed. You can enter species manually."
-                }
+                detectionMessage = "Detection failed: \(error.localizedDescription)"
             }
-            print("Gemini detection failed: \(error.localizedDescription)")
         }
     }
 
@@ -320,6 +323,7 @@ struct CatchView: View {
     }
 }
 
+// Crash-proof camera representable with simulator fallback
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
     var onImagePicked: (UIImage?) -> Void
@@ -327,7 +331,11 @@ struct ImagePicker: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.sourceType = .camera
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            picker.sourceType = .camera
+        } else {
+            picker.sourceType = .photoLibrary
+        }
         picker.delegate = context.coordinator
         return picker
     }

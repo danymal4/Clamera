@@ -11,7 +11,7 @@ import SwiftUI
 @MainActor
 class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     @Published var rewardedAd: RewardedAd?
-    @Published var adLoaded = true // Keep true so button is always active for testing
+    @Published var isProcessingAdRequest = false
 
     private let testAdUnitID = "ca-app-pub-3940256099942544/5224354917"
 
@@ -29,35 +29,48 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
                 )
                 self.rewardedAd = ad
                 self.rewardedAd?.fullScreenContentDelegate = self
-                self.adLoaded = true
             } catch {
                 print("Failed to load rewarded ad: \(error.localizedDescription)")
-                self.adLoaded = true
             }
         }
     }
 
     func showAd(onRewardEarned: @escaping () -> Void) {
-        guard let rewardedAd = rewardedAd else {
-            // Instant reward fallback for simulator/testing environments
-            onRewardEarned()
+        guard !isProcessingAdRequest else {
+            print("RewardedAdManager: Ignoring showAd() — a request is already in progress.")
             return
         }
 
-        if let rootViewController = UIApplication.shared.connectedScenes
-            .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
-            .first {
-            
-            rewardedAd.present(from: rootViewController) {
-                onRewardEarned()
-            }
-        } else {
+        guard let rewardedAd = rewardedAd,
+              let rootViewController = UIApplication.shared.connectedScenes
+                .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
+                .first else {
+            #if DEBUG
+            // Simulator/testing convenience ONLY — never compiled into a
+            // real release build, so it can't be exploited by spam-tapping
+            // before a real ad has loaded in production.
+            print("RewardedAdManager: [DEBUG] No ad available, granting fallback reward for testing.")
+            onRewardEarned()
+            #else
+            print("RewardedAdManager: No ad ready yet — ignoring tap.")
+            #endif
+            return
+        }
+
+        isProcessingAdRequest = true
+        self.rewardedAd = nil // consumed — can never be presented again
+
+        rewardedAd.present(from: rootViewController) {
+            // Only grant the reward here. isProcessingAdRequest resets in
+            // adDidDismissFullScreenContent below, once the ad has
+            // genuinely finished closing — not here.
             onRewardEarned()
         }
     }
 
     nonisolated func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         Task { @MainActor in
+            self.isProcessingAdRequest = false
             self.loadAd()
         }
     }

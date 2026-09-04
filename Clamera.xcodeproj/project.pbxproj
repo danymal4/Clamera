@@ -13,6 +13,7 @@
 		31E6A2022F8D204100315C22 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A2012F8D204100315C22 /* GoogleSignIn */; };
 		31E6A2042F8D204100315C22 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 31E6A2032F8D204100315C22 /* GoogleSignInSwift */; };
 		3B948C963023730900F98ECC /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 3B948C953023730900F98ECC /* GoogleMobileAds */; };
+		3B948DEC304A326700F98ECC /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 3B948DEB304A326700F98ECC /* FirebaseFunctions */; };
 		4050C1A12F5161BD0061F5CE /* fish_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 4050C1A02F5161BD0061F5CE /* fish_data.json */; };
 		40A207AB2F535281008A557A /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 40A207AA2F535281008A557A /* Kingfisher */; };
 		40C22BD92F64BC2C0083E9AD /* bubble.wav in Resources */ = {isa = PBXBuildFile; fileRef = 40C22BD82F64BC2B0083E9AD /* bubble.wav */; };
@@ -55,6 +56,7 @@
 				31E6A2042F8D204100315C22 /* GoogleSignInSwift in Frameworks */,
 				40A207AB2F535281008A557A /* Kingfisher in Frameworks */,
 				31E6A2022F8D204100315C22 /* GoogleSignIn in Frameworks */,
+				3B948DEC304A326700F98ECC /* FirebaseFunctions in Frameworks */,
 				31E6A1A82F87F37F00315C22 /* FirebaseAuth in Frameworks */,
 				31E6A1AA2F87F37F00315C22 /* FirebaseFirestore in Frameworks */,
 				312DE8B62FABAA8000386F11 /* FirebaseStorage in Frameworks */,
@@ -73,6 +75,7 @@
 				4050C1A02F5161BD0061F5CE /* fish_data.json */,
 				40C22BD82F64BC2B0083E9AD /* bubble.wav */,
 				40C22C1F2F66038A0083E9AD /* plopp.wav */,
+				3B948DEA304A326700F98ECC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -82,6 +85,13 @@
 				16BA8AA82F2A490600BA04E9 /* Clamera.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3B948DEA304A326700F98ECC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -111,6 +121,7 @@
 				31E6A2032F8D204100315C22 /* GoogleSignInSwift */,
 				312DE8B52FABAA8000386F11 /* FirebaseStorage */,
 				3B948C953023730900F98ECC /* GoogleMobileAds */,
+				3B948DEB304A326700F98ECC /* FirebaseFunctions */,
 			);
 			productName = Clamera;
 			productReference = 16BA8AA82F2A490600BA04E9 /* Clamera.app */;
@@ -447,6 +458,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3B948C943023730900F98ECC /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		3B948DEB304A326700F98ECC /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 31E6A1A62F87F37F00315C22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 		40A207AA2F535281008A557A /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;

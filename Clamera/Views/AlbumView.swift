@@ -4,6 +4,7 @@
 //
 //  Created by Dany Malaeb (student LM) on 1/28/26.
 //
+
 import SwiftUI
 import Kingfisher
 
@@ -38,8 +39,7 @@ struct AlbumView: View {
     }
 
     @State private var selectedFilter: FilterOption = .caught
-    
-   
+
     var filteredSpecies: [Species] {
         var filtered = user.speciesStore.speciesList
 
@@ -70,7 +70,12 @@ struct AlbumView: View {
                 }
                 return hasFish || isUnlockedInStore
             }
-            filtered.sort { $0.name < $1.name }
+            // Sort by most recently caught to least recently caught
+            filtered.sort { first, second in
+                let date1 = first.fishList.compactMap { $0.dateCaught }.max() ?? Date.distantPast
+                let date2 = second.fishList.compactMap { $0.dateCaught }.max() ?? Date.distantPast
+                return date1 > date2
+            }
              
         case .notCaught:
             filtered = filtered.filter { species in
@@ -96,11 +101,8 @@ struct AlbumView: View {
     }
     
     var sortedSpecies: [Species] {
-        filteredSpecies.sorted {
-            $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
-        }
+        filteredSpecies
     }
-
     
     var availableLetters: [Character] {
         Set(
@@ -147,6 +149,7 @@ struct AlbumView: View {
                                         .replacingOccurrences(of: "'", with: "")
                                         .replacingOccurrences(of: "’", with: "")
                                         .components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+                                    
                                     let isUnlockedInStore = user.unlockedShopItems.contains { itemId in
                                         let itemClean = itemId.lowercased()
                                             .replacingOccurrences(of: "'", with: "")
@@ -185,37 +188,39 @@ struct AlbumView: View {
                     }
                 }
                  
-                // ALPHABET OVERLAY (FILTERED)
+                // Alphabet Overlay (Active for alphabetical views)
                 .overlay(alignment: .trailing) {
-                    VStack(spacing: 2) {
-                        ForEach(availableLetters, id: \.self) { letter in
-                             
-                            let isActive = activeLetter == letter
-                             
-                            ZStack {
-                                Rectangle()
-                                    .fill(Color.clear)
-                                    .frame(width: 30, height: 16)
+                    if selectedFilter == .alphabetical {
+                        VStack(spacing: 2) {
+                            ForEach(availableLetters, id: \.self) { letter in
                                  
-                                Text(String(letter))
-                                    .font(.system(size: isActive ? 14 : 11, weight: .bold))
-                                    .foregroundColor(.black)
-                                    .opacity(isActive ? 1.0 : 0.35)
-                                    .scaleEffect(isActive ? 1.2 : 1.0)
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                activeLetter = letter
-                                scrollToLetter(letter, proxy: proxy)
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                let isActive = activeLetter == letter
+                                 
+                                ZStack {
+                                    Rectangle()
+                                        .fill(Color.clear)
+                                        .frame(width: 30, height: 16)
+                                     
+                                    Text(String(letter))
+                                        .font(.system(size: isActive ? 14 : 11, weight: .bold))
+                                        .foregroundColor(.black)
+                                        .opacity(isActive ? 1.0 : 0.35)
+                                        .scaleEffect(isActive ? 1.2 : 1.0)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    activeLetter = letter
+                                    scrollToLetter(letter, proxy: proxy)
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                }
                             }
                         }
+                        .padding(.trailing, 4)
                     }
-                    .padding(.trailing, 4)
                 }
             }
              
-            // SEARCH BAR (UNCHANGED)
+            // Search Bar
             .overlay(alignment: .bottom) {
                 ZStack(alignment: .trailing) {
                      
@@ -235,11 +240,9 @@ struct AlbumView: View {
                      
                     Button {
                         withAnimation {
-                             
                             showSearch.toggle()
                              
                             if showSearch == false {
-                                 
                                 if didSearchChange {
                                     activeLetter = "A"
                                 }
@@ -278,7 +281,6 @@ struct AlbumView: View {
         .background(Color.blue.opacity(0.02))
     }
 
-    // SCROLL
     func scrollToLetter(_ letter: Character, proxy: ScrollViewProxy) {
         if let match = sortedSpecies.first(where: {
             $0.name.uppercased().hasPrefix(String(letter))
@@ -290,7 +292,7 @@ struct AlbumView: View {
     }
 }
 
-// grid that's passed a species for each item
+// MARK: - Row View
 struct SpeciesRow: View {
     
     @ObservedObject var species: Species
@@ -313,7 +315,6 @@ struct SpeciesRow: View {
          
         let isAccessible = hasFish || isUnlockedInStore
          
-        // Normalized asset name resolver (ignores spaces, casing, and punctuation typos)
         let resolvedImageName: String = {
             let normalizedName = species.name.lowercased()
                 .replacingOccurrences(of: " ", with: "")
@@ -404,7 +405,7 @@ struct LetterTracker: View {
     var body: some View {
         GeometryReader { geo in
             Color.clear
-                .onChange(of: geo.frame(in: .global).minY) { oldValue, newValue in
+                .onChange(of: geo.frame(in: .global).minY) { _, newValue in
                     if newValue < 200 && newValue > 0 {
                         onChange(letter)
                     }

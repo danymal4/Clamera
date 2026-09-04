@@ -16,6 +16,9 @@ struct FriendProfileView: View {
     @State private var friendUser: User?
     @State private var isLoading = true
     @State private var showRemoveConfirmation = false
+    @State private var showGiftSheet = false
+
+    private let maxContentWidth: CGFloat = 540
     
     var body: some View {
         Group {
@@ -23,49 +26,23 @@ struct FriendProfileView: View {
                 ProgressView("Loading profile...")
             } else if let friendUser {
                 ScrollView {
-                    VStack(spacing: 30) {
+                    VStack(spacing: 28) {
                         
                         // MARK: - Profile Picture & Username
-                        VStack(spacing: 10) {
-                            if friendUser.profilePicture.hasPrefix("http") {
-                                AsyncImage(url: URL(string: friendUser.profilePicture)) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    ProgressView()
-                                }
-                                .frame(width: 140, height: 140)
+                        VStack(spacing: 12) {
+                            profileImageView(friendUser: friendUser)
+                                .frame(width: 130, height: 130)
                                 .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
-                                .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
-                            } else if let data = Data(base64Encoded: friendUser.profilePicture),
-                                      let uiImage = UIImage(data: data) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 140, height: 140)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
-                                    .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
-                            } else {
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 140, height: 140)
-                                    .foregroundColor(.gray.opacity(0.6))
-                                    .background(Circle().fill(Color(.systemGray5)))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
-                                    .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
-                            }
+                                .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 4))
+                                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
 
                             Text(friendUser.username)
-                                .font(.title2)
-                                .bold()
-                                .foregroundColor(.black.opacity(0.85))
+                                .font(.title2.bold())
+                                .foregroundColor(.primary)
                         }
-                        .padding(.top, 40)
+                        .padding(.top, 24)
 
-                        // MARK: - Filtered Stats Card (Fish Caught, Species Caught, Clam Points)
+                        // MARK: - Filtered Stats Card
                         VStack(spacing: 0) {
                             infoRow(title: "Fish Caught", value: "\(friendUser.speciesStore.getFish())")
                             divider()
@@ -73,18 +50,22 @@ struct FriendProfileView: View {
                             divider()
                             infoRow(title: "Clam Points", value: "\(friendUser.speciesStore.totalClamPoints)")
                         }
-                        .background(RoundedRectangle(cornerRadius: 25)
-                            .fill(Color(.systemGray6))
-                            .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
-                        .padding(.horizontal)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                                .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
+                        )
 
-                        // MARK: - Aquarium & Fish of Fame Navigation Links
-                        VStack(spacing: 16) {
+                        // MARK: - Actions & Navigation Links
+                        VStack(spacing: 14) {
+                            
+                          
+
                             // Friend's Aquarium Row
                             HStack {
                                 Text("\(friendUser.username)'s Aquarium")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.black.opacity(0.85))
+                                    .foregroundColor(.primary)
                                 Spacer()
                                 NavigationLink(destination: friendAquariumDestination(friendUser: friendUser)) {
                                     Text("View")
@@ -93,19 +74,21 @@ struct FriendProfileView: View {
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
                                         .background(Color.cyan.opacity(0.12))
-                                        .cornerRadius(12)
+                                        .cornerRadius(10)
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, 16)
                             .padding(.vertical, 14)
-                            .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemGray6)))
-                            .padding(.horizontal)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                            )
 
                             // Friend's Fish of Fame Row
                             HStack {
                                 Text("\(friendUser.username)'s Fish of Fame")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.black.opacity(0.85))
+                                    .foregroundColor(.primary)
                                 Spacer()
                                 NavigationLink(destination: friendFishOfFameDestination(friendUser: friendUser)) {
                                     Text("View")
@@ -114,40 +97,100 @@ struct FriendProfileView: View {
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
                                         .background(Color.cyan.opacity(0.12))
-                                        .cornerRadius(12)
+                                        .cornerRadius(10)
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, 16)
                             .padding(.vertical, 14)
-                            .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemGray6)))
-                            .padding(.horizontal)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                            )
+                            
+                            // Gift Clam Points Row
+                            Button {
+                                showGiftSheet = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.cyan.opacity(0.15))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "gift.fill")
+                                            .foregroundColor(.cyan)
+                                            .font(.system(size: 17, weight: .bold))
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Gift Clam Points")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.primary)
+                                        Text("Send points to \(friendUser.username)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("Gift")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.cyan)
+                                        .cornerRadius(10)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .fill(Color(.secondarySystemGroupedBackground))
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
+                        
 
                         // MARK: - Remove Friend Button
                         Button(role: .destructive) {
                             showRemoveConfirmation = true
                         } label: {
-                            Text("Remove Friend")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.red)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.red.opacity(0.7), lineWidth: 1))
+                            HStack {
+                                Image(systemName: "person.fill.xmark")
+                                Text("Remove Friend")
+                            }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(Color.red.opacity(0.4), lineWidth: 1.5)
+                            )
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 10)
+                        .padding(.top, 6)
                         
                         Spacer(minLength: 30)
                     }
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: maxContentWidth)
+                    .frame(maxWidth: .infinity)
+                }
+                .sheet(isPresented: $showGiftSheet) {
+                    GiftPointsSheet(
+                        friendId: friendId,
+                        friendUsername: friendUser.username
+                    ) { giftedAmount in
+                        friendUser.speciesStore.totalClamPoints += giftedAmount
+                    }
+                    .environmentObject(user)
                 }
             } else {
                 Text("Failed to load friend's profile.")
                     .foregroundColor(.secondary)
             }
         }
-        .background(Color.blue.opacity(0.01))
-        .edgesIgnoringSafeArea(.bottom)
+        .background(Color(.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Are you sure you want to remove this friend?", isPresented: $showRemoveConfirmation, titleVisibility: .visible) {
             Button("Remove Friend", role: .destructive) {
@@ -172,6 +215,29 @@ struct FriendProfileView: View {
         }
     }
 
+    // MARK: - Profile Image Helper
+    @ViewBuilder
+    private func profileImageView(friendUser: User) -> some View {
+        if friendUser.profilePicture.hasPrefix("http") {
+            AsyncImage(url: URL(string: friendUser.profilePicture)) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                ProgressView()
+            }
+        } else if let data = Data(base64Encoded: friendUser.profilePicture),
+                  let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Image(systemName: "person.crop.circle.fill")
+                .resizable()
+                .scaledToFit()
+                .foregroundColor(.gray.opacity(0.6))
+                .background(Circle().fill(Color(.systemGray5)))
+        }
+    }
+
     private func infoRow(title: String, value: String) -> some View {
         HStack {
             Text(title)
@@ -179,30 +245,30 @@ struct FriendProfileView: View {
                 .fontWeight(.medium)
             Spacer()
             Text(value)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .bold()
         }
-        .padding(.horizontal)
-        .padding(.vertical, 15)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
     }
 
     private func divider() -> some View {
-        Rectangle()
-            .fill(Color.black.opacity(0.05))
-            .frame(height: 1)
-            .padding(.horizontal)
+        Divider()
+            .padding(.horizontal, 16)
     }
     
+    // MARK: - Navigation Destinations
     @ViewBuilder
     private func friendAquariumDestination(friendUser: User) -> some View {
-        ScrollView {
+        GeometryReader { proxy in
             AquariumView(showBottomBar: .constant(false), allowEditing: false)
                 .environmentObject(friendUser)
-                .frame(height: 500)
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-                .padding()
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .clipped()
         }
+        .edgesIgnoringSafeArea(.bottom)
         .navigationTitle("\(friendUser.username)'s Aquarium")
+        .navigationBarTitleDisplayMode(.inline)
     }
     
     @ViewBuilder
@@ -210,39 +276,40 @@ struct FriendProfileView: View {
         ScrollView {
             VStack(spacing: 20) {
                 if !friendUser.fishOfFamePosts.isEmpty {
-                    ForEach(Array(friendUser.fishOfFamePosts.enumerated()), id: \.offset) { index, post in
+                    ForEach(friendUser.fishOfFamePosts) { post in
                         VStack(alignment: .leading, spacing: 12) {
                             if post.photo.hasPrefix("http") {
                                 AsyncImage(url: URL(string: post.photo)) { image in
                                     image
                                         .resizable()
-                                        .scaledToFit()
+                                        .scaledToFill()
                                 } placeholder: {
                                     ProgressView()
                                         .frame(maxWidth: .infinity)
-                                        .frame(height: 250)
+                                        .frame(height: 240)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 250)
+                                .frame(maxHeight: 380)
+                                .aspectRatio(16/10, contentMode: .fit)
                                 .background(Color.cyan.opacity(0.1))
                                 .cornerRadius(16)
+                                .clipped()
                             } else {
-                                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-                                let fileURL = documentsDirectory?.appendingPathComponent(post.photo)
-                                let loadedImage = fileURL.flatMap { UIImage(contentsOfFile: $0.path) } ?? UIImage(named: post.photo) ?? UIImage(systemName: "photo")!
-
-                                Image(uiImage: loadedImage)
+                                Image(fishPhoto: post.photo)
                                     .resizable()
-                                    .scaledToFit()
+                                    .scaledToFill()
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: 250)
+                                    .frame(maxHeight: 380)
+                                    .aspectRatio(16/10, contentMode: .fit)
                                     .background(Color.cyan.opacity(0.1))
                                     .cornerRadius(16)
+                                    .clipped()
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(post.speciesName.capitalized)
                                     .font(.title3.bold())
+                                    .foregroundColor(.primary)
                                 
                                 if !post.caption.isEmpty {
                                     Text(post.caption)
@@ -250,29 +317,201 @@ struct FriendProfileView: View {
                                         .foregroundColor(.secondary)
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, 4)
+                            .padding(.bottom, 4)
                         }
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(24)
-                        .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-                        .padding(.horizontal)
+                        .padding(16)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(22)
+                        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
                     }
                 } else {
-                    Text("No Fish of Fame posts yet.")
-                        .foregroundColor(.secondary)
-                        .padding(.top, 40)
+                    VStack(spacing: 12) {
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.system(size: 40))
+                            .foregroundColor(.secondary)
+                        Text("No Fish of Fame posts yet.")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
                 }
             }
-            .padding(.vertical)
+            .padding(16)
+            .frame(maxWidth: maxContentWidth)
+            .frame(maxWidth: .infinity)
         }
         .navigationTitle("\(friendUser.username)'s Fish of Fame")
-        .background(Color(.systemGray6))
+        .background(Color(.systemGroupedBackground))
+    }
+}
+
+// MARK: - Gift Points Sheet
+struct GiftPointsSheet: View {
+    @EnvironmentObject var currentUser: User
+    @Environment(\.dismiss) private var dismiss
+    
+    let friendId: String
+    let friendUsername: String
+    var onGiftComplete: ((Int) -> Void)?
+    
+    @State private var amountText: String = ""
+    @State private var isSending = false
+    @State private var errorMessage: String?
+    @State private var showSuccessAlert = false
+    
+    private var amount: Int {
+        Int(amountText.filter { $0.isNumber }) ?? 0
+    }
+    
+    private var canSend: Bool {
+        amount > 0 && amount <= currentUser.speciesStore.totalClamPoints && !isSending
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 22) {
+                
+                // Header Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.cyan.opacity(0.12))
+                        .frame(width: 80, height: 80)
+                    
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: 38))
+                        .foregroundColor(.cyan)
+                }
+                .padding(.top, 24)
+                
+                VStack(spacing: 6) {
+                    Text("Gift Clam Points")
+                        .font(.title2.bold())
+                    
+                    Text("Send points to \(friendUsername) to help them unlock shop items and fish.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                }
+                
+                // Balance Indicator
+                HStack(spacing: 6) {
+                    Image(systemName: "circle.circle.fill")
+                        .foregroundColor(.cyan)
+                    Text("Your Balance: \(currentUser.speciesStore.totalClamPoints) Clam Points")
+                        .font(.caption.bold())
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Color(.secondarySystemFill))
+                .clipShape(Capsule())
+                
+                // Amount Input
+                VStack(spacing: 12) {
+                    TextField("0", text: $amountText)
+                        .keyboardType(.numberPad)
+                        .font(.system(size: 44, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .frame(height: 64)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(18)
+                    
+                    // Preset increment chips
+                    HStack(spacing: 8) {
+                        ForEach([25, 50, 100, 250], id: \.self) { preset in
+                            Button("+\(preset)") {
+                                let currentVal = Int(amountText.filter { $0.isNumber }) ?? 0
+                                amountText = "\(min(currentVal + preset, currentUser.speciesStore.totalClamPoints))"
+                            }
+                            .font(.subheadline.bold())
+                            .foregroundColor(.cyan)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 14)
+                            .background(Color.cyan.opacity(0.12))
+                            .cornerRadius(12)
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+                
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 24)
+                }
+                
+                Spacer()
+                
+                Button {
+                    Task {
+                        await sendGift()
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        if isSending {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "paperplane.fill")
+                            Text("Send \(amount > 0 ? "\(amount) " : "")Points")
+                                .bold()
+                        }
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(canSend ? Color.cyan : Color.gray.opacity(0.4))
+                    .cornerRadius(18)
+                    .shadow(color: canSend ? Color.cyan.opacity(0.3) : .clear, radius: 6, y: 3)
+                }
+                .disabled(!canSend)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .alert("Gift Sent!", isPresented: $showSuccessAlert) {
+                Button("Done") {
+                    onGiftComplete?(amount)
+                    dismiss()
+                }
+            } message: {
+                Text("You sent \(amount) Clam Points to \(friendUsername)!")
+            }
+        }
+    }
+    
+    private func sendGift() async {
+        isSending = true
+        errorMessage = nil
+        
+        do {
+            try await FirestoreManager.shared.giftClamPoints(
+                from: currentUser,
+                toRecipientId: friendId,
+                amount: amount
+            )
+            isSending = false
+            showSuccessAlert = true
+        } catch {
+            isSending = false
+            errorMessage = error.localizedDescription
+        }
     }
 }
 
 #Preview {
     NavigationView {
         FriendProfileView(friendId: "sample_id")
+            .environmentObject(User())
     }
 }

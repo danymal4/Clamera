@@ -172,6 +172,8 @@ struct ShopView: View {
                             Button(action: {
                                 adManager.showAd {
                                     Task { @MainActor in
+                                        user.objectWillChange.send()
+                                        user.speciesStore.objectWillChange.send()
                                         user.speciesStore.totalClamPoints += 100
                                         await FirestoreManager.shared.saveUser(user: user)
                                     }
@@ -181,7 +183,7 @@ struct ShopView: View {
                                     RoundedRectangle(cornerRadius: 30)
                                         .fill(LinearGradient(colors: [Color(red: 0.3, green: 0.3, blue: 0.9).opacity(0.45), Color.blue.opacity(0.30)], startPoint: .topLeading, endPoint: .bottomTrailing))
                                         .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.white.opacity(0.2), lineWidth: 1))
-                                     
+                                    
                                     HStack(spacing: 12) {
                                         VStack(alignment: .leading, spacing: 8) {
                                             Text("Free Bonus")
@@ -191,34 +193,41 @@ struct ShopView: View {
                                                 .background(Color(red: 0.3, green: 0.3, blue: 0.9))
                                                 .foregroundColor(.white)
                                                 .cornerRadius(8)
-                                             
+                                            
                                             Text("Earn 100 Clam Points")
                                                 .font(.title2.bold())
                                                 .foregroundColor(.primary)
                                                 .lineLimit(1)
                                                 .minimumScaleFactor(0.8)
-                                             
-                                            Text("Watch Ad")
+                                            
+                                            Text(adManager.rewardedAd == nil ? "Loading ad..." : "Watch Ad")
                                                 .font(.subheadline.bold())
                                                 .foregroundColor(.secondary)
                                         }
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                         
+                                        
                                         ZStack {
                                             Circle()
                                                 .fill(Color(red: 0.3, green: 0.3, blue: 0.9).opacity(0.25))
                                                 .frame(width: 70, height: 70)
-                                             
-                                            Image(systemName: "play.fill")
-                                                .font(.system(size: 32))
-                                                .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.9))
+                                            
+                                            if adManager.rewardedAd == nil || adManager.isProcessingAdRequest {
+                                                ProgressView()
+                                                    .tint(Color(red: 0.3, green: 0.3, blue: 0.9))
+                                            } else {
+                                                Image(systemName: "play.fill")
+                                                    .font(.system(size: 32))
+                                                    .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.9))
+                                            }
                                         }
                                     }
                                     .padding(20)
                                 }
                                 .frame(height: 160)
+                                .opacity((adManager.rewardedAd == nil || adManager.isProcessingAdRequest) ? 0.6 : 1.0)
                             }
                             .buttonStyle(.plain)
+                            .disabled(adManager.rewardedAd == nil || adManager.isProcessingAdRequest)
                             .padding(.horizontal, 20)
                              
                         } else {
@@ -342,7 +351,9 @@ struct ShopView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 22, height: 22)
-                        Text("\(user.speciesStore.totalClamPoints)")
+                        
+                        // 🚀 Animated counter added to shop toolbar
+                        AnimatedClamPointsText(value: user.speciesStore.totalClamPoints)
                             .font(.headline)
                             .bold()
                             .foregroundColor(.primary)

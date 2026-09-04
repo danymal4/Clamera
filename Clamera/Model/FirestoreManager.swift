@@ -29,6 +29,44 @@ class FirestoreManager: ObservableObject {
         return try await storageRef.downloadURL().absoluteString
     }
 
+    /// Saves a single catch as its own small document in the user's
+    /// catches subcollection, instead of embedding it in the main user
+    /// document — this is what keeps the main document safely under
+    /// Firestore's 1 MiB per-document limit no matter how many fish
+    /// someone catches over time.
+    func saveFishCatch(_ fish: Fish, forUser uid: String) async {
+        guard !uid.isEmpty else { return }
+        do {
+            try await db.collection("users").document(uid)
+                .collection("catches").document(fish.id.uuidString)
+                .setData(fish.getDictionary())
+        } catch {
+            print("Error saving fish catch: \(error)")
+        }
+    }
+
+    /// Fetches all of a user's catches from the subcollection, grouped by
+    /// species name — ready to feed directly into SpeciesStore.update(...).
+    func fetchFishCatches(forUser uid: String) async -> [String: [[String: String]]] {
+        guard !uid.isEmpty else { return [:] }
+        var grouped: [String: [[String: String]]] = [:]
+        do {
+            let snapshot = try await db.collection("users").document(uid).collection("catches").getDocuments()
+            for doc in snapshot.documents {
+                var stringDict: [String: String] = [:]
+                for (key, value) in doc.data() {
+                    stringDict[key] = value as? String ?? "\(value)"
+                }
+                let speciesName = stringDict["speciesName"] ?? ""
+                guard !speciesName.isEmpty else { continue }
+                grouped[speciesName, default: []].append(stringDict)
+            }
+        } catch {
+            print("Error fetching fish catches: \(error)")
+        }
+        return grouped
+    }
+
     func saveUser(user: User) async {
         guard !user.id.isEmpty else { return }
         
@@ -51,7 +89,10 @@ class FirestoreManager: ObservableObject {
                 "username_lowercase": user.username.lowercased(),
                 "email": user.email,
                 "profile picture": user.profilePicture,
-                "species list": user.speciesStore.getDictionary(),
+                // Catches now live in the "catches" subcollection instead —
+                // explicitly clear the old embedded field so oversized legacy
+                // documents shrink back down to a safe size.
+                "species list": FieldValue.delete(),
                 "clampoints": user.speciesStore.totalClamPoints,
                 "aquarium fish": user.aquarium.save(),
                 "fish of fame posts": fishOfFameDicts,
@@ -59,7 +100,8 @@ class FirestoreManager: ObservableObject {
                 "incoming_requests": user.incomingRequests,
                 "outgoing_requests": user.outgoingRequests,
                 "unlocked shop items": Array(user.unlockedShopItems),
-                "login_streak": user.loginStreak
+                "login_streak": user.loginStreak,
+                "catch_of_the_week_claimed_week": user.speciesStore.catchOfTheWeekClaimedWeek
             ]
 
             if let lastLogin = user.lastLoginDate {
@@ -83,54 +125,79 @@ class FirestoreManager: ObservableObject {
         do {
             let document = try await db.collection("users").document(user.id).getDocument()
 
-            if let data = document.data() {
-                await MainActor.run {
-                    user.username = data["username"] as? String ?? ""
-                    user.email = data["email"] as? String ?? ""
-                    user.profilePicture = data["profile picture"] as? String ?? ""
-                    user.friends = data["friends"] as? [String] ?? []
-                    user.incomingRequests = data["incoming_requests"] as? [String] ?? []
-                    user.outgoingRequests = data["outgoing_requests"] as? [String] ?? []
-                    user.unlockedShopItems = Set(data["unlocked shop items"] as? [String] ?? [])
-                    user.loginStreak = data["login_streak"] as? Int ?? 1
-                    
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-
-                    if let lastLoginStr = data["last_login_date"] as? String {
-                        user.lastLoginDate = dateFormatter.date(from: lastLoginStr)
-                    }
-
-                    if let lastDiscountStr = data["last_daily_discount_date"] as? String {
-                        user.lastDailyDiscountDate = dateFormatter.date(from: lastDiscountStr)
-                    }
-
-                    if let rawPosts = data["fish of fame posts"] as? [[String: String]] {
-                        user.fishOfFamePosts = rawPosts.map { dict in
-                            let idString = dict["id"] ?? ""
-                            let uuid = UUID(uuidString: idString) ?? UUID()
-                            let photo = dict["photo"] ?? ""
-                            let speciesName = dict["speciesName"] ?? ""
-                            let caption = dict["caption"] ?? ""
-                            let date = dateFormatter.date(from: dict["datePosted"] ?? "") ?? Date()
-                            return FishPost(id: uuid, photo: photo, speciesName: speciesName, caption: caption, datePosted: date)
-                        }
-                    } else {
-                        user.fishOfFamePosts = []
-                    }
-
-                    user.speciesStore.update(
-                        speciesList: data["species list"] as? [String:[[String:String]]] ?? [:],
-                        clamPoints: data["clampoints"] as? Int ?? 0,
-                        weekSpecies: nil,
-                        weekPoints: user.speciesStore.catchOfTheWeekPoints
-                    )
-                    user.aquarium.loadUpdate(fishArr: data["aquarium fish"] as? [[String:String]] ?? [])
-
-                    // Evaluate daily login streak once remote data has been retrieved
-                    user.checkLoginStreak()
-                }
+            guard let data = document.data() else {
+                print("user fetched successfully for uid: \(user.id) (no data)")
+                return
             }
+
+            await MainActor.run {
+                user.username = data["username"] as? String ?? ""
+                user.email = data["email"] as? String ?? ""
+                user.profilePicture = data["profile picture"] as? String ?? ""
+                user.friends = data["friends"] as? [String] ?? []
+                user.incomingRequests = data["incoming_requests"] as? [String] ?? []
+                user.outgoingRequests = data["outgoing_requests"] as? [String] ?? []
+                user.unlockedShopItems = Set(data["unlocked shop items"] as? [String] ?? [])
+                user.loginStreak = data["login_streak"] as? Int ?? 1
+                user.speciesStore.catchOfTheWeekClaimedWeek = data["catch_of_the_week_claimed_week"] as? Int ?? 0
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+                if let lastLoginStr = data["last_login_date"] as? String {
+                    user.lastLoginDate = dateFormatter.date(from: lastLoginStr)
+                }
+
+                if let lastDiscountStr = data["last_daily_discount_date"] as? String {
+                    user.lastDailyDiscountDate = dateFormatter.date(from: lastDiscountStr)
+                }
+
+                if let rawPosts = data["fish of fame posts"] as? [[String: String]] {
+                    user.fishOfFamePosts = rawPosts.map { dict in
+                        let idString = dict["id"] ?? ""
+                        let uuid = UUID(uuidString: idString) ?? UUID()
+                        let photo = dict["photo"] ?? ""
+                        let speciesName = dict["speciesName"] ?? ""
+                        let caption = dict["caption"] ?? ""
+                        let date = dateFormatter.date(from: dict["datePosted"] ?? "") ?? Date()
+                        return FishPost(id: uuid, photo: photo, speciesName: speciesName, caption: caption, datePosted: date)
+                    }
+                } else {
+                    user.fishOfFamePosts = []
+                }
+
+                user.aquarium.loadUpdate(fishArr: data["aquarium fish"] as? [[String:String]] ?? [])
+
+                // Evaluate daily login streak once remote data has been retrieved
+                user.checkLoginStreak()
+            }
+
+            // One-time migration: older accounts (including this one, based on
+            // the size-limit error) still have catches embedded directly in the
+            // user document under "species list". Move any of those into the
+            // new catches subcollection, then clear the field so the main
+            // document shrinks back to a safe size.
+            if let legacySpeciesList = data["species list"] as? [String: [[String: String]]], !legacySpeciesList.isEmpty {
+                for (_, fishDicts) in legacySpeciesList {
+                    for fishDict in fishDicts where !fishDict.isEmpty {
+                        let fish = Fish(dictionary: fishDict)
+                        await saveFishCatch(fish, forUser: user.id)
+                    }
+                }
+                await saveUser(user: user) // writes now explicitly delete the oversized legacy field
+                print("Migrated legacy embedded catches to subcollection for uid: \(user.id)")
+            }
+
+            let groupedCatches = await fetchFishCatches(forUser: user.id)
+            await MainActor.run {
+                user.speciesStore.update(
+                    speciesList: groupedCatches,
+                    clamPoints: data["clampoints"] as? Int ?? 0,
+                    weekSpecies: nil,
+                    weekPoints: user.speciesStore.catchOfTheWeekPoints
+                )
+            }
+
             print("user fetched successfully for uid: \(user.id)")
         } catch {
             print("Error fetching user: \(error)")
@@ -171,16 +238,6 @@ extension FirestoreManager {
                 }
                 return false
             }
-
-            let query = try await db.collection("users")
-                .whereField("username_lowercase", isEqualTo: clean)
-                .limit(to: 1)
-                .getDocuments()
-
-            if let existing = query.documents.first {
-                return existing.documentID == currentUserId
-            }
-
             return true
         } catch {
             print("Error verifying username availability: \(error)")
@@ -305,6 +362,9 @@ extension FirestoreManager {
             let document = try await db.collection("users").document(userId).getDocument()
             if let data = document.data() {
                 let friendUser = User(id: userId, email: data["email"] as? String ?? "")
+
+                let groupedCatches = await fetchFishCatches(forUser: userId)
+
                 await MainActor.run {
                     friendUser.username = data["username"] as? String ?? ""
                     friendUser.email = data["email"] as? String ?? ""
@@ -326,7 +386,7 @@ extension FirestoreManager {
                     }
                      
                     friendUser.speciesStore.update(
-                        speciesList: data["species list"] as? [String:[[String:String]]] ?? [:],
+                        speciesList: groupedCatches,
                         clamPoints: data["clampoints"] as? Int ?? 0,
                         weekSpecies: nil,
                         weekPoints: data["week points"] as? Int ?? 100
@@ -429,4 +489,67 @@ extension FirestoreManager {
             print("Error cancelling friend request: \(error)")
         }
     }
+
+    // MARK: - Clam Points Gifting
+    enum GiftError: LocalizedError {
+        case insufficientFunds
+        case userNotFound
+        case selfGiftingNotAllowed
+        case invalidAmount
+
+        var errorDescription: String? {
+            switch self {
+            case .insufficientFunds: return "You do not have enough Clam Points to send this gift."
+            case .userNotFound: return "Recipient user could not be found."
+            case .selfGiftingNotAllowed: return "You cannot gift Clam Points to yourself."
+            case .invalidAmount: return "Please enter a valid amount greater than 0."
+            }
+        }
+    }
+
+    func giftClamPoints(from sender: User, toRecipientId recipientId: String, amount: Int) async throws {
+        guard amount > 0 else { throw GiftError.invalidAmount }
+        guard sender.id != recipientId else { throw GiftError.selfGiftingNotAllowed }
+
+        let senderRef = db.collection("users").document(sender.id)
+        let recipientGiftRef = db.collection("users").document(recipientId).collection("pendingGifts").document()
+
+        _ = try await db.runTransaction({ (transaction, errorPointer) -> Any? in
+            let senderDoc: DocumentSnapshot
+            do {
+                senderDoc = try transaction.getDocument(senderRef)
+            } catch let fetchError as NSError {
+                errorPointer?.pointee = fetchError
+                return nil
+            }
+
+            let senderPoints = senderDoc.data()?["clampoints"] as? Int ?? sender.speciesStore.totalClamPoints
+            guard senderPoints >= amount else {
+                errorPointer?.pointee = NSError(
+                    domain: "ClameraGifting",
+                    code: 400,
+                    userInfo: [NSLocalizedDescriptionKey: GiftError.insufficientFunds.localizedDescription]
+                )
+                return nil
+            }
+
+            transaction.updateData(["clampoints": senderPoints - amount], forDocument: senderRef)
+
+            let giftData: [String: Any] = [
+                "id": recipientGiftRef.documentID,
+                "senderUID": sender.id,
+                "senderUsername": sender.username.isEmpty ? "A Fellow Angler" : sender.username,
+                "amount": amount,
+                "timestamp": FieldValue.serverTimestamp()
+            ]
+            transaction.setData(giftData, forDocument: recipientGiftRef)
+
+            return nil
+        })
+
+        await MainActor.run {
+            sender.speciesStore.totalClamPoints -= amount
+        }
+    }
+    
 }

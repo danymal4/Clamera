@@ -12,36 +12,39 @@ final class AquariumFishList: ObservableObject {
     @Published var refreshID = false
     
     init() {
+        // Empty placeholder slots (isActive: false) rather than pre-populated
+        // starter fish — addFish(...) fills these in as the user actually
+        // catches and adds real fish to their aquarium.
         self.fish = [
             AquariumFish(
-                imageName: "Summer FlounderIcon",
+                imageName: "",
                 size: CGSize(width: 180, height: 150),
                 horizontalRange: -137...137,
                 verticalRange: -130...130,
                 swimDuration: 8,
                 phaseOffset: 0,
-                isActive: true,
-                isShown: true
+                isActive: false,
+                isShown: false
             ),
             AquariumFish(
-                imageName: "Atlantic Bluefin TunaIcon",
+                imageName: "",
                 size: CGSize(width: 170, height: 145),
                 horizontalRange: -140...120,
                 verticalRange: -140...140,
                 swimDuration: 10,
                 phaseOffset: 1,
-                isActive: true,
-                isShown: true
+                isActive: false,
+                isShown: false
             ),
             AquariumFish(
-                imageName: "OpahIcon",
+                imageName: "",
                 size: CGSize(width: 90, height: 55),
                 horizontalRange: -120...148,
                 verticalRange: -120...120,
                 swimDuration: 12,
                 phaseOffset: 2,
-                isActive: true,
-                isShown: true
+                isActive: false,
+                isShown: false
             )
         ]
     }

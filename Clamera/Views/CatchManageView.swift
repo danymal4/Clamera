@@ -11,19 +11,28 @@ import PhotosUI
 struct CatchManageView: View {
     
     @Binding var editState: EditState
+    @Binding var selectedUIImage: UIImage?
+    @Binding var autoDetectedSpecies: String?
+    
+    @EnvironmentObject var user: User
+    
     @State var info = ""
     @State var species = ""
     @State private var weightText: String = ""
     @State private var weight: Int? = nil
     @State private var previewPoints: Int? = nil
     
-    @EnvironmentObject var user: User
-    
-    @Binding var selectedUIImage: UIImage?
-    @Binding var autoDetectedSpecies: String?
-    
+    // Step State: 0 = Species, 1 = Description, 2 = Weight
+    @State private var currentStep: Int = 0
     @State private var showSpeciesSuggestions: Bool = false
+    @State private var isSaving = false
     
+    private let maxCardWidth: CGFloat = 500
+
+    private var isDetectingAI: Bool {
+        autoDetectedSpecies == nil && species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var speciesSuggestions: [Species] {
         if species.isEmpty { return [] }
 
@@ -43,179 +52,388 @@ struct CatchManageView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 25) {
+            VStack(spacing: 20) {
                 
-                // Top Navigation
+                // MARK: - Top Navigation Bar
                 HStack {
-                    Button("< Cancel") {
-                        editState = .notEditing
+                    Button(action: {
+                        if currentStep > 0 {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                currentStep -= 1
+                            }
+                        } else {
+                            editState = .notEditing
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text(currentStep > 0 ? "Back" : "Cancel")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.cyan)
                     }
-                    .foregroundColor(.cyan)
+
                     Spacer()
+
+                    // Step Dots
+                    HStack(spacing: 6) {
+                        ForEach(0..<3) { step in
+                            Capsule()
+                                .fill(currentStep == step ? Color.cyan : Color.gray.opacity(0.3))
+                                .frame(width: currentStep == step ? 20 : 8, height: 8)
+                                .animation(.spring(response: 0.3), value: currentStep)
+                        }
+                    }
                 }
-                .padding(.horizontal)
-                
-                // Photo Hero with card style
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+
+                // MARK: - Photo Hero Card
                 if let uiImage = selectedUIImage {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: 24)
                             .fill(Color(.systemBackground))
-                            .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
+                            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 3)
+                        
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFit()
-                            .cornerRadius(20)
+                            .frame(maxHeight: 280)
+                            .cornerRadius(24)
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 10)
+                    .padding(.horizontal, 20)
                 }
-                
-                // Input Fields as "cards"
-                VStack(spacing: 20) {
-                    
-                    TextField("Description", text: $info)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(Color(.systemGray6))
-                                .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
-                        )
-                        .padding(.horizontal)
-                    
-                    // Species Field + Dropdown
-                    ZStack(alignment: .top) {
-                        TextField("Species", text: $species)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(Color(.systemGray6))
-                                    .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
-                            )
-                            .onChange(of: species) { _, newValue in
-                                showSpeciesSuggestions = !newValue.isEmpty
-                                updatePreviewPoints()
-                            }
-                            .onChange(of: autoDetectedSpecies) { _, newValue in
-                                guard
-                                    let suggested = newValue?.trimmingCharacters(in: .whitespacesAndNewlines),
-                                    !suggested.isEmpty
-                                else { return }
 
-                                if species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    species = suggested
-                                    showSpeciesSuggestions = false
-                                    updatePreviewPoints()
-                                }
-                            }
-                        
-                        // Species Suggestions
-                        if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
-                            VStack(spacing: 0) {
-                                ForEach(speciesSuggestions.prefix(3).indices, id: \.self) { i in
-                                    let suggestion = speciesSuggestions[i]
-                                    
-                                    Button(action: {
-                                        species = suggestion.name
-                                        showSpeciesSuggestions = false
-                                    }) {
-                                        HStack {
-                                            Text(suggestion.name)
-                                                .foregroundColor(.black)
-                                                .padding(.vertical, 10)
-                                            Spacer()
-                                        }
-                                        .padding(.horizontal)
-                                        .background(Color.white)
-                                        .cornerRadius(30)
-                                    }
-                                    
-                                    if i != speciesSuggestions.prefix(3).count - 1 {
-                                        Divider()
-                                    }
-                                }
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 30)
-                                    .fill(Color.white)
-                                    .shadow(radius: 5)
-                            )
-                            .padding(.top, 40)
-                            .zIndex(1)
-                        }
+                // MARK: - Step Container
+                VStack(spacing: 16) {
+                    if currentStep == 0 {
+                        speciesStepView
+                            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                    removal: .move(edge: .leading).combined(with: .opacity)))
+                    } else if currentStep == 1 {
+                        descriptionStepView
+                            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                    removal: .move(edge: .leading).combined(with: .opacity)))
+                    } else {
+                        weightStepView
+                            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                    removal: .move(edge: .leading).combined(with: .opacity)))
                     }
-                    .padding(.horizontal)
-                    
-                    // Points Preview
-                    if let points = previewPoints {
-                        let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
-                        let accentColor: Color = isCatchOfTheWeek
-                            ? Color(red: 1.0, green: 0.84, blue: 0.0)
-                            : colorForPoints(points)
+                }
+                .frame(maxWidth: maxCardWidth)
+                .padding(.horizontal, 20)
 
+                // MARK: - Primary Action Button
+                VStack(spacing: 10) {
+                    Button(action: {
+                        if currentStep < 2 {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                currentStep += 1
+                            }
+                        } else {
+                            Task {
+                                await saveCatch()
+                            }
+                        }
+                    }) {
                         HStack {
-                            Image(systemName: "sparkles")
-                                .foregroundColor(accentColor)
-                            Text("+ \(points) Clam Points")
-                                .font(.headline)
-                                .bold()
-                                .foregroundColor(accentColor)
-                                .shadow(color: isCatchOfTheWeek ? accentColor.opacity(0.6) : .clear, radius: isCatchOfTheWeek ? 6 : 0)
-                            Spacer()
+                            if isSaving {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text(currentStep == 2 ? "Confirm Catch" : "Next")
+                                    .bold()
+                                if currentStep < 2 {
+                                    Image(systemName: "arrow.right")
+                                        .font(.subheadline.bold())
+                                }
+                            }
                         }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(accentColor.opacity(isCatchOfTheWeek ? 0.25 : 0.15))
-                                .shadow(color: accentColor.opacity(isCatchOfTheWeek ? 0.3 : 0.1), radius: 4, x: 0, y: 2)
-                        )
-                        .padding(.horizontal)
-                        .animation(.easeInOut(duration: 0.2), value: points)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(canProceed ? Color.cyan : Color.gray.opacity(0.4))
+                        .cornerRadius(18)
+                        .shadow(color: canProceed ? Color.cyan.opacity(0.3) : .clear, radius: 6, y: 3)
                     }
-                    
-                    // Weight Field
-                    TextField("Weight (optional)                                                  lbs", text: $weightText)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(Color(.systemGray6))
-                                .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
-                        )
-                        .onChange(of: weightText) { _, newValue in
-                            weight = Int(newValue)
+                    .disabled(!canProceed || isSaving)
+
+                    // Skip button on optional steps
+                    if currentStep > 0 {
+                        Button("Skip for now") {
+                            if currentStep == 1 {
+                                withAnimation(.easeInOut(duration: 0.25)) { currentStep = 2 }
+                            } else {
+                                Task { await saveCatch() }
+                            }
                         }
-                        .padding(.horizontal)
-                }
-                
-                Spacer(minLength: 40)
-                
-                // Confirm Button
-                Button("Confirm") {
-                    Task {
-                        await saveCatch()
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.cyan)
-                .padding(.horizontal)
+                .frame(maxWidth: maxCardWidth)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 120)
-                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
-            .padding(.top, 10)
+            .frame(maxWidth: .infinity)
         }
         .navigationBarHidden(true)
-        .background(Color(.systemBackground))
+        .background(Color(.systemGroupedBackground))
         .onAppear {
-            if species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-               let suggested = autoDetectedSpecies?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !suggested.isEmpty {
-                species = suggested
+            applyAutoDetectedSpeciesIfAvailable(autoDetectedSpecies)
+        }
+        .onChange(of: autoDetectedSpecies) { _, newValue in
+            applyAutoDetectedSpeciesIfAvailable(newValue)
+        }
+    }
+
+    private var canProceed: Bool {
+        if currentStep == 0 {
+            return !species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        return true
+    }
+
+    private func applyAutoDetectedSpeciesIfAvailable(_ candidate: String?) {
+        guard let name = candidate?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return }
+        if species.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                species = name
+                showSpeciesSuggestions = false
                 updatePreviewPoints()
             }
         }
     }
-    
-    // MARK: - Helpers
-    
+
+    /// True only if this species is this week's target AND it hasn't already
+    /// been claimed this week. Being in the album already from a past week
+    /// never qualifies on its own — only an actual catch logged during the
+    /// active week does.
+    private func isEligibleForCatchOfTheWeek(_ speciesName: String) -> Bool {
+        guard let cotw = user.speciesStore.catchOfTheWeek, cotw.name == speciesName else { return false }
+        return !user.speciesStore.isCatchOfTheWeekClaimed
+    }
+
+    // MARK: - Step 1: Species Identification (with AI Loading State)
+    private var speciesStepView: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Species Identification")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text(isDetectingAI ? "Analyzing photo with Clamera AI..." : "Verify the match or enter name manually.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+
+                if isDetectingAI {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Detecting...")
+                            .font(.caption.bold())
+                            .foregroundColor(.cyan)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.cyan.opacity(0.12))
+                    .cornerRadius(12)
+                } else if !species.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption)
+                        Text("Identified")
+                            .font(.caption.bold())
+                    }
+                    .foregroundColor(.green)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.green.opacity(0.12))
+                    .cornerRadius(12)
+                }
+            }
+
+            ZStack(alignment: .top) {
+                HStack(spacing: 12) {
+                    Image(systemName: isDetectingAI ? "sparkles" : "magnifyingglass")
+                        .foregroundColor(isDetectingAI ? .cyan : .secondary)
+
+                    TextField(isDetectingAI ? "Identifying your fish..." : "Search or enter species", text: $species)
+                        .font(.body)
+                        .onChange(of: species) { _, newValue in
+                            showSpeciesSuggestions = !newValue.isEmpty
+                            updatePreviewPoints()
+                        }
+
+                    if isDetectingAI {
+                        ProgressView()
+                            .scaleEffect(0.85)
+                    } else if !species.isEmpty {
+                        Button {
+                            species = ""
+                            previewPoints = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary.opacity(0.6))
+                        }
+                    }
+                }
+                .padding(14)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(16)
+                .shadow(color: .black.opacity(0.03), radius: 4, y: 2)
+
+                // Suggestions Dropdown
+                if showSpeciesSuggestions && !speciesSuggestions.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(speciesSuggestions.prefix(3).indices, id: \.self) { i in
+                            let suggestion = speciesSuggestions[i]
+                            Button {
+                                species = suggestion.name
+                                showSpeciesSuggestions = false
+                                updatePreviewPoints()
+                            } label: {
+                                HStack {
+                                    Text(suggestion.name)
+                                        .foregroundColor(.primary)
+                                        .padding(.vertical, 12)
+                                    Spacer()
+                                    Image(systemName: "arrow.up.left")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 16)
+                                .background(Color(.secondarySystemGroupedBackground))
+                            }
+
+                            if i != speciesSuggestions.prefix(3).count - 1 {
+                                Divider()
+                            }
+                        }
+                    }
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                    .padding(.top, 56)
+                    .zIndex(2)
+                }
+            }
+
+            // Points Preview Card with New Species Badge
+            if let points = previewPoints {
+                let isCatchOfTheWeek = isEligibleForCatchOfTheWeek(species)
+                let isFirstCatch = isFirstOfCurrentSpecies()
+                let accentColor: Color = isCatchOfTheWeek
+                    ? Color(red: 1.0, green: 0.84, blue: 0.0)
+                    : colorForPoints(points)
+
+                VStack(spacing: 6) {
+                    HStack {
+                        Image(systemName: isCatchOfTheWeek ? "crown.fill" : "plus.circle.fill")
+                            .foregroundColor(accentColor)
+                        Text("+ \(points) Clam Points")
+                            .font(.subheadline.bold())
+                            .foregroundColor(accentColor)
+                        Spacer()
+                        if isCatchOfTheWeek {
+                            Text("Catch of the Week!")
+                                .font(.caption.bold())
+                                .foregroundColor(accentColor)
+                        } else if isFirstCatch {
+                            Text("New Species Bonus!")
+                                .font(.caption.bold())
+                                .foregroundColor(.purple)
+                        }
+                    }
+                }
+                .padding(14)
+                .background(accentColor.opacity(0.12))
+                .cornerRadius(14)
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+        }
+    }
+
+    // MARK: - Step 2: Description
+    private var descriptionStepView: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Add a Memory (Optional)")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text("Where were you fishing? Who were you with?")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            TextField("e.g. Caught on a spinner near the lake pier", text: $info, axis: .vertical)
+                .lineLimit(3...6)
+                .padding(16)
+                .background(Color(.secondarySystemGroupedBackground))
+                .cornerRadius(18)
+                .shadow(color: .black.opacity(0.03), radius: 4, y: 2)
+        }
+    }
+
+    // MARK: - Step 3: Weight & Aquarium Size
+    private var weightStepView: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Log Weight (Optional)")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text("Enter the weight to track your personal records.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            HStack {
+                TextField("0", text: $weightText)
+                    .keyboardType(.numberPad)
+                    .font(.title3.bold())
+                    .onChange(of: weightText) { _, newValue in
+                        weight = Int(newValue.filter { $0.isNumber })
+                    }
+
+                Text("lbs")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(16)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(18)
+            .shadow(color: .black.opacity(0.03), radius: 4, y: 2)
+
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "info.circle.fill")
+                    .foregroundColor(.cyan)
+                    .font(.subheadline)
+                    .padding(.top, 2)
+
+                Text("Heavier fish scale up and appear larger when placed in your aquarium.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(12)
+            .background(Color.cyan.opacity(0.08))
+            .cornerRadius(12)
+        }
+    }
+
+    // MARK: - Calculation Helpers
+    private func isFirstOfCurrentSpecies() -> Bool {
+        guard let matching = user.speciesStore.speciesList.first(where: {
+            $0.name.lowercased() == species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        }) else { return false }
+        return matching.fishList.isEmpty
+    }
+
     func updatePreviewPoints() {
         guard let index = user.speciesStore.speciesList.firstIndex(where: {
             $0.name.lowercased() ==
@@ -229,22 +447,28 @@ struct CatchManageView: View {
         let previousFishDate: Date? = fishCount > 0 ? fishList[fishCount - 1].dateCaught : nil
         let totalOfSpecies = fishCount + 1
         let totalOtherFish = max(user.speciesStore.getFish() - fishCount, 0)
-        previewPoints =
-        user.speciesStore.catchOfTheWeek?.name == species
-        ? user.speciesStore.catchOfTheWeekPoints
-        : user.speciesStore.calculateClamPoints(
-                totalOfSpecies: totalOfSpecies,
-                totalOtherFish: totalOtherFish,
-                previousFishDate: previousFishDate
-              )
+        let targetSpeciesName = user.speciesStore.speciesList[index].name
+        
+        var points = isEligibleForCatchOfTheWeek(targetSpeciesName)
+            ? user.speciesStore.catchOfTheWeekPoints
+            : user.speciesStore.calculateClamPoints(
+                    totalOfSpecies: totalOfSpecies,
+                    totalOtherFish: totalOtherFish,
+                    previousFishDate: previousFishDate
+                  )
+        
+        if fishCount == 0 {
+            points += 50
+        }
+        
+        previewPoints = points
     }
     
     func colorForPoints(_ points: Int) -> Color {
-        if points >= 90 { return Color.purple.opacity(0.8) }
+        if points >= 90 { return Color.purple }
         else if points >= 40 { return .blue }
         else if points >= 25 { return .orange }
-        else if points >= 20 { return .gray }
-        else { return .gray.opacity(0.6) }
+        else { return .gray }
     }
     
     func saveCatch() async {
@@ -253,20 +477,26 @@ struct CatchManageView: View {
             species.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }) else { return }
 
-        // Save photo as a cross-device compatible Base64 string
-        var photoPayload = ""
+        isSaving = true
+
+        var photoKey = ""
         if let image = selectedUIImage {
-            let resized = resizeImageIfNeeded(image, targetWidth: 400)
-            if let jpegData = resized.jpegData(compressionQuality: 0.6) {
-                photoPayload = jpegData.base64EncodedString()
+            // 1. Save local document copy for instant rendering without web delay
+            photoKey = "\(UUID().uuidString).jpg"
+            if let jpegData = image.jpegData(compressionQuality: 0.75),
+               let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                let fileURL = docDir.appendingPathComponent(photoKey)
+                try? jpegData.write(to: fileURL)
             }
         }
         
-        // Add the fish to the list
+        let targetSpeciesName = user.speciesStore.speciesList[index].name
+        let isFirstOfSpecies = user.speciesStore.speciesList[index].fishList.isEmpty
+        
         user.speciesStore.speciesList[index].fishList.append(
-            Fish(photo: photoPayload,
-                 speciesName: user.speciesStore.speciesList[index].name,
-                 description: info,
+            Fish(photo: photoKey,
+                 speciesName: targetSpeciesName,
+                 description: info.isEmpty ? "Caught on Clamera" : info,
                  fishWeight: weight)
         )
         
@@ -276,15 +506,29 @@ struct CatchManageView: View {
         
         let totalOfSpecies = fishIndex
         let totalOtherFish = user.speciesStore.getFish() - 1
-        let points =
-        user.speciesStore.catchOfTheWeek?.name == species
+
+        let isCatchOfTheWeek = isEligibleForCatchOfTheWeek(targetSpeciesName)
+
+        var points = isCatchOfTheWeek
         ? user.speciesStore.catchOfTheWeekPoints
         : user.speciesStore.calculateClamPoints(
                 totalOfSpecies: totalOfSpecies,
                 totalOtherFish: totalOtherFish,
                 previousFishDate: previousFishDate
               )
+        
+        if isFirstOfSpecies {
+            points += 50
+        }
+        
         user.speciesStore.totalClamPoints += points
+        user.speciesStore.lastCaughtFishName = targetSpeciesName
+
+        // Persist the claim IMMEDIATELY — not inside the delayed animation
+        // closure below — so saveUser() below always captures it correctly.
+        if isCatchOfTheWeek {
+            user.speciesStore.catchOfTheWeekClaimedWeek = user.speciesStore.currentWeekSeed()
+        }
 
         let animationDuration = 0.2
 
@@ -294,12 +538,8 @@ struct CatchManageView: View {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
-            let isFirstOfSpecies = fishIndex == 1
-            let isCatchOfTheWeek = user.speciesStore.catchOfTheWeek?.name == species
-
             if isCatchOfTheWeek {
                 user.speciesStore.popupType = 3
-                user.speciesStore.catchOfTheWeek = nil
             } else if isFirstOfSpecies {
                 user.speciesStore.popupType = 2
             } else {
@@ -307,18 +547,10 @@ struct CatchManageView: View {
             }
         }
         
+        let newFish = user.speciesStore.speciesList[index].fishList[fishIndex - 1]
+        await FirestoreManager.shared.saveFishCatch(newFish, forUser: user.id)
         await FirestoreManager.shared.saveUser(user: user)
-    }
-    
-    private func resizeImageIfNeeded(_ image: UIImage, targetWidth: CGFloat) -> UIImage {
-        if image.size.width <= targetWidth { return image }
-        let scale = targetWidth / image.size.width
-        let targetHeight = image.size.height * scale
-        let size = CGSize(width: targetWidth, height: targetHeight)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: size))
-        }
+        isSaving = false
     }
 }
 

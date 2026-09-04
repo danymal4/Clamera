@@ -2,7 +2,7 @@
 //  SpeciesStore.swift
 //  Clamera
 //
-//  Created by Kaes van Dolder (student LM) on 3/2/26.
+//  Created by Kaes van Dolder on student LM on 3/2/26.
 //
 
 import SwiftUI
@@ -16,6 +16,19 @@ final class SpeciesStore: ObservableObject {
     @Published var catchOfTheWeek: Species?
     @Published var catchOfTheWeekPoints: Int = 180
     @Published var popupType: Int = 0
+    @Published var lastCaughtFishName: String = ""
+
+    /// Persisted marker for which week's Catch of the Week has already been
+    /// claimed by this user (stored as the same `weeklySeed` used to pick the
+    /// species). 0 means "never claimed." Survives app relaunches via Firestore.
+    @Published var catchOfTheWeekClaimedWeek: Int = 0
+
+    /// True if this week's Catch of the Week has already been claimed —
+    /// use this (not `catchOfTheWeek == nil`) to decide whether to show the
+    /// "come catch me" state vs. the "already claimed" state.
+    var isCatchOfTheWeekClaimed: Bool {
+        catchOfTheWeekClaimedWeek == currentWeekSeed()
+    }
 
     // Curated allowlist for Catch of the Week
     private static let catchOfTheWeekAllowedNames: [String] = [
@@ -161,7 +174,7 @@ final class SpeciesStore: ObservableObject {
                 }
             }
         }
-        
+         
         assignPinnedDisplay()
         assignCatchOfTheWeek()
     }
@@ -175,7 +188,7 @@ final class SpeciesStore: ObservableObject {
         do {
             let data = try Data(contentsOf: url)
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
-           
+            
             self.speciesList = decoded.map { fish in
                 Species(
                     name: fish.CommonName,
@@ -183,7 +196,7 @@ final class SpeciesStore: ObservableObject {
                     fishList: []
                 )
             }
-            
+             
             print("Loaded \(speciesList.count) species")
             assignCatchOfTheWeek()
         } catch {
@@ -206,34 +219,40 @@ final class SpeciesStore: ObservableObject {
 
         pinnedDisplay = foundPinned
     }
+
+    /// The deterministic weekly seed (year * 100 + weekOfYear) used both to
+    /// pick this week's Catch of the Week and to mark when it was claimed.
+    /// Weeks are locked to start on Monday.
+    func currentWeekSeed() -> Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2 // Monday
+
+        let now = Date()
+        let weekOfYear = calendar.component(.weekOfYear, from: now)
+        let year = calendar.component(.yearForWeekOfYear, from: now)
+
+        return year * 100 + weekOfYear
+    }
     
     func assignCatchOfTheWeek() {
         guard !speciesList.isEmpty else {
             catchOfTheWeek = nil
             return
         }
-        
+         
         // Build normalized set of allowed names
         let allowedNormalized = Set(SpeciesStore.catchOfTheWeekAllowedNames.map { normalizedSpeciesToken($0) })
-        
+         
         // Filter species down to allowed candidates
         let candidatePool = speciesList.filter { species in
             let normalizedName = normalizedSpeciesToken(species.name)
             return allowedNormalized.contains(normalizedName)
         }
-        
+         
         // Fallback to full speciesList if JSON names differ significantly
         let poolToSelectFrom = candidatePool.isEmpty ? speciesList : candidatePool
          
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.firstWeekday = 2 // Lock weeks to start on Monday
-        
-        let now = Date()
-        let weekOfYear = calendar.component(.weekOfYear, from: now)
-        let year = calendar.component(.yearForWeekOfYear, from: now)
-         
-        // Consistent global seed for the entire 7-day period
-        let weeklySeed = year * 100 + weekOfYear
+        let weeklySeed = currentWeekSeed()
         let index = abs(weeklySeed) % poolToSelectFrom.count
          
         catchOfTheWeek = poolToSelectFrom[index]
@@ -288,12 +307,39 @@ final class SpeciesStore: ObservableObject {
 
     func bestMatchingSpeciesName(for aiPrediction: String) -> String? {
         let prediction = normalizedSpeciesToken(aiPrediction)
-        guard !prediction.isEmpty, prediction != "unknown" else { return nil }
+        guard !prediction.isEmpty, prediction != "unknown", !speciesList.isEmpty else {
+            return nil
+        }
 
+        // 1. Direct synonym / popular alternative dictionary
+        let commonAliases: [String: String] = [
+            "blue tang": "Palette Surgeonfish",
+            "regal tang": "Palette Surgeonfish",
+            "regal blue tang": "Palette Surgeonfish",
+            "paracanthurus hepatus": "Palette Surgeonfish",
+            "clown anemonefish": "Ocellaris Clownfish",
+            "clownfish": "Ocellaris Clownfish",
+            "false percula": "Ocellaris Clownfish",
+            "dory": "Palette Surgeonfish",
+            "nemo": "Ocellaris Clownfish"
+        ]
+
+        if let mapped = commonAliases[prediction] {
+            return mapped
+        }
+
+        for (alias, canonicalName) in commonAliases {
+            if prediction.contains(alias) {
+                return canonicalName
+            }
+        }
+
+        // 2. Exact match
         if let exact = speciesList.first(where: { normalizedSpeciesToken($0.name) == prediction }) {
             return exact.name
         }
 
+        // 3. Substring match
         if let containsMatch = speciesList.first(where: {
             let normalizedName = normalizedSpeciesToken($0.name)
             return normalizedName.contains(prediction) || prediction.contains(normalizedName)
@@ -301,20 +347,45 @@ final class SpeciesStore: ObservableObject {
             return containsMatch.name
         }
 
+        // 4. Real similarity scoring — combines word-overlap ratio (Jaccard)
+        // with whole-string edit-distance similarity, so ties are broken by
+        // how close the names actually are, not by array order.
         let predictionTokens = Set(prediction.split(separator: " ").map(String.init))
-        guard !predictionTokens.isEmpty else { return nil }
+            .subtracting(["fish", "common", "atlantic", "pacific", "spotted"])
 
-        let scored = speciesList.map { species -> (name: String, score: Int) in
-            let speciesTokens = Set(normalizedSpeciesToken(species.name).split(separator: " ").map(String.init))
-            let overlap = predictionTokens.intersection(speciesTokens).count
-            return (species.name, overlap)
+        var bestName: String?
+        var bestScore: Double = 0
+
+        for species in speciesList {
+            let normalizedName = normalizedSpeciesToken(species.name)
+            let speciesTokens = Set(normalizedName.split(separator: " ").map(String.init))
+
+            let unionCount = predictionTokens.union(speciesTokens).count
+            let jaccard = unionCount > 0
+                ? Double(predictionTokens.intersection(speciesTokens).count) / Double(unionCount)
+                : 0
+
+            let editSimilarity = normalizedStringSimilarity(prediction, normalizedName)
+
+            let combinedScore = (jaccard * 0.6) + (editSimilarity * 0.4)
+
+            if combinedScore > bestScore {
+                bestScore = combinedScore
+                bestName = species.name
+            }
         }
 
-        guard let best = scored.max(by: { $0.score < $1.score }), best.score > 0 else {
-            return nil
+        if let bestName, bestScore > 0.2 {
+            return bestName
         }
 
-        return best.name
+        // 5. Last resort: closest overall spelling in the whole list.
+        let closestBySpelling = speciesList.max {
+            normalizedStringSimilarity(prediction, normalizedSpeciesToken($0.name))
+            < normalizedStringSimilarity(prediction, normalizedSpeciesToken($1.name))
+        }
+
+        return closestBySpelling?.name
     }
 
     private func normalizedSpeciesToken(_ input: String) -> String {
@@ -323,6 +394,40 @@ final class SpeciesStore: ObservableObject {
             .replacingOccurrences(of: "[^a-z0-9 ]", with: " ", options: .regularExpression)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func normalizedStringSimilarity(_ a: String, _ b: String) -> Double {
+        let distance = levenshteinDistance(a, b)
+        let maxLength = max(a.count, b.count)
+        guard maxLength > 0 else { return 1.0 }
+        return 1.0 - (Double(distance) / Double(maxLength))
+    }
+
+    private func levenshteinDistance(_ a: String, _ b: String) -> Int {
+        let aChars = Array(a)
+        let bChars = Array(b)
+        var dist = Array(repeating: Array(repeating: 0, count: bChars.count + 1), count: aChars.count + 1)
+
+        for i in 0...aChars.count { dist[i][0] = i }
+        for j in 0...bChars.count { dist[0][j] = j }
+
+        guard aChars.count > 0, bChars.count > 0 else { return dist[aChars.count][bChars.count] }
+
+        for i in 1...aChars.count {
+            for j in 1...bChars.count {
+                if aChars[i - 1] == bChars[j - 1] {
+                    dist[i][j] = dist[i - 1][j - 1]
+                } else {
+                    dist[i][j] = min(
+                        dist[i - 1][j] + 1,
+                        dist[i][j - 1] + 1,
+                        dist[i - 1][j - 1] + 1
+                    )
+                }
+            }
+        }
+
+        return dist[aChars.count][bChars.count]
     }
     
     func refresh() {

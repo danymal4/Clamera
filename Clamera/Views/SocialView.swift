@@ -35,7 +35,7 @@ struct SocialView: View {
                         socialRow(
                             imageName: "friends",
                             title: "Friends",
-                            subtitle: "10 friends",
+                            subtitle: "\(user.friends.count) \(user.friends.count == 1 ? "friend" : "friends")",
                             isHighlighted: false
                         )
                     }

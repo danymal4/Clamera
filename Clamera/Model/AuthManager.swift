@@ -30,9 +30,19 @@ class AuthManager: ObservableObject {
     @Published var pendingGoogleUser: PendingGoogleUser? = nil
     @Published var isLoading: Bool = true
     
+    /// True while signUp() or signIn() is actively in progress. The
+    /// auth-state listener below checks this and skips its own routing
+    /// logic when true, since those functions already handle routing
+    /// themselves — this prevents a race where the listener briefly
+    /// flashes the Google username sheet for a non-Google signup, just
+    /// because the account technically "signed in" a moment before the
+    /// Firestore document was finished being written.
+    private var isHandlingAuthManually = false
+    
     init() {
         _ = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
             guard let self = self else { return }
+            guard !self.isHandlingAuthManually else { return }
             
             if let firebaseUser = firebaseUser {
                 let uid = firebaseUser.uid
@@ -85,19 +95,57 @@ class AuthManager: ObservableObject {
     }
      
     @MainActor
-    func signUp(username: String, email: String, password: String) async {
-        guard let result = try? await Auth.auth().createUser(withEmail: email, password: password) else {
-            return
+    func signUp(username: String, email: String, password: String) async throws {
+        isHandlingAuthManually = true
+        defer { isHandlingAuthManually = false }
+        
+        let cleanedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        let isAvailable = await FirestoreManager.shared.isUsernameAvailable(cleanedUsername, currentUserId: "")
+        guard isAvailable else {
+            throw NSError(domain: "AuthError", code: 409, userInfo: [NSLocalizedDescriptionKey: "That username is already taken."])
         }
         
-        // Reserve public username mapping for email signups too
-        _ = await FirestoreManager.shared.reserveUsername(username, uid: result.user.uid, email: email)
-         
-        user = User(id: result.user.uid, username: username, email: result.user.email ?? "")
+        let result = try await Auth.auth().createUser(withEmail: email, password: password)
+        let uid = result.user.uid
+        let lowercasedUsername = cleanedUsername.lowercased()
+        
+        let reserved = await FirestoreManager.shared.reserveUsername(cleanedUsername, uid: uid, email: email)
+        guard reserved else {
+            throw NSError(domain: "AuthError", code: 409, userInfo: [NSLocalizedDescriptionKey: "That username was just taken. Please choose another."])
+        }
+        
+        let db = Firestore.firestore()
+        let userData: [String: Any] = [
+            "username": cleanedUsername,
+            "username_lowercase": lowercasedUsername,
+            "email": email,
+            "profile picture": "fisherman",
+            "clampoints": 0,
+            "aquarium fish": [],
+            "fish of fame posts": [],
+            "friends": [],
+            "incoming_requests": [],
+            "outgoing_requests": [],
+            "unlocked shop items": []
+        ]
+        
+        try await db.collection("users").document(uid).setData(userData)
+        
+        let newUser = User(id: uid, username: cleanedUsername, email: email)
+        await FirestoreManager.shared.fetchUser(user: newUser)
+        self.user = newUser
+        self.needsUsernameSetup = false
+        self.pendingGoogleUser = nil
+        
+        print("Account fully created for username: \(cleanedUsername)")
     }
      
     @MainActor
     func signIn(loginInput: String, password: String) async throws {
+        isHandlingAuthManually = true
+        defer { isHandlingAuthManually = false }
+        
         var emailToUse = loginInput
          
         if !loginInput.contains("@") {
@@ -199,7 +247,6 @@ class AuthManager: ObservableObject {
         let googleUser = pending.firebaseUser
         let email = googleUser.email ?? ""
          
-        // Ensure username is reserved in the public /usernames collection so search works
         let reserved = await FirestoreManager.shared.reserveUsername(chosenUsername, uid: googleUser.uid, email: email)
         guard reserved else {
             print("AuthManager: Username '\(chosenUsername)' is already taken or reservation failed.")

@@ -82,6 +82,7 @@ struct ShopCatalog {
         "Dusky Grouper",
         "Eastern Atlantic Cod",
         "Eastern Mudminnow",
+        "Elegant Firefish",
         "European Hake",
         "European Pilchard",
         "European Seabass",
@@ -148,6 +149,7 @@ struct ShopCatalog {
         "Narrow-barred Spanish Mackerel",
         "Ocean Sunfish",
         "Ocellaris Clownfish",
+        "Opah",
         "Orbicular Batfish",
         "Oriental Weatherfish",
         "Pacific Bonefish",
@@ -176,16 +178,18 @@ struct ShopCatalog {
         "Bombay Duck": 690,
         "Chum Salmon": 750,
         "Pacific Cod": 600,
-        "Ocean Sunfish": 950,
+        "Ocean Sunfish": 930,
         "Blacktip Shark": 1500,
         "Longear Sunfish": 800,
         "Goldbanded Jobfish": 555,
         "Narrow-barred Spanish Mackerel": 800,
         "Palette Surgeonfish": 1000,
-        "Swordfish": 950,
+        "Swordfish": 945,
         "Peron's Threadfin Bream": 975,
         "Pink Squirrelfish": 825,
-        "Black Rockfish": 625
+        "Black Rockfish": 625,
+        "Elegant Firefish": 950,
+        "Opah": 780
     ]
      
     // 2. Automated structural translation pipeline
