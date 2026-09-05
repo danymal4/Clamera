@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct ProfileView: View {
     @EnvironmentObject var user: User
@@ -17,6 +18,23 @@ struct ProfileView: View {
     @State private var isCheckingUsername = false
     @State private var errorMessage = ""
     @State private var showingErrorAlert = false
+
+    @State private var isLoggingOut = false
+
+    private let termsOfServiceURL = URL(string: "https://danymal4.github.io/clamera-terms/")!
+
+    private var isGoogleAccount: Bool {
+        guard let currentUser = Auth.auth().currentUser else { return false }
+        return currentUser.providerData.contains { $0.providerID == "google.com" }
+    }
+
+    private var passwordDisplayValue: String {
+        if isGoogleAccount {
+            return "Signed in with Google"
+        }
+        let dotCount = user.passwordLength ?? 8
+        return String(repeating: "•", count: dotCount)
+    }
 
     var body: some View {
         ScrollView {
@@ -94,13 +112,13 @@ struct ProfileView: View {
                         }
                     }
                 }
-                .padding(.top, 20)
+                .padding(.top, 5)
 
                 VStack(spacing: 0) {
                     infoRow(title: "Email", value: user.email)
                     divider()
                     
-                    infoRow(title: "Password", value: "•••••")
+                    infoRow(title: "Password", value: passwordDisplayValue)
                     divider()
                     
                     infoRow(title: "Fish Caught", value: "\(user.speciesStore.getFish())")
@@ -116,22 +134,50 @@ struct ProfileView: View {
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
                 .padding(.horizontal)
 
+                Link(destination: termsOfServiceURL) {
+                    HStack {
+                        Text("Terms of Service")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.black.opacity(0.85))
+                        Spacer()
+                        Image(systemName: "arrow.up.right.square")
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 15)
+                    .background(RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.systemGray6)))
+                }
+                .padding(.horizontal)
+
                 Button {
+                    isLoggingOut = true
                     Task {
                         if let authUser = AuthManager.shared.user {
                             await FirestoreManager.shared.saveUser(user: authUser)
                         }
-                        AuthManager.shared.signOut()
+                        await MainActor.run {
+                            AuthManager.shared.signOut()
+                            isLoggingOut = false
+                        }
                     }
                 } label: {
-                    Text("Logout")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.red.opacity(0.7), lineWidth: 1))
+                    HStack {
+                        if isLoggingOut {
+                            ProgressView()
+                                .tint(.red)
+                        } else {
+                            Text("Logout")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.red.opacity(0.7), lineWidth: 1))
                 }
+                .disabled(isLoggingOut)
                 .padding(.horizontal)
                 .padding(.top, 20)
                 

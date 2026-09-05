@@ -23,6 +23,12 @@ struct HomeRevised: View {
             return "Good Evening "
         }
     }
+
+    // Content width scales with the actual screen, using more space on
+    // wider devices (iPad) instead of a fixed cap that only suited iPhone.
+    private var contentMaxWidth: CGFloat {
+        min(UIScreen.main.bounds.width * 0.92, 700)
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -30,7 +36,7 @@ struct HomeRevised: View {
                 VStack(spacing: 32) {
                     
                     HologramHeaderView(user: user, greeting: timeBasedGreeting, floatUpDown: $floatUpDown, showNameBubble: $showNameBubble)
-                        .frame(maxWidth: 540)
+                        .frame(maxWidth: contentMaxWidth)
                     
                     // MARK: - Stats
                     HStack(spacing: 16) {
@@ -38,7 +44,7 @@ struct HomeRevised: View {
                         statCard(title: "This Month", value: "\(user.speciesStore.getFish())")
                     }
                     .padding(.horizontal, 20)
-                    .frame(maxWidth: 540)
+                    .frame(maxWidth: contentMaxWidth)
                     
                     // MARK: - Pinned Catch
                     ZStack {
@@ -149,7 +155,7 @@ struct HomeRevised: View {
                         }
                     }
                     .padding(.horizontal, 20)
-                    .frame(maxWidth: 540)
+                    .frame(maxWidth: contentMaxWidth)
                     
                     Spacer(minLength: 80)
                 }
@@ -186,12 +192,23 @@ struct HomeRevised: View {
     }
 }
 
-// Fully responsive extracted subview using GeometryReader
+// Fully responsive extracted subview.
 struct HologramHeaderView: View {
     @ObservedObject var user: User
     let greeting: String
     @Binding var floatUpDown: Bool
     @Binding var showNameBubble: Bool
+
+    // Computed directly from screen width rather than a GeometryReader —
+    // this is what previously caused the overlap: the card's actual size
+    // was calculated one way, but the container holding it had a separate,
+    // hardcoded height (380) that didn't grow to match on larger screens
+    // like iPad, so the card physically overflowed into the content below
+    // it. Now the container's height is always set to exactly match the
+    // card's real size, on any device.
+    private var cardWidth: CGFloat {
+        min(UIScreen.main.bounds.width * 0.85, 600)
+    }
     
     var body: some View {
         VStack(spacing: 32) {
@@ -238,144 +255,139 @@ struct HologramHeaderView: View {
             .padding(.horizontal, 20)
             .padding(.top, 40)
             
-            GeometryReader { geometry in
-                let cardWidth = min(geometry.size.width * 0.9, 440)
-                let claimed = user.speciesStore.isCatchOfTheWeekClaimed
+            let claimed = user.speciesStore.isCatchOfTheWeekClaimed
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 30)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.0, green: 0.75, blue: 0.85).opacity(0.75),
+                                Color(red: 0.0, green: 0.45, blue: 0.65).opacity(0.75)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.35),
+                                Color.clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .center
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 30))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                    )
                 
                 ZStack {
-                    RoundedRectangle(cornerRadius: 30)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.0, green: 0.75, blue: 0.85).opacity(0.75),
-                                    Color(red: 0.0, green: 0.45, blue: 0.65).opacity(0.75)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.35),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .center
-                            )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 30))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                        )
-                    
-                    ZStack {
-                        if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {
-                            ZStack {
-                                Image("\(catchOfTheWeek.name)Icon")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: cardWidth * 0.55, height: cardWidth * 0.55)
-                                    .opacity(claimed ? 0.55 : 1)
-                                    .shadow(color: .cyan.opacity(claimed ? 0.25 : 0.6), radius: 20)
-                                    .shadow(color: .yellow.opacity(claimed ? 0.15 : 0.4), radius: 40)
-                                    .shadow(color: .yellow.opacity(claimed ? 0.08 : 0.2), radius: 60)
-                                    .offset(y: floatUpDown ? -3 : 3)
-                                    .onTapGesture {
-                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                                            showNameBubble = true
-                                        }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                            withAnimation(.easeOut(duration: 0.3)) {
-                                                showNameBubble = false
-                                            }
+                    if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {
+                        ZStack {
+                            Image("\(catchOfTheWeek.name)Icon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: cardWidth * 0.55, height: cardWidth * 0.55)
+                                .opacity(claimed ? 0.55 : 1)
+                                .shadow(color: .cyan.opacity(claimed ? 0.25 : 0.6), radius: 20)
+                                .shadow(color: .yellow.opacity(claimed ? 0.15 : 0.4), radius: 40)
+                                .shadow(color: .yellow.opacity(claimed ? 0.08 : 0.2), radius: 60)
+                                .offset(y: floatUpDown ? -3 : 3)
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                                        showNameBubble = true
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        withAnimation(.easeOut(duration: 0.3)) {
+                                            showNameBubble = false
                                         }
                                     }
-
-                                if claimed {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.green)
-                                            .frame(width: 44, height: 44)
-                                        Image(systemName: "checkmark")
-                                            .font(.system(size: 20, weight: .bold))
-                                            .foregroundColor(.white)
-                                    }
-                                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
-                                    .offset(x: cardWidth * 0.2, y: -cardWidth * 0.2)
                                 }
-                            }
-                            
-                            if showNameBubble {
-                                Text(catchOfTheWeek.name)
-                                    .font(.headline)
-                                    .bold()
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.white.opacity(0.85))
-                                            .shadow(radius: 4)
-                                    )
-                                    .offset(y: -cardWidth * 0.25 + (floatUpDown ? -1 : 1))
-                                    .scaleEffect(showNameBubble ? 1 : 0.5)
-                                    .opacity(showNameBubble ? 1 : 0)
-                                    .transition(.scale.combined(with: .opacity))
-                            }
-                            
-                        } else {
-                            ZStack {
-                                Image(systemName: "questionmark")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: cardWidth * 0.32, height: cardWidth * 0.32)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(.white)
-                                    .shadow(color: .cyan.opacity(0.6), radius: 20)
-                                    .shadow(color: .yellow.opacity(0.4), radius: 40)
-                                    .shadow(color: .yellow.opacity(0.2), radius: 60)
-                                    .offset(y: floatUpDown ? -3 : 3)
-                                
-                                Text("Coming Soon")
-                                    .font(.headline)
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .multilineTextAlignment(.center)
-                                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                    .offset(y: cardWidth * 0.25)
+
+                            if claimed {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                                .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+                                .offset(x: cardWidth * 0.2, y: -cardWidth * 0.2)
                             }
                         }
                         
-                        VStack {
-                            Spacer()
+                        if showNameBubble {
+                            Text(catchOfTheWeek.name)
+                                .font(.headline)
+                                .bold()
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.85))
+                                        .shadow(radius: 4)
+                                )
+                                .offset(y: -cardWidth * 0.25 + (floatUpDown ? -1 : 1))
+                                .scaleEffect(showNameBubble ? 1 : 0.5)
+                                .opacity(showNameBubble ? 1 : 0)
+                                .transition(.scale.combined(with: .opacity))
+                        }
+                        
+                    } else {
+                        ZStack {
+                            Image(systemName: "questionmark")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: cardWidth * 0.32, height: cardWidth * 0.32)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                                .shadow(color: .cyan.opacity(0.6), radius: 20)
+                                .shadow(color: .yellow.opacity(0.4), radius: 40)
+                                .shadow(color: .yellow.opacity(0.2), radius: 60)
+                                .offset(y: floatUpDown ? -3 : 3)
                             
-                            HStack {
-                                Text("Catch of the Week")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                
-                                Spacer()
-                                
-                                if user.speciesStore.catchOfTheWeek != nil {
-                                    Text(claimed ? "Claimed!" : "\(user.speciesStore.catchOfTheWeekPoints) Points")
-                                        .bold()
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .background(Color.black.opacity(0.25))
-                                        .cornerRadius(10)
-                                }
-                            }
-                            .padding(16)
+                            Text("Coming Soon")
+                                .font(.headline)
+                                .bold()
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                                .offset(y: cardWidth * 0.25)
                         }
                     }
+                    
+                    VStack {
+                        Spacer()
+                        
+                        HStack {
+                            Text("Catch of the Week")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                            
+                            Spacer()
+                            
+                            if user.speciesStore.catchOfTheWeek != nil {
+                                Text(claimed ? "Claimed!" : "\(user.speciesStore.catchOfTheWeekPoints) Points")
+                                    .bold()
+                                    .foregroundColor(.white)
+                                    .padding(6)
+                                    .background(Color.black.opacity(0.25))
+                                    .cornerRadius(10)
+                            }
+                        }
+                        .padding(16)
+                    }
                 }
-                .frame(width: cardWidth, height: cardWidth)
-                .position(x: geometry.size.width / 2, y: cardWidth / 2)
             }
-            .frame(height: 380)
+            .frame(width: cardWidth, height: cardWidth)
         }
     }
 }

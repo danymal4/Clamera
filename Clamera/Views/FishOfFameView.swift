@@ -18,10 +18,103 @@ struct FishPost: Identifiable, Codable {
 struct FishOfFameView: View {
     @EnvironmentObject var user: User
     @State private var showAlbumPicker = false
-    @State private var postToDelete: FishPost? = nil
-    @State private var showDeleteConfirm = false
 
-    // Rich metallic gold gradient
+    var body: some View {
+        ZStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                     
+                    // Header & Add Button
+                    HStack {
+                        Text("Fish of Fame")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.blue, Color.blue, Color.cyan],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                        Spacer()
+                         
+                        Button {
+                            showAlbumPicker = true
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus")
+                                Text("Add Catch")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.cyan)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(color: Color.cyan.opacity(0.3), radius: 4, y: 2)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+
+                    if user.fishOfFamePosts.isEmpty {
+                        VStack(spacing: 12) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 48))
+                                .foregroundColor(Color.secondary.opacity(0.6))
+                            Text("No trophy catches yet!")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Text("Tap 'Add Catch' to showcase your favorite fish for friends to see.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        .padding(.top, 80)
+                    } else {
+                        // Feed
+                        LazyVStack(spacing: 24) {
+                            ForEach(user.fishOfFamePosts) { post in
+                                // ✨ Now using the dedicated independent row view!
+                                FishPostRowView(post: post)
+                            }
+                        }
+                    }
+                }
+                .padding(.bottom, 100)
+            }
+            .background(Color.blue.opacity(0.01))
+            .sheet(isPresented: $showAlbumPicker) {
+                PostPreviewPickerView { selectedFish, speciesName in
+                    if !user.fishOfFamePosts.contains(where: { $0.id == selectedFish.id }) {
+                        let newPost = FishPost(
+                            id: selectedFish.id,
+                            photo: selectedFish.photo,
+                            speciesName: speciesName,
+                            caption: selectedFish.description,
+                            datePosted: selectedFish.dateCaught
+                        )
+                        user.fishOfFamePosts.insert(newPost, at: 0)
+                        
+                        Task {
+                            if let authUser = AuthManager.shared.user {
+                                await FirestoreManager.shared.saveUser(user: authUser)
+                            }
+                        }
+                    }
+                }
+                .environmentObject(user)
+            }
+        }
+    }
+}
+
+// ✨ Extracted Row into a dedicated View struct
+struct FishPostRowView: View {
+    @EnvironmentObject var user: User
+    let post: FishPost
+    @State private var showDeleteConfirm = false
+    
     private var goldGradient: LinearGradient {
         LinearGradient(
             colors: [
@@ -33,109 +126,8 @@ struct FishOfFameView: View {
             endPoint: .trailing
         )
     }
-
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                 
-                // Header & Add Button
-                HStack {
-                    Text("Fish of Fame")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color.blue, Color.blue, Color.blue, Color.cyan],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                    Spacer()
-                     
-                    Button {
-                        showAlbumPicker = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "plus")
-                            Text("Add Catch")
-                        }
-                        .font(.system(size: 14, weight: .semibold))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Color.cyan)
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
-                        .shadow(color: Color.cyan.opacity(0.3), radius: 4, y: 2)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-
-                if user.fishOfFamePosts.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 48))
-                            .foregroundColor(Color.secondary.opacity(0.6))
-                        Text("No trophy catches yet!")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        Text("Tap 'Add Catch' to showcase your favorite fish for friends to see.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
-                    .padding(.top, 80)
-                } else {
-                    // Feed
-                    LazyVStack(spacing: 24) {
-                        ForEach(user.fishOfFamePosts) { post in
-                            fishPostRow(post: post)
-                        }
-                    }
-                }
-            }
-            .padding(.bottom, 100)
-        }
-        .background(Color.blue.opacity(0.01))
-        .sheet(isPresented: $showAlbumPicker) {
-            PostPreviewPickerView { selectedFish, speciesName in
-                if !user.fishOfFamePosts.contains(where: { $0.id == selectedFish.id }) {
-                    let newPost = FishPost(
-                        id: selectedFish.id,
-                        photo: selectedFish.photo,
-                        speciesName: speciesName,
-                        caption: selectedFish.description,
-                        datePosted: selectedFish.dateCaught
-                    )
-                    user.fishOfFamePosts.insert(newPost, at: 0)
-                    
-                    Task {
-                        if let authUser = AuthManager.shared.user {
-                            await FirestoreManager.shared.saveUser(user: authUser)
-                        }
-                    }
-                }
-            }
-            .environmentObject(user)
-        }
-        .confirmationDialog("Remove this post from your Fish of Fame?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-            Button("Remove", role: .destructive) {
-                if let post = postToDelete {
-                    user.fishOfFamePosts.removeAll { $0.id == post.id }
-                    
-                    Task {
-                        if let authUser = AuthManager.shared.user {
-                            await FirestoreManager.shared.saveUser(user: authUser)
-                        }
-                    }
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        }
-    }
-     
-    @ViewBuilder
-    private func fishPostRow(post: FishPost) -> some View {
         VStack(alignment: .leading, spacing: 10) {
              
             // Profile / Username Header
@@ -148,6 +140,13 @@ struct FishOfFameView: View {
                     }
                     .frame(width: 32, height: 32)
                     .clipShape(Circle())
+                } else if let data = Data(base64Encoded: user.profilePicture),
+                          let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 32, height: 32)
+                        .clipShape(Circle())
                 } else {
                     Circle()
                         .fill(Color.cyan.opacity(0.3))
@@ -169,13 +168,15 @@ struct FishOfFameView: View {
                     .foregroundColor(.secondary)
                  
                 Button {
-                    postToDelete = post
                     showDeleteConfirm = true
                 } label: {
                     Image(systemName: "trash")
                         .font(.system(size: 14))
                         .foregroundColor(Color.red.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.borderless)
                 .padding(.leading, 6)
             }
             .padding(.horizontal, 16)
@@ -209,6 +210,23 @@ struct FishOfFameView: View {
         .cornerRadius(24)
         .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
         .padding(.horizontal, 16)
+        // ✨ The dialog is now attached directly to the individual row!
+        .confirmationDialog(
+            "Remove this post from your Fish of Fame?",
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Remove", role: .destructive) {
+                user.fishOfFamePosts.removeAll { $0.id == post.id }
+                
+                Task {
+                    if let authUser = AuthManager.shared.user {
+                        await FirestoreManager.shared.saveUser(user: authUser)
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 }
 

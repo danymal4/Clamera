@@ -40,9 +40,6 @@ struct FishDetailsView: View {
                             )
                             .padding(.top, 10)
 
-                        // Top Icon Header
-                        IconView()
-
                         // Main Image Card with Pin Overlay
                         ZStack(alignment: .topTrailing) {
                             ZStack(alignment: .bottom) {

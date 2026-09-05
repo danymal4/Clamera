@@ -30,13 +30,6 @@ class AuthManager: ObservableObject {
     @Published var pendingGoogleUser: PendingGoogleUser? = nil
     @Published var isLoading: Bool = true
     
-    /// True while signUp() or signIn() is actively in progress. The
-    /// auth-state listener below checks this and skips its own routing
-    /// logic when true, since those functions already handle routing
-    /// themselves — this prevents a race where the listener briefly
-    /// flashes the Google username sheet for a non-Google signup, just
-    /// because the account technically "signed in" a moment before the
-    /// Firestore document was finished being written.
     private var isHandlingAuthManually = false
     
     init() {
@@ -133,6 +126,7 @@ class AuthManager: ObservableObject {
         try await db.collection("users").document(uid).setData(userData)
         
         let newUser = User(id: uid, username: cleanedUsername, email: email)
+        newUser.passwordLength = password.count
         await FirestoreManager.shared.fetchUser(user: newUser)
         self.user = newUser
         self.needsUsernameSetup = false
@@ -168,6 +162,9 @@ class AuthManager: ObservableObject {
         let result = try await Auth.auth().signIn(withEmail: emailToUse, password: password)
          
         let tempUser = User(id: result.user.uid, email: result.user.email ?? emailToUse)
+        // Signing in successfully proves the typed password IS the real
+        // stored password, so it's safe to record its length here.
+        tempUser.passwordLength = password.count
         await FirestoreManager.shared.fetchUser(user: tempUser)
         user = tempUser
         print("Signed in successfully!")

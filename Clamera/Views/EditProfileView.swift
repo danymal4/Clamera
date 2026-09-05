@@ -198,6 +198,9 @@ struct EditProfileView: View {
                                         await MainActor.run {
                                             isUpdatingPassword = false
                                             passwordSuccessMessage = "Password updated successfully!"
+                                            // Successful update confirms this is now the real
+                                            // password — safe to record its length.
+                                            user.passwordLength = newPasswordInput.count
                                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                                                 showPasswordPrompt = false
                                             }

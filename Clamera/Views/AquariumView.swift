@@ -120,6 +120,10 @@ struct AquariumView: View {
         allowEditing ? user.aquariumState.bubbleAmount : localBubbleAmount
     }
 
+    private var hasActiveFish: Bool {
+        user.aquarium.fish.contains { $0.isActive }
+    }
+
     var body: some View {
         ZStack {
             AquariumBackgroundView(allowEditing: allowEditing)
@@ -153,27 +157,6 @@ struct AquariumView: View {
 
             if allowEditing {
                 VStack {
-                    HStack {
-                        Spacer()
-                        Button {
-                            showAquariumManage = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white)
-                                .padding(14)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Circle())
-                                .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2)
-                        }
-                        .padding(.trailing, 700)
-                        .padding(.top, 585)
-                        .offset(y: showBottomBar ? 0 : 75)
-                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
-                    }
-                }
-
-                VStack {
                     Spacer()
                     if !showBottomBar {
                         Button {
@@ -202,28 +185,67 @@ struct AquariumView: View {
                 .animation(.easeOut(duration: 0.4), value: showBottomBar)
                 .ignoresSafeArea(edges: .bottom)
             }
+
+            if allowEditing && !hasActiveFish {
+                VStack(spacing: 14) {
+                    Image(systemName: "fish.fill")
+                        .font(.system(size: 38))
+                        .foregroundColor(.white)
+
+                    Text("Add caught fish icons from your Album to personalize your aquarium!")
+                        .font(.system(size: 16, weight: .semibold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                }
+                .padding(24)
+                .frame(maxWidth: 280)
+                .background(Color.black.opacity(0.55))
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .allowsHitTesting(false)
+            }
         }
+        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        .clipped()
+        .overlay(alignment: .bottomTrailing) {
+                    if allowEditing {
+                        Button {
+                            showAquariumManage = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                                .padding(14)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                                .shadow(color: Color.black.opacity(0.25), radius: 6, x: 2, y: 2)
+                        }
+                        .padding(.trailing, 24)
+                        .padding(.bottom, 100) // ✨ Bumped this from 90 to 100
+                        .offset(y: showBottomBar ? 0 : 75)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showBottomBar)
+                    }
+                }
         .sheet(isPresented: $showAquariumManage) {
-            if allowEditing {
-                AquariumManageView()
-                    .environmentObject(user)
+                    if allowEditing {
+                        AquariumManageView()
+                            .environmentObject(user)
+                    }
+                }
+                .background(Color.blue.opacity(0.08))
+                .ignoresSafeArea() // ✨ Add this line right here!
+                .onAppear {
+                    bubbleRefreshID = UUID()
+                    if !allowEditing {
+                        localBubbleAmount = user.aquariumState.bubbleAmount > 0 ? user.aquariumState.bubbleAmount : 1.0
+                        user.aquariumState.bubbleVisibility = 1.0
+                    }
+                    user.aquariumState.startBubbleSound()
+                }
+                .onDisappear {
+                    user.aquariumState.stopBubbleSound()
+                }
             }
         }
-        .background(Color.blue.opacity(0.08))
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            bubbleRefreshID = UUID()
-            if !allowEditing {
-                localBubbleAmount = user.aquariumState.bubbleAmount > 0 ? user.aquariumState.bubbleAmount : 1.0
-                user.aquariumState.bubbleVisibility = 1.0
-            }
-            user.aquariumState.startBubbleSound()
-        }
-        .onDisappear {
-            user.aquariumState.stopBubbleSound()
-        }
-    }
-}
 
 struct AquariumBackgroundView: View {
     @EnvironmentObject var user: User

@@ -17,6 +17,11 @@ class Fish: Identifiable, ObservableObject, Hashable {
     @Published var isAquarium: Bool
     @Published var isDeleted: Bool
     @Published var fishWeight: Int?
+    // True if this Fish entry came from a Shop purchase rather than an
+    // actual catch. Purchased fish still appear in the Album and can still
+    // be placed in the Aquarium — this flag only affects whether they count
+    // toward "Fish Caught" / "Species Caught" progress stats.
+    @Published var isPurchased: Bool
     
     init(id: UUID = UUID(),
          photo: String,
@@ -26,7 +31,8 @@ class Fish: Identifiable, ObservableObject, Hashable {
          isPinned: Bool = false,
          isAquarium: Bool = false,
          isDeleted: Bool = false,
-         fishWeight: Int? = nil) {
+         fishWeight: Int? = nil,
+         isPurchased: Bool = false) {
         self.id = id
         self.photo = photo
         self.speciesName = speciesName
@@ -36,6 +42,7 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.isAquarium = isAquarium
         self.isDeleted = isDeleted
         self.fishWeight = fishWeight
+        self.isPurchased = isPurchased
         if (self.fishWeight ?? -1 <= 0) {
             self.fishWeight = nil
         }
@@ -58,6 +65,7 @@ class Fish: Identifiable, ObservableObject, Hashable {
         self.isAquarium = Bool(dictionary["isAquarium"] ?? "false") ?? false
         self.isDeleted = Bool(dictionary["isDeleted"] ?? "false") ?? false
         self.fishWeight = Int(dictionary["fishWeight"] ?? "-1")
+        self.isPurchased = Bool(dictionary["isPurchased"] ?? "false") ?? false
         if (fishWeight ?? -1 <= 0) {
             fishWeight = nil
         }
@@ -75,7 +83,8 @@ class Fish: Identifiable, ObservableObject, Hashable {
             "isPinned": String(isPinned),
             "isAquarium": String(isAquarium),
             "isDeleted": String(isDeleted),
-            "fishWeight": String(fishWeight ?? -1)
+            "fishWeight": String(fishWeight ?? -1),
+            "isPurchased": String(isPurchased)
         ]
         return dict
     }

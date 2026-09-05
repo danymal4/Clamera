@@ -203,7 +203,8 @@ struct ShopItemDetailsView: View {
                         speciesName: currentSpecies.name,
                         description: "Purchased from Shop",
                         dateCaught: Date(),
-                        isPinned: false
+                        isPinned: false,
+                        isPurchased: true
                     )
                     user.speciesStore.speciesList[index].fishList.append(newFish)
                 }

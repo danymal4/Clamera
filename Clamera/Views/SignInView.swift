@@ -19,6 +19,12 @@ struct SignInView: View {
     @State private var showSignUp = false
     @State private var showPassword = false // Controls visibility toggle
     
+    @State private var failedAttempts = 0
+    
+    // Separate loading flag just for the Google button, so it can show its
+    // own spinner without being tied to the email/password flow's isLoading.
+    @State private var isGoogleSignInLoading = false
+    
     enum SignInStep {
         case email
         case password
@@ -107,6 +113,7 @@ struct SignInView: View {
                                     await MainActor.run {
                                         isLoading = false
                                         if exists {
+                                            failedAttempts = 0
                                             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                                 step = .password
                                             }
@@ -144,6 +151,8 @@ struct SignInView: View {
                                     Button {
                                         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                             step = .email
+                                            failedAttempts = 0
+                                            errorMessage = nil
                                         }
                                     } label: {
                                         Label("Back", systemImage: "chevron.left")
@@ -227,6 +236,14 @@ struct SignInView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
+
+                    if failedAttempts >= 3 {
+                        Text("If you originally signed up using Google, tap \"Sign in with Google\" below instead of entering a password.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
                      
                     Spacer()
                      
@@ -248,19 +265,31 @@ struct SignInView: View {
                         }
                          
                         Button {
+                            isGoogleSignInLoading = true
                             Task {
                                 await AuthManager.shared.signInWithGoogle()
+                                await MainActor.run {
+                                    isGoogleSignInLoading = false
+                                }
                             }
                         } label: {
-                            Image("GoogleIcon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 50)
+                            ZStack {
+                                Image("GoogleIcon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 50)
+                                    .opacity(isGoogleSignInLoading ? 0 : 1)
+                                
+                                if isGoogleSignInLoading {
+                                    ProgressView()
+                                }
+                            }
                         }
+                        .disabled(isGoogleSignInLoading)
                         .frame(maxWidth: 350)
                         .padding(.horizontal, 20)
-                        }
-                        .padding(.bottom, 20)
+                    }
+                    .padding(.bottom, 20)
                 }
             }
             .navigationDestination(isPresented: $showSignUp) {
@@ -278,10 +307,12 @@ struct SignInView: View {
                 try await AuthManager.shared.signIn(loginInput: emailOrUsername, password: password)
                 await MainActor.run {
                     isLoading = false
+                    failedAttempts = 0
                 }
             } catch {
                 await MainActor.run {
                     isLoading = false
+                    failedAttempts += 1
                     errorMessage = "Incorrect password or email. Please try again."
                 }
             }

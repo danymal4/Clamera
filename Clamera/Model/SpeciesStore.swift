@@ -293,12 +293,22 @@ final class SpeciesStore: ObservableObject {
         return Int((speciesPoints + timeBonus).rounded())
     }
     
+    /// Excludes shop-purchased fish — a species only counts as "caught" if
+    /// the user has at least one genuinely-caught Fish entry for it, not
+    /// just a cosmetic purchase from the Shop.
     func getSpecies() -> Int {
-        speciesList.filter { !$0.fishList.isEmpty }.count
+        speciesList.filter { species in
+            species.fishList.contains { !$0.isPurchased }
+        }.count
     }
    
+    /// Excludes shop-purchased fish from the "Fish Caught" count, for the
+    /// same reason as getSpecies() above — this stat should only reflect
+    /// actual catches, not Shop purchases.
     func getFish() -> Int {
-        speciesList.reduce(0) { $0 + $1.fishList.count }
+        speciesList.reduce(0) { total, species in
+            total + species.fishList.filter { !$0.isPurchased }.count
+        }
     }
    
     func randomPoints() -> Int {

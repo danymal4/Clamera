@@ -29,6 +29,12 @@ class User: ObservableObject {
     @Published var lastDailyDiscountDate: Date? = nil
     @Published var unlockedShopItems: Set<String> = []
 
+    // In-memory only — NEVER persisted to Firestore. Captured only at the
+    // moment the user actually types their password (sign up, sign in, or
+    // change password), since that's the only time the app legitimately
+    // has it. Resets to nil on a fresh app launch with no re-entry.
+    @Published var passwordLength: Int? = nil
+
     init(id: String = "", username: String = "",
          email: String = "default@default.com",
          profilePicture: String = "fisherman",

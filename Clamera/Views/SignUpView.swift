@@ -17,6 +17,8 @@ struct SignUpView: View {
     
     @State private var isLoading = false
     @State private var errorMessage: String?
+    
+    @State private var isGoogleSignInLoading = false
 
     enum SignUpStep {
         case username
@@ -143,6 +145,7 @@ struct SignUpView: View {
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                                     .keyboardType(.emailAddress)
+                                    .opacity(0.4)
                                     .padding()
                                     .background(Color(.systemGray6))
                                     .cornerRadius(16)
@@ -197,6 +200,13 @@ struct SignUpView: View {
                             }
                             .disabled(isLoading || email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty)
                             .padding(.top, 8)
+
+                            Text("By signing up, you agree to our [Terms of Service](https://danymal4.github.io/clamera-terms/)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .tint(.cyan)
+                                .padding(.top, 4)
                         }
                     }
                     .frame(maxWidth: 350)
@@ -227,15 +237,27 @@ struct SignUpView: View {
                         }
                         
                         Button {
+                            isGoogleSignInLoading = true
                             Task {
                                 await AuthManager.shared.signInWithGoogle()
+                                await MainActor.run {
+                                    isGoogleSignInLoading = false
+                                }
                             }
                         } label: {
-                            Image("GoogleIcon")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 50)
+                            ZStack {
+                                Image("GoogleIcon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 50)
+                                    .opacity(isGoogleSignInLoading ? 0 : 1)
+                                
+                                if isGoogleSignInLoading {
+                                    ProgressView()
+                                }
+                            }
                         }
+                        .disabled(isGoogleSignInLoading)
                         .frame(maxWidth: 350)
                         .padding(.horizontal, 20)
                     }
