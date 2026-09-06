@@ -299,7 +299,10 @@ struct SpeciesRow: View {
     @EnvironmentObject var user: User
     
     var body: some View {
-        let hasFish = species.fishList.count > 0
+        let realFishList = species.fishList.filter { !$0.isPurchased }
+        let hasRealFish = !realFishList.isEmpty
+        let hasPurchasedFish = species.fishList.contains { $0.isPurchased }
+        
         let speciesClean = species.name.lowercased()
             .replacingOccurrences(of: "'", with: "")
             .replacingOccurrences(of: "’", with: "")
@@ -313,7 +316,7 @@ struct SpeciesRow: View {
             return itemClean.contains(speciesClean) || speciesClean.contains(itemClean)
         }
          
-        let isAccessible = hasFish || isUnlockedInStore
+        let isAccessible = hasRealFish || hasPurchasedFish || isUnlockedInStore
          
         let resolvedImageName: String = {
             let normalizedName = species.name.lowercased()
@@ -357,19 +360,26 @@ struct SpeciesRow: View {
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(isAccessible ? .primary : .secondary)
                  
-                if hasFish {
-                    Text("\(species.fishList.count) Fish")
+                // Real-catch info — count and heaviest are based only on
+                // genuinely caught fish, never purchased ones.
+                if hasRealFish {
+                    Text("\(realFishList.count) Fish")
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                     
-                    if let heaviest = species.fishList.max(by: {
+                    if let heaviest = realFishList.max(by: {
                         ($0.fishWeight ?? 0) < ($1.fishWeight ?? 0)
                     }) {
                         Text("Heaviest: \(heaviest.fishWeight ?? 0) lbs")
                             .font(.system(size: 13))
                             .foregroundColor(.secondary)
                     }
-                } else if isUnlockedInStore {
+                }
+                
+                // Shop-unlocked info — shown independently, so it can
+                // appear alongside real catch info OR on its own for a
+                // species that's only ever been purchased, never caught.
+                if hasPurchasedFish || (isUnlockedInStore && !hasRealFish) {
                     Text("Unlocked via Shop")
                         .font(.system(size: 13))
                         .foregroundColor(.cyan)

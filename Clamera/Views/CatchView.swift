@@ -18,6 +18,13 @@ struct CatchView: View {
     @State private var detectionMessage: String?
     @State private var detectionTask: Task<Void, Never>?
     @State private var lastDetectedImageFingerprint: String?
+
+    // Incremented every time the photo is cleared or replaced. A detection
+    // in flight captures the generation it started with, and discards its
+    // result if the generation has since changed — so an X-tap (or picking
+    // a new photo) can't have a stale, still-running detection silently
+    // overwrite the UI after the fact.
+    @State private var detectionGeneration = 0
     
     // States for the photo choice menu and camera picker
     @State private var showActionSheet = false
@@ -59,112 +66,135 @@ struct CatchView: View {
                             .padding(.top, 8)
                             
                             // MARK: - Central Interactive Drop Zone
-                            Button {
-                                showActionSheet = true
-                            } label: {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 28)
-                                        .fill(
-                                            selectedImage == nil
-                                            ? AnyShapeStyle(
-                                                LinearGradient(
-                                                    colors: [Color.cyan.opacity(0.08), Color.blue.opacity(0.12)],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
+                            ZStack(alignment: .topTrailing) {
+                                Button {
+                                    showActionSheet = true
+                                } label: {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 28)
+                                            .fill(
+                                                selectedImage == nil
+                                                ? AnyShapeStyle(
+                                                    LinearGradient(
+                                                        colors: [Color.cyan.opacity(0.08), Color.blue.opacity(0.12)],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
                                                 )
+                                                : AnyShapeStyle(Color.clear)
                                             )
-                                            : AnyShapeStyle(Color.clear)
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 28)
-                                                .stroke(Color.cyan.opacity(0.3), lineWidth: 1.5)
-                                        )
-                                        .frame(height: 260)
-                                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
-                                    
-                                    if let image = selectedImage {
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(height: 260)
-                                            .clipShape(RoundedRectangle(cornerRadius: 28))
                                             .overlay(
-                                                VStack {
-                                                    Spacer()
-                                                    HStack {
-                                                        Spacer()
-                                                        Label("Tap to change", systemImage: "photo.badge.arrow.down")
-                                                            .font(.caption2)
-                                                            .bold()
-                                                            .padding(.horizontal, 10)
-                                                            .padding(.vertical, 5)
-                                                            .background(.ultraThinMaterial)
-                                                            .clipShape(Capsule())
-                                                            .padding(12)
-                                                    }
-                                                }
+                                                RoundedRectangle(cornerRadius: 28)
+                                                    .stroke(Color.cyan.opacity(0.3), lineWidth: 1.5)
                                             )
-                                    } else {
-                                        VStack(spacing: 12) {
-                                            ZStack {
-                                                Circle()
-                                                    .fill(Color.cyan.opacity(0.15))
-                                                    .frame(width: 64, height: 64)
+                                            .frame(height: 260)
+                                            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+                                        
+                                        if let image = selectedImage {
+                                            Image(uiImage: image)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(height: 260)
+                                                .clipShape(RoundedRectangle(cornerRadius: 28))
+                                                .overlay(
+                                                    VStack {
+                                                        Spacer()
+                                                        HStack {
+                                                            Spacer()
+                                                            Label("Tap to change", systemImage: "photo.badge.arrow.down")
+                                                                .font(.caption2)
+                                                                .bold()
+                                                                .padding(.horizontal, 10)
+                                                                .padding(.vertical, 5)
+                                                                .background(.ultraThinMaterial)
+                                                                .clipShape(Capsule())
+                                                                .padding(12)
+                                                        }
+                                                    }
+                                                )
+                                        } else {
+                                            VStack(spacing: 12) {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(Color.cyan.opacity(0.15))
+                                                        .frame(width: 64, height: 64)
+                                                    
+                                                    Image(systemName: "plus")
+                                                        .font(.system(size: 26, weight: .bold))
+                                                        .foregroundColor(.cyan)
+                                                }
                                                 
-                                                Image(systemName: "plus")
-                                                    .font(.system(size: 26, weight: .bold))
-                                                    .foregroundColor(.cyan)
-                                            }
-                                            
-                                            VStack(spacing: 4) {
-                                                Text("Tap to add catch photo")
-                                                    .font(.headline)
-                                                    .foregroundColor(.primary)
-                                                
-                                                Text("Take photo or choose from album")
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
+                                                VStack(spacing: 4) {
+                                                    Text("Tap to add catch photo")
+                                                        .font(.headline)
+                                                        .foregroundColor(.primary)
+                                                    
+                                                    Text("Take photo or choose from album")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.secondary)
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                .buttonStyle(.plain)
+                                .confirmationDialog("Add Catch Photo", isPresented: $showActionSheet, titleVisibility: .visible) {
+                                    Button("Take Photo", systemImage: "camera") {
+                                        showCamera = true
+                                    }
+                                    Button("Choose from Album", systemImage: "photo.on.rectangle") {
+                                        showPhotoPicker = true
+                                    }
+                                    Button("Cancel", role: .cancel) {}
+                                }
+                                .photosPicker(isPresented: $showPhotoPicker, selection: $selectedItem, matching: .images)
+                                .onChange(of: selectedItem) { _, newItem in
+                                    guard let newItem else { return }
+                                    detectionGeneration += 1
+                                    detectionTask?.cancel()
+                                    detectionTask = Task {
+                                        if let data = try? await newItem.loadTransferable(type: Data.self),
+                                           let uiImage = UIImage(data: data) {
+                                            selectedImage = uiImage
+                                            detectedSpecies = nil
+                                            detectionMessage = nil
+                                            await detectFishSpeciesIfNeeded(from: uiImage)
+                                        }
+                                    }
+                                }
+                                .sheet(isPresented: $showCamera) {
+                                    ImagePicker(selectedImage: $selectedImage) { image in
+                                        if let image = image {
+                                            detectionGeneration += 1
+                                            detectedSpecies = nil
+                                            detectionMessage = nil
+                                            detectionTask?.cancel()
+                                            detectionTask = Task {
+                                                await detectFishSpeciesIfNeeded(from: image)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // X button — only shown once a photo is
+                                // selected, lets the user bail out of a
+                                // slow/stuck AI detection at any point
+                                // rather than being forced to wait.
+                                if selectedImage != nil {
+                                    Button {
+                                        clearSelectedPhoto()
+                                    } label: {
+                                        Image(systemName: "xmark")
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .frame(width: 30, height: 30)
+                                            .background(Color.black.opacity(0.55))
+                                            .clipShape(Circle())
+                                    }
+                                    .padding(10)
+                                }
                             }
-                            .buttonStyle(.plain)
                             .padding(.horizontal, 20)
-                            .confirmationDialog("Add Catch Photo", isPresented: $showActionSheet, titleVisibility: .visible) {
-                                Button("Take Photo", systemImage: "camera") {
-                                    showCamera = true
-                                }
-                                Button("Choose from Album", systemImage: "photo.on.rectangle") {
-                                    showPhotoPicker = true
-                                }
-                                Button("Cancel", role: .cancel) {}
-                            }
-                            .photosPicker(isPresented: $showPhotoPicker, selection: $selectedItem, matching: .images)
-                            .onChange(of: selectedItem) { _, newItem in
-                                guard let newItem else { return }
-                                detectionTask?.cancel()
-                                detectionTask = Task {
-                                    if let data = try? await newItem.loadTransferable(type: Data.self),
-                                       let uiImage = UIImage(data: data) {
-                                        selectedImage = uiImage
-                                        detectedSpecies = nil
-                                        detectionMessage = nil
-                                        await detectFishSpeciesIfNeeded(from: uiImage)
-                                    }
-                                }
-                            }
-                            .sheet(isPresented: $showCamera) {
-                                ImagePicker(selectedImage: $selectedImage) { image in
-                                    if let image = image {
-                                        detectedSpecies = nil
-                                        detectionMessage = nil
-                                        Task {
-                                            await detectFishSpeciesIfNeeded(from: image)
-                                        }
-                                    }
-                                }
-                            }
                             
                             // MARK: - AI Detection Status / Feedback
                             Group {
@@ -231,9 +261,7 @@ struct CatchView: View {
                                             ForEach(allCaughtFish.sorted(by: { $0.dateCaught > $1.dateCaught })) { fish in
                                                 NavigationLink(destination: FishDetailsView(speciesStore: user.speciesStore, aquarium: user.aquarium, fishID: fish.id)) {
                                                     VStack(alignment: .leading, spacing: 4) {
-                                                        Image(fishPhoto: fish.photo)
-                                                            .resizable()
-                                                            .scaledToFill()
+                                                        FishPhotoView(photo: fish.photo, contentMode: .fill)
                                                             .frame(width: 70, height: 70)
                                                             .clipShape(RoundedRectangle(cornerRadius: 14))
                                                             .shadow(color: .black.opacity(0.1), radius: 3, y: 1)
@@ -268,6 +296,20 @@ struct CatchView: View {
         }
     }
 
+    /// Fully resets the photo/detection state — used by the X button so a
+    /// user isn't stuck waiting on a slow or stuck detection.
+    private func clearSelectedPhoto() {
+        detectionGeneration += 1
+        detectionTask?.cancel()
+        detectionTask = nil
+        selectedImage = nil
+        selectedItem = nil
+        detectedSpecies = nil
+        detectionMessage = nil
+        isDetectingSpecies = false
+        lastDetectedImageFingerprint = nil
+    }
+
     private func detectFishSpeciesIfNeeded(from image: UIImage) async {
         guard let imageData = image.jpegData(compressionQuality: 0.75) else {
             detectionMessage = "Could not read selected image."
@@ -286,18 +328,24 @@ struct CatchView: View {
     private func detectFishSpecies(from image: UIImage) async {
         if isDetectingSpecies { return }
         isDetectingSpecies = true
-        defer { isDetectingSpecies = false }
 
+        let generation = detectionGeneration
         let speciesNames = user.speciesStore.speciesList.map { $0.name }
 
         do {
             let prediction = try await GeminiFishVisionService.shared.detectFishName(from: image, speciesList: speciesNames)
             print("🤖 Raw Gemini Vision Prediction: '\(prediction)'")
+
+            // If the photo was cleared/replaced while this was in flight,
+            // discard the result entirely instead of applying it to what
+            // is now stale or unrelated state.
+            guard generation == detectionGeneration else { return }
             
             let matchedName = user.speciesStore.bestMatchingSpeciesName(for: prediction)
             print("🎯 Matched Species Name: '\(matchedName ?? "nil")'")
             
             await MainActor.run {
+                isDetectingSpecies = false
                 if let matchedName {
                     detectedSpecies = matchedName
                     detectionMessage = nil
@@ -306,9 +354,23 @@ struct CatchView: View {
                     detectionMessage = "Couldn't confidently identify the species."
                 }
             }
+        } catch let error as GeminiFishVisionError {
+            guard generation == detectionGeneration else { return }
+            await MainActor.run {
+                isDetectingSpecies = false
+                detectedSpecies = nil
+                if case .noFishDetected = error {
+                    detectionMessage = error.localizedDescription
+                } else {
+                    detectionMessage = "Detection failed: \(error.localizedDescription)"
+                }
+            }
+            print("❌ Gemini detection error: \(error.localizedDescription)")
         } catch {
+            guard generation == detectionGeneration else { return }
             print("❌ Gemini detection error: \(error.localizedDescription)")
             await MainActor.run {
+                isDetectingSpecies = false
                 detectedSpecies = nil
                 detectionMessage = "Detection failed: \(error.localizedDescription)"
             }

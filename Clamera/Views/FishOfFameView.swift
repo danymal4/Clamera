@@ -18,6 +18,7 @@ struct FishPost: Identifiable, Codable {
 struct FishOfFameView: View {
     @EnvironmentObject var user: User
     @State private var showAlbumPicker = false
+    @State private var pendingPost: FishPost? = nil
 
     var body: some View {
         ZStack {
@@ -72,36 +73,39 @@ struct FishOfFameView: View {
                         }
                         .padding(.top, 80)
                     } else {
-                        // Feed
-                        LazyVStack(spacing: 24) {
+                        VStack(spacing: 24) {
                             ForEach(user.fishOfFamePosts) { post in
-                                // ✨ Now using the dedicated independent row view!
                                 FishPostRowView(post: post)
+                                    .id(post.id)
                             }
                         }
+                        .id(user.fishOfFamePosts.count)
                     }
                 }
                 .padding(.bottom, 100)
             }
             .background(Color.blue.opacity(0.01))
-            .sheet(isPresented: $showAlbumPicker) {
-                PostPreviewPickerView { selectedFish, speciesName in
-                    if !user.fishOfFamePosts.contains(where: { $0.id == selectedFish.id }) {
-                        let newPost = FishPost(
-                            id: selectedFish.id,
-                            photo: selectedFish.photo,
-                            speciesName: speciesName,
-                            caption: selectedFish.description,
-                            datePosted: selectedFish.dateCaught
-                        )
-                        user.fishOfFamePosts.insert(newPost, at: 0)
-                        
+            .sheet(isPresented: $showAlbumPicker, onDismiss: {
+                if let post = pendingPost {
+                    if !user.fishOfFamePosts.contains(where: { $0.id == post.id }) {
+                        user.fishOfFamePosts.insert(post, at: 0)
                         Task {
                             if let authUser = AuthManager.shared.user {
                                 await FirestoreManager.shared.saveUser(user: authUser)
                             }
                         }
                     }
+                    pendingPost = nil
+                }
+            }) {
+                PostPreviewPickerView { selectedFish, speciesName in
+                    pendingPost = FishPost(
+                        id: selectedFish.id,
+                        photo: selectedFish.photo,
+                        speciesName: speciesName,
+                        caption: selectedFish.description,
+                        datePosted: selectedFish.dateCaught
+                    )
                 }
                 .environmentObject(user)
             }
@@ -109,11 +113,10 @@ struct FishOfFameView: View {
     }
 }
 
-// ✨ Extracted Row into a dedicated View struct
+// Extracted Row into a dedicated View struct.
 struct FishPostRowView: View {
     @EnvironmentObject var user: User
     let post: FishPost
-    @State private var showDeleteConfirm = false
     
     private var goldGradient: LinearGradient {
         LinearGradient(
@@ -166,67 +169,43 @@ struct FishPostRowView: View {
                 Text(post.datePosted.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
                     .foregroundColor(.secondary)
-                 
-                Button {
-                    showDeleteConfirm = true
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.red.opacity(0.8))
-                        .frame(width: 32, height: 32)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
-                .padding(.leading, 6)
             }
             .padding(.horizontal, 16)
 
-            // Post Image
-            Image(fishPhoto: post.photo)
-                .resizable()
-                .scaledToFill()
-                .frame(width: UIScreen.main.bounds.width - 32, height: UIScreen.main.bounds.width - 32)
-                .background(Color.cyan.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
+            // Photo + Caption area — tapping navigates to FishDetailsView,
+            // where "Remove from Fish of Fame" now lives as the reliable
+            // way to unpost a catch.
+            NavigationLink(destination: FishDetailsView(speciesStore: user.speciesStore, aquarium: user.aquarium, fishID: post.id)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    FishPhotoView(photo: post.photo, contentMode: .fill)
+                        .frame(width: UIScreen.main.bounds.width - 32, height: UIScreen.main.bounds.width - 32)
+                        .background(Color.cyan.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, y: 4)
 
-            // Caption & Species
-            VStack(alignment: .leading, spacing: 4) {
-                Text(post.speciesName)
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(goldGradient)
-                    .shadow(color: Color(red: 0.7, green: 0.5, blue: 0.1).opacity(0.25), radius: 1, x: 0.5, y: 0.5)
-                 
-                if !post.caption.isEmpty {
-                    Text(post.caption)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.black.opacity(0.8))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(post.speciesName)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(goldGradient)
+                            .shadow(color: Color(red: 0.7, green: 0.5, blue: 0.1).opacity(0.25), radius: 1, x: 0.5, y: 0.5)
+                         
+                        if !post.caption.isEmpty {
+                            Text(post.caption)
+                                .font(.system(size: 14))
+                                .foregroundColor(Color.black.opacity(0.8))
+                        }
+                    }
+                    .padding(.horizontal, 4)
                 }
+                .padding(.horizontal, 12)
             }
-            .padding(.horizontal, 16)
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 12)
         .background(Color.white)
         .cornerRadius(24)
         .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
         .padding(.horizontal, 16)
-        // ✨ The dialog is now attached directly to the individual row!
-        .confirmationDialog(
-            "Remove this post from your Fish of Fame?",
-            isPresented: $showDeleteConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Remove", role: .destructive) {
-                user.fishOfFamePosts.removeAll { $0.id == post.id }
-                
-                Task {
-                    if let authUser = AuthManager.shared.user {
-                        await FirestoreManager.shared.saveUser(user: authUser)
-                    }
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        }
     }
 }
 
@@ -263,9 +242,7 @@ struct PostPreviewPickerView: View {
                                 .padding(.top, 20)
 
                             VStack(alignment: .leading, spacing: 12) {
-                                Image(fishPhoto: fish.photo)
-                                    .resizable()
-                                    .scaledToFill()
+                                FishPhotoView(photo: fish.photo, contentMode: .fill)
                                     .frame(width: UIScreen.main.bounds.width - 64, height: UIScreen.main.bounds.width - 64)
                                     .background(Color.cyan.opacity(0.08))
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -314,9 +291,7 @@ struct PostPreviewPickerView: View {
                                             parentSpeciesName = species.name
                                         } label: {
                                             HStack(spacing: 12) {
-                                                Image(fishPhoto: fish.photo)
-                                                    .resizable()
-                                                    .scaledToFill()
+                                                FishPhotoView(photo: fish.photo, contentMode: .fill)
                                                     .frame(width: 45, height: 45)
                                                     .background(Color.cyan.opacity(0.08))
                                                     .clipShape(RoundedRectangle(cornerRadius: 8))

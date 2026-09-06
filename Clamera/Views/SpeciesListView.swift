@@ -256,9 +256,7 @@ struct SpeciesListView: View {
                                 species: species,
                                 clickable: true,
                                 showPinnedOnly: $showPinnedOnly
-                            ) {
-                                fish.isPinned.toggle()
-                            }
+                            )
                         }
                     }
                     .padding(.horizontal, 15)
@@ -277,7 +275,6 @@ struct SpeciesListView: View {
 // Grid item view with responsive aspect scaling
 struct FishGridItem: View {
 
-    @EnvironmentObject var speciesStore: SpeciesStore
     @ObservedObject var fish: Fish
     @ObservedObject var species: Species
     @EnvironmentObject var user: User
@@ -285,7 +282,6 @@ struct FishGridItem: View {
     @Binding var showPinnedOnly: Bool
 
     let clickable: Bool
-    var onTogglePinned: (() -> Void)?
 
     private var cardWidth: CGFloat { min(UIScreen.main.bounds.width - 32, 540) }
     private var cardHeight: CGFloat { cardWidth * 0.35 }
@@ -297,13 +293,11 @@ struct FishGridItem: View {
     init(fish: Fish,
          species: Species,
          clickable: Bool,
-         showPinnedOnly: Binding<Bool>,
-         onTogglePinned: (() -> Void)? = nil) {
+         showPinnedOnly: Binding<Bool>) {
           self.fish = fish
           self.species = species
           self.clickable = clickable
           self._showPinnedOnly = showPinnedOnly
-          self.onTogglePinned = onTogglePinned
      }
 
     var body: some View {
@@ -315,6 +309,44 @@ struct FishGridItem: View {
                 .buttonStyle(PlainButtonStyle())
             } else {
                 fishCardContent
+            }
+        }
+    }
+
+    /// Unpins any other currently-pinned fish (across ALL species — pinning
+    /// is a single global "featured catch," not per-species) and toggles
+    /// this one. Only the fish whose isPinned value actually changed get
+    /// written back to Firestore, since most fish in the list were already
+    /// unpinned and don't need a redundant document write.
+    ///
+    /// Uses user.speciesStore rather than a separate @EnvironmentObject
+    /// SpeciesStore — nothing in this view's ancestor hierarchy injects a
+    /// standalone SpeciesStore, so reading one directly crashes at runtime
+    /// ("No ObservableObject of type SpeciesStore found"). user is already
+    /// reliably injected everywhere in the app.
+    private func togglePinned() {
+        var changedFish: [Fish] = [fish]
+
+        for otherSpecies in user.speciesStore.speciesList {
+            for otherFish in otherSpecies.fishList where otherFish.id != fish.id && otherFish.isPinned {
+                otherFish.isPinned = false
+                changedFish.append(otherFish)
+            }
+        }
+
+        fish.isPinned.toggle()
+        user.speciesStore.assignPinnedDisplay()
+
+        if showPinnedOnly {
+            user.aquarium.refresh()
+        }
+
+        Task {
+            if let authUser = AuthManager.shared.user {
+                for changed in changedFish {
+                    await FirestoreManager.shared.saveFishCatch(changed, forUser: authUser.id)
+                }
+                await FirestoreManager.shared.saveUser(user: authUser)
             }
         }
     }
@@ -354,23 +386,8 @@ struct FishGridItem: View {
                 VStack {
                     ZStack {
                         Color.cyan.opacity(0.08)
-
-                        if fish.photo.hasPrefix("http") {
-                            AsyncImage(url: URL(string: fish.photo)) { image in
-                                image.resizable().scaledToFill()
-                            } placeholder: {
-                                ProgressView()
-                            }
-                        } else if isIconAsset {
-                            Image(fishPhoto: fish.photo)
-                                .resizable()
-                                .scaledToFit()
-                                .padding(8)
-                        } else {
-                            Image(fishPhoto: fish.photo)
-                                .resizable()
-                                .scaledToFill()
-                        }
+                        FishPhotoView(photo: fish.photo, contentMode: isIconAsset ? .fit : .fill)
+                            .padding(isIconAsset ? 8 : 0)
                     }
                     .frame(width: cardHeight, height: cardHeight)
                     .cornerRadius(16)
@@ -400,17 +417,7 @@ struct FishGridItem: View {
                         Spacer()
 
                         Button {
-                            onTogglePinned?()
-                            user.speciesStore.assignPinnedDisplay()
-                            
-                            if showPinnedOnly {
-                                user.aquarium.refresh()
-                            }
-                            Task {
-                                if let user = AuthManager.shared.user {
-                                    await FirestoreManager.shared.saveUser(user: user)
-                                }
-                            }
+                            togglePinned()
                         } label: {
                             Image(fish.isPinned ? "anchor" : "anchorUnpinned")
                                 .resizable()
@@ -444,6 +451,7 @@ struct FishGridItem: View {
                                             titleVisibility: .visible) {
                             Button("Delete", role: .destructive) {
                                 let targetSize = fish.getSize()
+                                let deletedFishId = fish.id.uuidString
 
                                 if fish == user.speciesStore.pinnedDisplay {
                                     fish.isPinned.toggle()
@@ -460,8 +468,14 @@ struct FishGridItem: View {
 
                                 species.fishList.removeAll { $0.id == fish.id }
                                 Task {
-                                    if let user = AuthManager.shared.user {
-                                        await FirestoreManager.shared.saveUser(user: user)
+                                    if let authUser = AuthManager.shared.user {
+                                        // The local array removal above only
+                                        // updates in-memory state — without
+                                        // this, the catch's Firestore document
+                                        // stays in place and silently
+                                        // reappears on next fetch.
+                                        await FirestoreManager.shared.deleteFishCatch(fishId: deletedFishId, forUser: authUser.id)
+                                        await FirestoreManager.shared.saveUser(user: authUser)
                                     }
                                 }
                             }
@@ -514,6 +528,45 @@ extension Image {
 
         // 5. Fallback
         self.init(systemName: "photo")
+    }
+}
+
+// Shared view for displaying a fish photo anywhere in the app, correctly
+// handling all four storage formats: a real Firebase Storage URL (async
+// network load), a local Base64 string, an asset-catalog icon name, or a
+// local device file path. Image(fishPhoto:) alone can't handle URLs,
+// since SwiftUI's Image initializer is synchronous and can't await a
+// network fetch — AsyncImage is required for that specific case.
+struct FishPhotoView: View {
+    let photo: String
+    var contentMode: ContentMode = .fill
+
+    var body: some View {
+        Group {
+            if photo.hasPrefix("http"), let url = URL(string: photo) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: contentMode)
+                    case .failure:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .foregroundColor(.secondary.opacity(0.4))
+                    case .empty:
+                        ProgressView()
+                    @unknown default:
+                        ProgressView()
+                    }
+                }
+            } else {
+                Image(fishPhoto: photo)
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+            }
+        }
     }
 }
 

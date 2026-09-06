@@ -68,6 +68,12 @@ struct ClameraApp: App {
                     handleAppActive()
                 }
             }
+            // Forces the entire app to always render in light mode,
+            // regardless of the device's system Dark Mode setting. This is
+            // a direct SwiftUI API applied at the root of the view
+            // hierarchy — more reliable than the Info.plist
+            // UIUserInterfaceStyle key, which wasn't taking effect.
+            .preferredColorScheme(.light)
         }
     }
 

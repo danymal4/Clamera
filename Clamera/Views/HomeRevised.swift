@@ -60,9 +60,7 @@ struct HomeRevised: View {
                                 .navigationBarTitleDisplayMode(.inline)
                             ) {
                                 HStack(spacing: 16) {
-                                    Image(fishPhoto: fish.photo)
-                                        .resizable()
-                                        .scaledToFill()
+                                    FishPhotoView(photo: fish.photo, contentMode: .fill)
                                         .frame(width: 84, height: 84)
                                         .clipShape(RoundedRectangle(cornerRadius: 16))
                                         .shadow(color: .black.opacity(0.15), radius: 6, y: 3)

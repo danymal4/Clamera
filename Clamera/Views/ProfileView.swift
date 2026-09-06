@@ -38,7 +38,7 @@ struct ProfileView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 30) {
+            VStack(spacing: 18) {
                 
                 // Top Edit Profile Image/Info button
                 HStack {
@@ -53,11 +53,11 @@ struct ProfileView: View {
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(10)
                     }
-                    .padding(.top, 10)
+                    .padding(.top, 6)
                     .padding(.trailing, 10)
                 }
 
-                VStack(spacing: 12) {
+                VStack(spacing: 10) {
                     // Profile picture
                     if user.profilePicture.hasPrefix("http") {
                         AsyncImage(url: URL(string: user.profilePicture)) { image in
@@ -65,7 +65,7 @@ struct ProfileView: View {
                         } placeholder: {
                             ProgressView()
                         }
-                        .frame(width: 140, height: 140)
+                        .frame(width: 110, height: 110)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                         .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
@@ -74,7 +74,7 @@ struct ProfileView: View {
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 140, height: 140)
+                            .frame(width: 110, height: 110)
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 4))
                             .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
@@ -82,7 +82,7 @@ struct ProfileView: View {
                         Image(systemName: "person.crop.circle.fill")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 140, height: 140)
+                            .frame(width: 110, height: 110)
                             .foregroundColor(.gray.opacity(0.6))
                             .background(Circle().fill(Color(.systemGray5)))
                             .clipShape(Circle())
@@ -112,7 +112,7 @@ struct ProfileView: View {
                         }
                     }
                 }
-                .padding(.top, 5)
+                .padding(.top, 2)
 
                 VStack(spacing: 0) {
                     infoRow(title: "Email", value: user.email)
@@ -144,7 +144,7 @@ struct ProfileView: View {
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
-                    .padding(.vertical, 15)
+                    .padding(.vertical, 12)
                     .background(RoundedRectangle(cornerRadius: 20)
                         .fill(Color(.systemGray6)))
                 }
@@ -173,15 +173,15 @@ struct ProfileView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 14)
                     .background(RoundedRectangle(cornerRadius: 20)
                         .stroke(Color.red.opacity(0.7), lineWidth: 1))
                 }
                 .disabled(isLoggingOut)
                 .padding(.horizontal)
-                .padding(.top, 20)
+                .padding(.top, 6)
                 
-                Spacer(minLength: 30)
+                Spacer(minLength: 12)
             }
         }
         .background(Color.blue.opacity(0.01))
@@ -240,7 +240,7 @@ struct ProfileView: View {
                 .bold()
         }
         .padding(.horizontal)
-        .padding(.vertical, 15)
+        .padding(.vertical, 12)
     }
 
     private func divider() -> some View {

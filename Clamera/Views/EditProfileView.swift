@@ -15,6 +15,7 @@ struct EditProfileView: View {
     
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var profileImage: UIImage? = nil
+    @State private var isApplying = false
     
     // Password change states
     @State private var showPasswordPrompt = false
@@ -74,6 +75,7 @@ struct EditProfileView: View {
                                     .foregroundColor(.blue)
                                     .background(Circle().fill(Color.white))
                             }
+                            .disabled(isApplying)
                         }
                         .padding(.vertical, 10)
                         Spacer()
@@ -108,25 +110,38 @@ struct EditProfileView: View {
                             showPasswordPrompt = true
                         }
                         .foregroundColor(.blue)
+                        .disabled(isApplying)
                     }
                 }
             }
             .navigationTitle("Edit Profile")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
-                        Task {
-                            if let profileImage = profileImage,
-                               let imageData = profileImage.jpegData(compressionQuality: 0.5) {
-                                let base64String = imageData.base64EncodedString()
-                                await MainActor.run {
-                                    user.profilePicture = base64String
+                    if isApplying {
+                        ProgressView()
+                    } else {
+                        Button("Apply") {
+                            isApplying = true
+                            Task {
+                                if let profileImage = profileImage {
+                                    // Resize to a small fixed dimension BEFORE
+                                    // compressing, so the resulting Base64
+                                    // string stays well under Firestore's
+                                    // 1 MiB document limit.
+                                    let resized = resizeImage(profileImage, targetSize: CGSize(width: 300, height: 300))
+                                    if let imageData = resized.jpegData(compressionQuality: 0.6) {
+                                        let base64String = imageData.base64EncodedString()
+                                        await MainActor.run {
+                                            user.profilePicture = base64String
+                                        }
+                                    }
                                 }
-                            }
 
-                            await FirestoreManager.shared.saveUser(user: user)
-                            await MainActor.run {
-                                presentationMode.wrappedValue.dismiss()
+                                await FirestoreManager.shared.saveUser(user: user)
+                                await MainActor.run {
+                                    isApplying = false
+                                    presentationMode.wrappedValue.dismiss()
+                                }
                             }
                         }
                     }
@@ -135,6 +150,7 @@ struct EditProfileView: View {
                     Button("Cancel") {
                         presentationMode.wrappedValue.dismiss()
                     }
+                    .disabled(isApplying)
                 }
             }
             .onChange(of: selectedItem) { _, newItem in
@@ -198,9 +214,6 @@ struct EditProfileView: View {
                                         await MainActor.run {
                                             isUpdatingPassword = false
                                             passwordSuccessMessage = "Password updated successfully!"
-                                            // Successful update confirms this is now the real
-                                            // password — safe to record its length.
-                                            user.passwordLength = newPasswordInput.count
                                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                                                 showPasswordPrompt = false
                                             }
@@ -219,6 +232,22 @@ struct EditProfileView: View {
                 }
                 .presentationDetents([.medium])
             }
+        }
+    }
+
+    private func resizeImage(_ image: UIImage, targetSize: CGSize) -> UIImage {
+        let widthRatio = targetSize.width / image.size.width
+        let heightRatio = targetSize.height / image.size.height
+        let scaleFactor = min(widthRatio, heightRatio)
+
+        let scaledSize = CGSize(
+            width: image.size.width * scaleFactor,
+            height: image.size.height * scaleFactor
+        )
+
+        let renderer = UIGraphicsImageRenderer(size: scaledSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: scaledSize))
         }
     }
 }

@@ -15,6 +15,7 @@ enum GeminiFishVisionError: LocalizedError {
     case missingResponseText
     case rateLimited(message: String?)
     case throttled(waitSeconds: Int)
+    case noFishDetected
 
     var errorDescription: String? {
         switch self {
@@ -28,6 +29,8 @@ enum GeminiFishVisionError: LocalizedError {
             return message ?? "Rate limit reached. Please wait and try again."
         case .throttled(let waitSeconds):
             return "Please wait \(waitSeconds)s before another detection."
+        case .noFishDetected:
+            return "We couldn't find a fish in that photo. Try again with a clearer shot, or enter the species manually."
         }
     }
 }
@@ -75,8 +78,20 @@ actor GeminiFishVisionService {
             }
 
             let cleaned = species.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // The Cloud Function returns the literal string "UNKNOWN" when
+            // it determines the photo doesn't actually show a fish — never
+            // treat that as a real species name, and never cache it (an
+            // "unknown" result shouldn't get permanently stuck to a
+            // particular cache key).
+            guard cleaned.uppercased() != "UNKNOWN" else {
+                throw GeminiFishVisionError.noFishDetected
+            }
+
             cachedPredictions[cacheKey] = cleaned
             return cleaned
+        } catch let error as GeminiFishVisionError {
+            throw error
         } catch let error as NSError {
             if error.domain == FunctionsErrorDomain,
                let code = FunctionsErrorCode(rawValue: error.code) {

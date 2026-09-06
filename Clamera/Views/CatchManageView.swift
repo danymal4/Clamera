@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import FirebaseStorage
 
 struct CatchManageView: View {
     
@@ -26,6 +27,16 @@ struct CatchManageView: View {
     @State private var currentStep: Int = 0
     @State private var showSpeciesSuggestions: Bool = false
     @State private var isSaving = false
+    @State private var uploadErrorMessage: String? = nil
+
+    // Tracks which text field is focused, so a "Done" button can be shown
+    // above the keyboard for all three fields — this matters especially
+    // for the weight field, since the number pad has no built-in Return
+    // key at all to dismiss the keyboard otherwise.
+    private enum Field: Hashable {
+        case species, description, weight
+    }
+    @FocusState private var focusedField: Field?
     
     private let maxCardWidth: CGFloat = 500
 
@@ -123,6 +134,14 @@ struct CatchManageView: View {
                 .frame(maxWidth: maxCardWidth)
                 .padding(.horizontal, 20)
 
+                if let uploadErrorMessage {
+                    Text(uploadErrorMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                }
+
                 // MARK: - Primary Action Button
                 VStack(spacing: 10) {
                     Button(action: {
@@ -140,6 +159,8 @@ struct CatchManageView: View {
                             if isSaving {
                                 ProgressView()
                                     .tint(.white)
+                                Text("Uploading photo...")
+                                    .bold()
                             } else {
                                 Text(currentStep == 2 ? "Confirm Catch" : "Next")
                                     .bold()
@@ -181,6 +202,14 @@ struct CatchManageView: View {
         }
         .navigationBarHidden(true)
         .background(Color(.systemGroupedBackground))
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+            }
+        }
         .onAppear {
             applyAutoDetectedSpeciesIfAvailable(autoDetectedSpecies)
         }
@@ -266,6 +295,7 @@ struct CatchManageView: View {
 
                     TextField(isDetectingAI ? "Identifying your fish..." : "Search or enter species", text: $species)
                         .font(.body)
+                        .focused($focusedField, equals: .species)
                         .onChange(of: species) { _, newValue in
                             showSpeciesSuggestions = !newValue.isEmpty
                             updatePreviewPoints()
@@ -374,6 +404,7 @@ struct CatchManageView: View {
 
             TextField("e.g. Caught on a spinner near the lake pier", text: $info, axis: .vertical)
                 .lineLimit(3...6)
+                .focused($focusedField, equals: .description)
                 .padding(16)
                 .background(Color(.secondarySystemGroupedBackground))
                 .cornerRadius(18)
@@ -397,6 +428,7 @@ struct CatchManageView: View {
                 TextField("0", text: $weightText)
                     .keyboardType(.numberPad)
                     .font(.title3.bold())
+                    .focused($focusedField, equals: .weight)
                     .onChange(of: weightText) { _, newValue in
                         weight = Int(newValue.filter { $0.isNumber })
                     }
@@ -471,6 +503,36 @@ struct CatchManageView: View {
         else { return .gray }
     }
     
+    /// Uploads the selected photo to Firebase Storage under
+    /// catchPhotos/{uid}/{filename}.jpg and returns the permanent download
+    /// URL as a String, or nil if the upload failed. Replaces the old
+    /// local-device-only file save, which caused catch photos to be
+    /// invisible on any device other than the one that took them.
+    private func uploadPhotoIfNeeded() async -> String? {
+        guard let image = selectedUIImage,
+              let jpegData = image.jpegData(compressionQuality: 0.75) else {
+            return nil
+        }
+
+        let fileName = "\(UUID().uuidString).jpg"
+        let storageRef = Storage.storage().reference()
+            .child("catchPhotos")
+            .child(user.id)
+            .child(fileName)
+
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+
+        do {
+            _ = try await storageRef.putDataAsync(jpegData, metadata: metadata)
+            let downloadURL = try await storageRef.downloadURL()
+            return downloadURL.absoluteString
+        } catch {
+            print("❌ Photo upload failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
     func saveCatch() async {
         guard let index = user.speciesStore.speciesList.firstIndex(where: {
             $0.name.lowercased() ==
@@ -478,17 +540,20 @@ struct CatchManageView: View {
         }) else { return }
 
         isSaving = true
+        uploadErrorMessage = nil
 
-        var photoKey = ""
-        if let image = selectedUIImage {
-            // 1. Save local document copy for instant rendering without web delay
-            photoKey = "\(UUID().uuidString).jpg"
-            if let jpegData = image.jpegData(compressionQuality: 0.75),
-               let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let fileURL = docDir.appendingPathComponent(photoKey)
-                try? jpegData.write(to: fileURL)
-            }
+        let photoURL = await uploadPhotoIfNeeded()
+
+        // If a photo was selected but the upload genuinely failed, stop
+        // here and let the user retry, rather than silently saving the
+        // catch with no photo at all.
+        if selectedUIImage != nil && photoURL == nil {
+            isSaving = false
+            uploadErrorMessage = "Couldn't upload your photo. Check your connection and try again."
+            return
         }
+
+        let photoKey = photoURL ?? ""
         
         let targetSpeciesName = user.speciesStore.speciesList[index].name
         let isFirstOfSpecies = user.speciesStore.speciesList[index].fishList.isEmpty

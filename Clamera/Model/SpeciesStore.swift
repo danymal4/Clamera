@@ -189,7 +189,23 @@ final class SpeciesStore: ObservableObject {
             let data = try Data(contentsOf: url)
             let decoded = try JSONDecoder().decode([FishData].self, from: data)
             
-            self.speciesList = decoded.map { fish in
+            // De-duplicate by CommonName. A duplicate entry in fish_data.json
+            // would otherwise create two separate Species objects sharing the
+            // same name — and both update(fishArray:) above and
+            // getDictionary() (which keys by name) would then collide on
+            // that duplicate, causing catches to be duplicated in the UI
+            // and/or silently overwritten on save.
+            var seenNames = Set<String>()
+            let deduped = decoded.filter { fish in
+                let key = fish.CommonName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                if seenNames.contains(key) {
+                    return false
+                }
+                seenNames.insert(key)
+                return true
+            }
+            
+            self.speciesList = deduped.map { fish in
                 Species(
                     name: fish.CommonName,
                     imageName: fish.Image,

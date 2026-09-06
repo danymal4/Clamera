@@ -30,10 +30,11 @@ class FirestoreManager: ObservableObject {
     }
 
     /// Saves a single catch as its own small document in the user's
-    /// catches subcollection, instead of embedding it in the main user
-    /// document — this is what keeps the main document safely under
-    /// Firestore's 1 MiB per-document limit no matter how many fish
-    /// someone catches over time.
+    /// catches subcollection. Also works as an upsert for EXISTING
+    /// catches — since setData() overwrites the whole document keyed by
+    /// the fish's own id, calling this again after editing a fish's
+    /// description, weight, or pinned status correctly persists that
+    /// change, rather than only updating local memory.
     func saveFishCatch(_ fish: Fish, forUser uid: String) async {
         guard !uid.isEmpty else { return }
         do {
@@ -42,6 +43,22 @@ class FirestoreManager: ObservableObject {
                 .setData(fish.getDictionary())
         } catch {
             print("Error saving fish catch: \(error)")
+        }
+    }
+
+    /// Permanently deletes a single catch document from the user's
+    /// catches subcollection. Needed whenever a user deletes a fish from
+    /// their Album — without this, the local array update alone leaves
+    /// the Firestore document in place, and it silently reappears the
+    /// next time the app fetches data.
+    func deleteFishCatch(fishId: String, forUser uid: String) async {
+        guard !uid.isEmpty else { return }
+        do {
+            try await db.collection("users").document(uid)
+                .collection("catches").document(fishId)
+                .delete()
+        } catch {
+            print("Error deleting fish catch: \(error)")
         }
     }
 

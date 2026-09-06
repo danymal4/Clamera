@@ -10,12 +10,18 @@ struct FishDetailsView: View {
     
     @ObservedObject var speciesStore: SpeciesStore
     @ObservedObject var aquarium: AquariumFishList
+    @EnvironmentObject var user: User
     
     let fishID: UUID
 
     @State private var isEditing = false
     @State private var editedDescription = ""
     @State private var editedWeightString = ""
+    @State private var showRemoveFromFameConfirm = false
+
+    private var isInFishOfFame: Bool {
+        user.fishOfFamePosts.contains { $0.id == fishID }
+    }
 
     var body: some View {
         ZStack {
@@ -43,9 +49,7 @@ struct FishDetailsView: View {
                         // Main Image Card with Pin Overlay
                         ZStack(alignment: .topTrailing) {
                             ZStack(alignment: .bottom) {
-                                Image(fishPhoto: fish.photo)
-                                    .resizable()
-                                    .scaledToFit()
+                                FishPhotoView(photo: fish.photo, contentMode: .fit)
                                     .frame(width: UIScreen.main.bounds.width * 0.9)
                                     .frame(minHeight: 220, maxHeight: 320)
                                     .padding(24)
@@ -56,20 +60,7 @@ struct FishDetailsView: View {
 
                             // Pin Button Overlay
                             Button {
-                                for speciesIndex in speciesStore.speciesList.indices {
-                                    for fishIndex in speciesStore.speciesList[speciesIndex].fishList.indices {
-                                        speciesStore.speciesList[speciesIndex].fishList[fishIndex].isPinned = false
-                                    }
-                                }
-                                
-                                binding.isPinned.wrappedValue.toggle()
-                                speciesStore.assignPinnedDisplay()
-                                
-                                Task {
-                                    if let user = AuthManager.shared.user {
-                                        await FirestoreManager.shared.saveUser(user: user)
-                                    }
-                                }
+                                togglePinned(fish)
                             } label: {
                                 Image(fish.isPinned ? "anchor" : "anchorUnpinned")
                                     .resizable()
@@ -110,10 +101,31 @@ struct FishDetailsView: View {
                                             if let weight = Double(editedWeightString) {
                                                 binding.fishWeight.wrappedValue = Int(weight)
                                             }
+
+                                            // Keep any active Fish of Fame post
+                                            // for this fish in sync — FishPost
+                                            // is a separate snapshot taken at
+                                            // share time, so it doesn't
+                                            // automatically reflect later
+                                            // edits to the underlying Fish.
+                                            if let postIndex = user.fishOfFamePosts.firstIndex(where: { $0.id == fishID }) {
+                                                let existingPost = user.fishOfFamePosts[postIndex]
+                                                user.fishOfFamePosts[postIndex] = FishPost(
+                                                    id: existingPost.id,
+                                                    photo: binding.photo.wrappedValue,
+                                                    speciesName: existingPost.speciesName,
+                                                    caption: editedDescription,
+                                                    datePosted: existingPost.datePosted
+                                                )
+                                            }
                                             
                                             Task {
-                                                if let user = AuthManager.shared.user {
-                                                    await FirestoreManager.shared.saveUser(user: user)
+                                                if let authUser = AuthManager.shared.user {
+                                                    // Persist the edited description/weight to this
+                                                    // fish's own catch document — saveUser() alone
+                                                    // never touches the catches subcollection.
+                                                    await FirestoreManager.shared.saveFishCatch(binding.wrappedValue, forUser: authUser.id)
+                                                    await FirestoreManager.shared.saveUser(user: authUser)
                                                 }
                                             }
                                         } else {
@@ -147,6 +159,30 @@ struct FishDetailsView: View {
                                 }
                             }
                             .padding(.horizontal)
+
+                            // Remove from Fish of Fame
+                            if isInFishOfFame {
+                                Divider()
+                                    .padding(.horizontal)
+
+                                Button(role: .destructive) {
+                                    showRemoveFromFameConfirm = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "star.slash.fill")
+                                        Text("Remove from Fish of Fame")
+                                    }
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.red)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(Color.red.opacity(0.4), lineWidth: 1.5)
+                                    )
+                                }
+                                .padding(.horizontal)
+                            }
                         }
                         .padding(.vertical, 18)
                         .background(
@@ -166,6 +202,50 @@ struct FishDetailsView: View {
             }
         }
         .background(Color.blue.opacity(0.08).ignoresSafeArea())
+        .confirmationDialog(
+            "Remove this post from your Fish of Fame?",
+            isPresented: $showRemoveFromFameConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Remove", role: .destructive) {
+                user.fishOfFamePosts.removeAll { $0.id == fishID }
+                Task {
+                    if let authUser = AuthManager.shared.user {
+                        await FirestoreManager.shared.saveUser(user: authUser)
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    /// Unpins any other currently-pinned fish (across ALL species) and
+    /// toggles this one. Only the fish whose isPinned value actually
+    /// changed get written back to Firestore.
+    private func togglePinned(_ fish: Fish) {
+        var changedFish: [Fish] = [fish]
+
+        for speciesIndex in speciesStore.speciesList.indices {
+            for fishIndex in speciesStore.speciesList[speciesIndex].fishList.indices {
+                let otherFish = speciesStore.speciesList[speciesIndex].fishList[fishIndex]
+                if otherFish.id != fish.id && otherFish.isPinned {
+                    otherFish.isPinned = false
+                    changedFish.append(otherFish)
+                }
+            }
+        }
+
+        fish.isPinned.toggle()
+        speciesStore.assignPinnedDisplay()
+
+        Task {
+            if let authUser = AuthManager.shared.user {
+                for changed in changedFish {
+                    await FirestoreManager.shared.saveFishCatch(changed, forUser: authUser.id)
+                }
+                await FirestoreManager.shared.saveUser(user: authUser)
+            }
+        }
     }
 
     private func findFishBinding() -> Binding<Fish>? {
