@@ -30,6 +30,7 @@ struct AlbumView: View {
     @State private var showHint: Bool = false
     @State private var activeLetter: Character? = "A"
     @State private var didSearchChange: Bool = false
+    @FocusState private var isSearchFieldFocused: Bool
 
     enum FilterOption: String, CaseIterable, Identifiable {
         case alphabetical = "Species"
@@ -233,6 +234,7 @@ struct AlbumView: View {
                             .shadow(color: .black.opacity(0.1), radius: 8)
                             .offset(y: showSearch ? -35 : 100)
                             .animation(.easeInOut, value: showSearch)
+                            .focused($isSearchFieldFocused)
                          
                         Spacer()
                     }
@@ -279,6 +281,14 @@ struct AlbumView: View {
             }
         }
         .background(Color.blue.opacity(0.02))
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    isSearchFieldFocused = false
+                }
+            }
+        }
     }
 
     func scrollToLetter(_ letter: Character, proxy: ScrollViewProxy) {

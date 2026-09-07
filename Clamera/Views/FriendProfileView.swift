@@ -360,6 +360,7 @@ struct GiftPointsSheet: View {
     @State private var isSending = false
     @State private var errorMessage: String?
     @State private var showSuccessAlert = false
+    @FocusState private var isAmountFieldFocused: Bool
     
     private var amount: Int {
         Int(amountText.filter { $0.isNumber }) ?? 0
@@ -418,6 +419,7 @@ struct GiftPointsSheet: View {
                         .frame(height: 64)
                         .background(Color(.secondarySystemBackground))
                         .cornerRadius(18)
+                        .focused($isAmountFieldFocused)
                     
                     // Preset increment chips
                     HStack(spacing: 8) {
@@ -477,6 +479,12 @@ struct GiftPointsSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isAmountFieldFocused = false
+                    }
                 }
             }
             .alert("Gift Sent!", isPresented: $showSuccessAlert) {

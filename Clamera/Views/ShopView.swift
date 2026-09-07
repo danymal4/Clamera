@@ -26,10 +26,15 @@ struct ShopView: View {
         case earnPoints
     }
     
-    @State private var selectedTab: ShopTab = .category(.all)
+    @State private var selectedTab: ShopTab
     @State private var searchText = ""
     @State private var selectedSort: ShopSortOption = .alphabetical
-    
+    @FocusState private var isSearchFieldFocused: Bool
+
+    init(initialTab: ShopTab = .category(.all)) {
+        _selectedTab = State(initialValue: initialTab)
+    }
+
     private var completeCatalog: [ShopItem] { ShopCatalog.items }
     
     private var dailyItems: (saleItem: ShopItem, regularItems: [ShopItem]) {
@@ -120,9 +125,13 @@ struct ShopView: View {
                                 }
                             }
                             .buttonStyle(.borderedProminent)
+                            .buttonBorderShape(.capsule)
                             .tint(selectedTab == .earnPoints ? Color(red: 0.3, green: 0.3, blue: 0.9) : Color(red: 0.3, green: 0.3, blue: 0.9).opacity(0.25))
                             .foregroundColor(selectedTab == .earnPoints ? .white : Color(red: 0.3, green: 0.3, blue: 0.9))
                             .bold()
+                            .overlay(
+                                Capsule().stroke(Color(red: 1.0, green: 0.84, blue: 0.0), lineWidth: 2)
+                            )
                              
                             Spacer()
                              
@@ -155,6 +164,7 @@ struct ShopView: View {
                                 .foregroundColor(.secondary)
                             TextField("Search fish and items...", text: $searchText)
                                 .textFieldStyle(.plain)
+                                .focused($isSearchFieldFocused)
                             if !searchText.isEmpty {
                                 Button(action: { searchText = "" }) {
                                     Image(systemName: "xmark.circle.fill")
@@ -362,6 +372,12 @@ struct ShopView: View {
                     .padding(.vertical, 6)
                     .background(Color(.systemGray6))
                     .clipShape(Capsule())
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isSearchFieldFocused = false
+                    }
                 }
             }
             .onAppear {

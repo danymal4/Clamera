@@ -12,6 +12,7 @@ struct CreateUsernameView: View {
     @State private var newUsername = ""
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @FocusState private var isUsernameFieldFocused: Bool
     
     var body: some View {
         ZStack {
@@ -74,6 +75,7 @@ struct CreateUsernameView: View {
                         .padding(.leading, 15)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .focused($isUsernameFieldFocused)
                         // Updated to use the modern zero-parameter/action closure for iOS 17+
                         .onChange(of: newUsername) {
                             errorMessage = nil
@@ -115,6 +117,14 @@ struct CreateUsernameView: View {
                  
                 Spacer()
                 Spacer()
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    isUsernameFieldFocused = false
+                }
             }
         }
     }

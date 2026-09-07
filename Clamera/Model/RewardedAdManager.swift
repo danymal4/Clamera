@@ -13,7 +13,16 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     @Published var rewardedAd: RewardedAd?
     @Published var isProcessingAdRequest = false
 
-    private let testAdUnitID = "ca-app-pub-3940256099942544/5224354917"
+    // Google's official sample rewarded ad unit — guaranteed to always
+    // fill instantly, on any device, with zero risk of AdMob flagging your
+    // own testing as invalid traffic. DEBUG builds (Xcode runs, including
+    // TestFlight-adjacent local testing) always use this. Release builds
+    // (Archive -> App Store) use the real, live ad unit.
+    #if DEBUG
+    private let adUnitID = "ca-app-pub-3940256099942544/1712485313"
+    #else
+    private let adUnitID = "ca-app-pub-5046133970931867/6627106148"
+    #endif
 
     override init() {
         super.init()
@@ -23,9 +32,21 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     func loadAd() {
         Task {
             do {
+                // No App Tracking Transparency prompt is shown in this app, so
+                // there is no user consent to key ads to cross-app activity.
+                // Explicitly mark every request non-personalized (Google's
+                // documented "npa=1" flag) rather than leaving it to the
+                // SDK's default — ads still show and still pay, they're just
+                // based on this app's own context instead of the user's
+                // wider ad history.
+                let extras = Extras()
+                extras.additionalParameters = ["npa": "1"]
+                let request = Request()
+                request.register(extras)
+
                 let ad = try await RewardedAd.load(
-                    with: testAdUnitID,
-                    request: Request()
+                    with: adUnitID,
+                    request: request
                 )
                 self.rewardedAd = ad
                 self.rewardedAd?.fullScreenContentDelegate = self

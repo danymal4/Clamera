@@ -18,6 +18,8 @@ struct FishDetailsView: View {
     @State private var editedDescription = ""
     @State private var editedWeightString = ""
     @State private var showRemoveFromFameConfirm = false
+    private enum EditField: Hashable { case description, weight }
+    @FocusState private var focusedEditField: EditField?
 
     private var isInFishOfFame: Bool {
         user.fishOfFamePosts.contains { $0.id == fishID }
@@ -143,6 +145,7 @@ struct FishDetailsView: View {
                                     VStack(spacing: 10) {
                                         TextField("Description", text: $editedDescription)
                                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                                            .focused($focusedEditField, equals: .description)
                                         
                                         HStack {
                                             Text("Weight (lbs):")
@@ -150,6 +153,7 @@ struct FishDetailsView: View {
                                             TextField("Weight", text: $editedWeightString)
                                                 .keyboardType(.decimalPad)
                                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                .focused($focusedEditField, equals: .weight)
                                         }
                                     }
                                 } else {
@@ -216,6 +220,14 @@ struct FishDetailsView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focusedEditField = nil
+                }
+            }
         }
     }
 

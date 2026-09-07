@@ -12,6 +12,7 @@ struct GoogleUsernameSetupView: View {
     @State private var usernameInput = ""
     @State private var errorMessage: String? = nil
     @State private var isLoading = false
+    @FocusState private var isUsernameFieldFocused: Bool
     
     var body: some View {
         NavigationStack {
@@ -42,6 +43,7 @@ struct GoogleUsernameSetupView: View {
                     TextField("Enter username", text: $usernameInput)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .focused($isUsernameFieldFocused)
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(16)
@@ -107,6 +109,14 @@ struct GoogleUsernameSetupView: View {
             .navigationBarItems(leading: Button("Cancel") {
                 authManager.signOut()
             })
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isUsernameFieldFocused = false
+                    }
+                }
+            }
         }
         .interactiveDismissDisabled()
     }

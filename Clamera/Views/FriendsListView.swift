@@ -349,6 +349,7 @@ struct AddFriendSheet: View {
     @State private var errorMessage: String? = nil
     @State private var isLoading = false
     @State private var requestSent = false
+    @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
         NavigationView {
@@ -358,6 +359,7 @@ struct AddFriendSheet: View {
                     .autocapitalization(.none)
                     .padding(.horizontal)
                     .padding(.top, 20)
+                    .focused($isSearchFieldFocused)
 
                 Button("Search") {
                     Task {
@@ -473,6 +475,14 @@ struct AddFriendSheet: View {
             .navigationBarItems(trailing: Button("Done") {
                 isPresented = false
             })
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isSearchFieldFocused = false
+                    }
+                }
+            }
         }
     }
 }

@@ -10,12 +10,26 @@ import Firebase
 import FirebaseAuth
 import GoogleSignIn
 import AVFoundation
+import GoogleMobileAds
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
-        
+
+        // AdMob setup. DEBUG builds request Google's guaranteed-fill sample
+        // ad unit (see RewardedAdManager), so no test device registration is
+        // needed for day-to-day testing. This identifier only matters if you
+        // ever run a *Release*-configuration build (e.g. TestFlight) on your
+        // own device and want to see the real, live ad unit without risking
+        // an invalid-traffic flag on your AdMob account — if you do that,
+        // replace the placeholder below with the ID Xcode prints to the
+        // console the first time an ad request is made on that device.
+        #if !DEBUG
+        MobileAds.shared.requestConfiguration.testDeviceIdentifiers = ["YOUR_TEST_DEVICE_ID"]
+        #endif
+        MobileAds.shared.start(completionHandler: nil)
+
         // Configure global audio playback session so sounds play reliably across views and friends' aquariums
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])

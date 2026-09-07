@@ -232,7 +232,6 @@ extension FirestoreManager {
         do {
             try await ref.setData([
                 "uid": uid,
-                "email": email,
                 "username": username
             ])
             return true
@@ -287,7 +286,6 @@ extension FirestoreManager {
         do {
             try await db.collection("usernames").document(lowercased).setData([
                 "uid": user.id,
-                "email": user.email,
                 "username": trimmed
             ])
 

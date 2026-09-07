@@ -249,6 +249,12 @@ struct HologramHeaderView: View {
                 .padding(.vertical, 6)
                 .background(Color.black.opacity(0.05))
                 .cornerRadius(10)
+
+                NavigationLink(destination: ShopView(initialTab: .earnPoints)) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(Color(red: 0.3, green: 0.3, blue: 0.9))
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 40)
@@ -282,6 +288,23 @@ struct HologramHeaderView: View {
                         RoundedRectangle(cornerRadius: 30)
                             .stroke(Color.white.opacity(0.15), lineWidth: 1)
                     )
+                
+                // Quiet brand caption in the otherwise-empty space above the
+                // fish — a signature, not a headline, so it stays out of the
+                // way of the fish icon and the bottom Catch of the Week bar.
+                VStack {
+                    HStack {
+                        Text("Caught on Clamera")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                        Spacer()
+                    }
+                    .padding(16)
+                    
+                    Spacer()
+                }
                 
                 ZStack {
                     if let catchOfTheWeek = user.speciesStore.catchOfTheWeek {

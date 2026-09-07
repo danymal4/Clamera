@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
 struct SignInView: View {
     
@@ -24,6 +25,11 @@ struct SignInView: View {
     // Separate loading flag just for the Google button, so it can show its
     // own spinner without being tied to the email/password flow's isLoading.
     @State private var isGoogleSignInLoading = false
+    // Holds the raw (unhashed) nonce between the Apple button's onRequest
+    // and onCompletion callbacks so it can be verified against the token
+    // Apple returns.
+    @State private var appleSignInNonce: String?
+    @FocusState private var isFieldFocused: Bool
     
     enum SignInStep {
         case email
@@ -85,6 +91,7 @@ struct SignInView: View {
                                 TextField("Enter your email or username", text: $emailOrUsername)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
+                                    .focused($isFieldFocused)
                                     .padding()
                                     .background(Color(.systemGray6))
                                     .cornerRadius(16)
@@ -178,10 +185,12 @@ struct SignInView: View {
                                         TextField("Enter your password", text: $password)
                                             .textInputAutocapitalization(.never)
                                             .autocorrectionDisabled()
+                                            .focused($isFieldFocused)
                                     } else {
                                         SecureField("Enter your password", text: $password)
                                             .textInputAutocapitalization(.never)
                                             .autocorrectionDisabled()
+                                            .focused($isFieldFocused)
                                     }
                                      
                                     Button {
@@ -288,12 +297,47 @@ struct SignInView: View {
                         .disabled(isGoogleSignInLoading)
                         .frame(maxWidth: 350)
                         .padding(.horizontal, 20)
+
+                        SignInWithAppleButton(.signIn) { request in
+                            let nonce = AuthManager.randomNonceString()
+                            appleSignInNonce = nonce
+                            request.requestedScopes = [.fullName, .email]
+                            request.nonce = AuthManager.sha256(nonce)
+                        } onCompletion: { result in
+                            switch result {
+                            case .success(let authorization):
+                                guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                                      let nonce = appleSignInNonce,
+                                      let identityToken = credential.identityToken,
+                                      let idTokenString = String(data: identityToken, encoding: .utf8) else {
+                                    print("Apple sign-in: missing credential/nonce/token")
+                                    return
+                                }
+                                Task {
+                                    await authManager.signInWithApple(idTokenString: idTokenString, nonce: nonce, fullName: credential.fullName)
+                                }
+                            case .failure(let error):
+                                print("Apple sign-in failed: \(error.localizedDescription)")
+                            }
+                        }
+                        .signInWithAppleButtonStyle(.black)
+                        .frame(maxWidth: 350, minHeight: 50)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 20)
                     }
                     .padding(.bottom, 20)
                 }
             }
             .navigationDestination(isPresented: $showSignUp) {
                 SignUpView()
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isFieldFocused = false
+                    }
+                }
             }
         }
     }

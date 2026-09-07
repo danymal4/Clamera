@@ -11,6 +11,9 @@ import FirebaseAuth
 import GoogleSignIn
 import FirebaseCore
 import FirebaseFirestore
+import FirebaseFunctions
+import AuthenticationServices
+import CryptoKit
 
 struct PendingGoogleUser: Identifiable {
     let id: String
@@ -143,20 +146,22 @@ class AuthManager: ObservableObject {
         var emailToUse = loginInput
          
         if !loginInput.contains("@") {
-            let db = Firestore.firestore()
             let cleanedInput = loginInput.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
              
-            let mappingDoc = try await db.collection("usernames").document(cleanedInput).getDocument()
-             
-            guard mappingDoc.exists, let data = mappingDoc.data() else {
+            // Username -> email is resolved server-side (Cloud Function using
+            // the Admin SDK) so the client never reads a document containing
+            // another user's email address.
+            do {
+                let result = try await Functions.functions().httpsCallable("resolveUsernameToEmail").call(["username": cleanedInput])
+                guard let data = result.data as? [String: Any], let fetchedEmail = data["email"] as? String else {
+                    throw NSError(domain: "AuthError", code: 404, userInfo: [NSLocalizedDescriptionKey: "No account found with that username."])
+                }
+                emailToUse = fetchedEmail
+            } catch let error as NSError where error.domain == "AuthError" {
+                throw error
+            } catch {
                 throw NSError(domain: "AuthError", code: 404, userInfo: [NSLocalizedDescriptionKey: "No account found with that username."])
             }
-             
-            guard let fetchedEmail = data["email"] as? String else {
-                throw NSError(domain: "AuthError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Could not find an email attached to this username."])
-            }
-             
-            emailToUse = fetchedEmail
         }
          
         let result = try await Auth.auth().signIn(withEmail: emailToUse, password: password)
@@ -204,6 +209,54 @@ class AuthManager: ObservableObject {
         }
     }
     
+    // MARK: - Sign in with Apple
+
+    /// Generates a cryptographically-random nonce for the Sign in with Apple
+    /// request. The raw string is sent to Apple's SDK (hashed) and also kept
+    /// around unhashed so Firebase can verify the returned identity token
+    /// really answers this request (Apple/Firebase's standard replay-
+    /// protection handshake).
+    static func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        if errorCode != errSecSuccess {
+            // Extremely unlikely (would mean the system RNG is broken); fall
+            // back to a still-random, if less rigorously sourced, string
+            // rather than crashing the sign-in flow.
+            return UUID().uuidString + UUID().uuidString
+        }
+
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        return String(randomBytes.map { charset[Int($0) % charset.count] })
+    }
+
+    static func sha256(_ input: String) -> String {
+        let hashed = SHA256.hash(data: Data(input.utf8))
+        return hashed.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
+    /// Completes a Sign in with Apple flow that was started with a
+    /// SignInWithAppleButton in the UI. `nonce` must be the same raw
+    /// (unhashed) string that was hashed into the original request's
+    /// nonce field.
+    @MainActor
+    func signInWithApple(idTokenString: String, nonce: String, fullName: PersonNameComponents?) async {
+        let credential = OAuthProvider.appleCredential(
+            withIDToken: idTokenString,
+            rawNonce: nonce,
+            fullName: fullName
+        )
+
+        do {
+            let authResult = try await Auth.auth().signIn(with: credential)
+            print("Successfully signed in with Apple! UID: \(authResult.user.uid)")
+            await checkUserDocumentAndRoute(firebaseUser: authResult.user)
+        } catch {
+            print("APPLE SIGN-IN ERROR: \(error.localizedDescription)")
+        }
+    }
+
     @MainActor
     private func checkUserDocumentAndRoute(firebaseUser: FirebaseAuth.User) async {
         let db = Firestore.firestore()

@@ -134,6 +134,23 @@ struct ProfileView: View {
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4))
                 .padding(.horizontal)
 
+                NavigationLink(destination: ShopView(initialTab: .earnPoints)) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                        Text("Earn Clam Points")
+                    }
+                    .font(.headline.bold())
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color(red: 0.3, green: 0.3, blue: 0.9))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(Color(red: 1.0, green: 0.84, blue: 0.0), lineWidth: 2)
+                    )
+                }
+                .padding(.horizontal)
+
                 Link(destination: termsOfServiceURL) {
                     HStack {
                         Text("Terms of Service")

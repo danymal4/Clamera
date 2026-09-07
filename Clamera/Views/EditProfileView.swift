@@ -24,6 +24,8 @@ struct EditProfileView: View {
     @State private var passwordErrorMessage: String? = nil
     @State private var passwordSuccessMessage: String? = nil
     @State private var isUpdatingPassword = false
+    private enum PasswordField: Hashable { case current, new }
+    @FocusState private var focusedPasswordField: PasswordField?
     
     init(user: User) { }
     
@@ -171,9 +173,11 @@ struct EditProfileView: View {
                             SecureField("Current Password", text: $currentPasswordInput)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
+                                .focused($focusedPasswordField, equals: .current)
                             SecureField("New Password", text: $newPasswordInput)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
+                                .focused($focusedPasswordField, equals: .new)
                         }
                         
                         if let passwordErrorMessage {
@@ -227,6 +231,12 @@ struct EditProfileView: View {
                                 }
                             }
                             .disabled(currentPasswordInput.isEmpty || newPasswordInput.isEmpty || isUpdatingPassword)
+                        }
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                focusedPasswordField = nil
+                            }
                         }
                     }
                 }
