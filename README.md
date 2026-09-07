@@ -40,4 +40,15 @@ I want to sincerely thank and acknowledge everyone else who contributed to this 
 
 ## Screenshots
 
-_(add a few here)_
+<p float="left">
+  <img src="screenshots/home.png" width="180" />
+  <img src="screenshots/catch.png" width="180" />
+  <img src="screenshots/species-id.png" width="180" />
+  <img src="screenshots/fish-detail.png" width="180" />
+</p>
+<p float="left">
+  <img src="screenshots/album.png" width="180" />
+  <img src="screenshots/aquarium.png" width="180" />
+  <img src="screenshots/fish-of-fame.png" width="180" />
+  <img src="screenshots/shop.png" width="180" />
+</p>
