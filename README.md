@@ -31,8 +31,7 @@ Since June, 2026, I've been the sole developer: taking it from a class assignmen
 
 The early commit history reflects the original group project; commits from June 20, 2026 onward are mine.
 
-I want to sincerely thank and acknowledge everyone who contributed to this project along the way:
-- Dany Malaeb (Student)
+I want to sincerely thank and acknowledge everyone else who contributed to this project along the way:
 - Isaac Clavijo (Student)
 - Ellis Kamplain (Student)
 - Kaes van Dolder (Student)
