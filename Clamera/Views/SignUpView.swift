@@ -1,13 +1,14 @@
+
 //
 //  SignUpView.swift
 //  Clamera
 //
 //  Created by Dany Malaeb on 8/31/26.
 //
-
+ 
 import SwiftUI
 import AuthenticationServices
-
+ 
 struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""
@@ -15,28 +16,28 @@ struct SignUpView: View {
     @State private var step: SignUpStep = .username
     @State private var showSignIn = false
     @ObservedObject var authManager = AuthManager.shared
-    
+ 
     @State private var isLoading = false
     @State private var errorMessage: String?
-    
+ 
     @State private var isGoogleSignInLoading = false
     // Holds the raw (unhashed) nonce between the Apple button's onRequest
     // and onCompletion callbacks so it can be verified against the token
     // Apple returns.
     @State private var appleSignInNonce: String?
     @FocusState private var isFieldFocused: Bool
-
+ 
     enum SignUpStep {
         case username
         case password
     }
-    
+ 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color(.systemBackground)
                     .ignoresSafeArea()
-                
+ 
                 // MARK: - WaterView Background (Pinned securely to the bottom)
                 VStack {
                     Spacer()
@@ -45,13 +46,13 @@ struct SignUpView: View {
                         .opacity(0.4)
                         .ignoresSafeArea(edges: .bottom)
                 }
-                
+ 
                 // MARK: - Rigid Content Container (Matches SignInView layout exactly)
                 VStack(spacing: 24) {
                     // Fixed top padding guarantees identical text box heights across both views
                     Color.clear
                         .frame(height: 10)
-                    
+ 
                     // MARK: - App Logo & Header
                     VStack(spacing: 12) {
                         Image("logo white")
@@ -60,7 +61,7 @@ struct SignUpView: View {
                             .frame(width: 110, height: 110)
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                             .shadow(color: .cyan.opacity(0.5), radius: 8, x: 0, y: 4)
-                        
+ 
                         Text("Clamera")
                             .font(.custom("ChalkboardSE-Bold", size: 50))
                             .foregroundStyle(
@@ -70,13 +71,13 @@ struct SignUpView: View {
                                     endPoint: .trailing
                                 )
                             )
-                        
+ 
                         Text(step == .username ? "Create an account" : "Set your email & password")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.bottom, 10)
-                    
+ 
                     // MARK: - Progressive Form Fields with Slide Transition
                     VStack(spacing: 16) {
                         if step == .username {
@@ -85,7 +86,7 @@ struct SignUpView: View {
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
-                                
+ 
                                 TextField("Create a username", text: $username)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
@@ -98,7 +99,7 @@ struct SignUpView: View {
                                 insertion: .move(edge: .leading).combined(with: .opacity),
                                 removal: .move(edge: .leading).combined(with: .opacity)
                             ))
-                            
+ 
                             Button {
                                 guard !username.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -121,7 +122,7 @@ struct SignUpView: View {
                                 .shadow(color: .cyan.opacity(0.3), radius: 6, x: 0, y: 3)
                             }
                             .padding(.top, 8)
-                            
+ 
                         } else {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
@@ -142,12 +143,12 @@ struct SignUpView: View {
                                         .lineLimit(1)
                                 }
                                 .padding(.horizontal, 4)
-                                
+ 
                                 Text("Email")
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
-                                
+ 
                                 TextField("your@email.com", text: $email)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
@@ -157,13 +158,13 @@ struct SignUpView: View {
                                     .padding()
                                     .background(Color(.systemGray6))
                                     .cornerRadius(16)
-                                
+ 
                                 Text("Password")
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
                                     .padding(.top, 6)
-                                
+ 
                                 SecureField("Create a password", text: $password)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
@@ -176,7 +177,7 @@ struct SignUpView: View {
                                 insertion: .move(edge: .trailing).combined(with: .opacity),
                                 removal: .move(edge: .trailing).combined(with: .opacity)
                             ))
-                            
+ 
                             Button {
                                 Task {
                                     isLoading = true
@@ -209,7 +210,7 @@ struct SignUpView: View {
                             }
                             .disabled(isLoading || email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty)
                             .padding(.top, 8)
-
+ 
                             Text("By signing up, you agree to our [Terms of Service](https://danymal4.github.io/clamera-terms/)")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
@@ -221,7 +222,7 @@ struct SignUpView: View {
                     .frame(maxWidth: 350)
                     .padding(.horizontal, 20)
                     .transaction { $0.animation = nil }
-                    
+ 
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.caption)
@@ -229,14 +230,14 @@ struct SignUpView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
                     }
-                    
+ 
                     Spacer()
-                    
+ 
                     // MARK: - Secondary Options (Fixed at bottom)
                     VStack(spacing: 14) {
                         Divider()
                             .padding(.horizontal, 40)
-                        
+ 
                         Button {
                             showSignIn = true
                         } label: {
@@ -244,7 +245,7 @@ struct SignUpView: View {
                                 .font(.subheadline.bold())
                                 .foregroundColor(.cyan)
                         }
-                        
+ 
                         Button {
                             isGoogleSignInLoading = true
                             Task {
@@ -260,7 +261,7 @@ struct SignUpView: View {
                                     .scaledToFit()
                                     .frame(height: 50)
                                     .opacity(isGoogleSignInLoading ? 0 : 1)
-                                
+ 
                                 if isGoogleSignInLoading {
                                     ProgressView()
                                 }
@@ -269,7 +270,7 @@ struct SignUpView: View {
                         .disabled(isGoogleSignInLoading)
                         .frame(maxWidth: 350)
                         .padding(.horizontal, 20)
-
+ 
                         SignInWithAppleButton(.signUp) { request in
                             let nonce = AuthManager.randomNonceString()
                             appleSignInNonce = nonce
@@ -293,7 +294,7 @@ struct SignUpView: View {
                             }
                         }
                         .signInWithAppleButtonStyle(.black)
-                        .frame(maxWidth: 350, minHeight: 50)
+                        .frame(maxWidth: 350, minHeight: 50, maxHeight: 50)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .padding(.horizontal, 20)
                     }
@@ -314,7 +315,8 @@ struct SignUpView: View {
         }
     }
 }
-
+ 
 #Preview {
     SignUpView()
 }
+ 

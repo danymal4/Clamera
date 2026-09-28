@@ -21,7 +21,7 @@ class RewardedAdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     #if DEBUG
     private let adUnitID = "ca-app-pub-3940256099942544/1712485313"
     #else
-    private let adUnitID = "ca-app-pub-5046133970931867/6627106148"
+    private let adUnitID = "ca-app-pub-4800222326379004/9343455740"
     #endif
 
     override init() {

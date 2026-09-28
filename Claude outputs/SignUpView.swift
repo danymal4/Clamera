@@ -1,0 +1,320 @@
+//
+//  SignUpView.swift
+//  Clamera
+//
+//  Created by Dany Malaeb on 8/31/26.
+//
+
+import SwiftUI
+import AuthenticationServices
+
+struct SignUpView: View {
+    @State private var email = ""
+    @State private var password = ""
+    @State private var username = ""
+    @State private var step: SignUpStep = .username
+    @State private var showSignIn = false
+    @ObservedObject var authManager = AuthManager.shared
+
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+
+    @State private var isGoogleSignInLoading = false
+    // Holds the raw (unhashed) nonce between the Apple button's onRequest
+    // and onCompletion callbacks so it can be verified against the token
+    // Apple returns.
+    @State private var appleSignInNonce: String?
+    @FocusState private var isFieldFocused: Bool
+
+    enum SignUpStep {
+        case username
+        case password
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+
+                // MARK: - WaterView Background (Pinned securely to the bottom)
+                VStack {
+                    Spacer()
+                    WaterView()
+                        .frame(height: 360)
+                        .opacity(0.4)
+                        .ignoresSafeArea(edges: .bottom)
+                }
+
+                // MARK: - Rigid Content Container (Matches SignInView layout exactly)
+                VStack(spacing: 24) {
+                    // Fixed top padding guarantees identical text box heights across both views
+                    Color.clear
+                        .frame(height: 10)
+
+                    // MARK: - App Logo & Header
+                    VStack(spacing: 12) {
+                        Image("logo white")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 110, height: 110)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .shadow(color: .cyan.opacity(0.5), radius: 8, x: 0, y: 4)
+
+                        Text("Clamera")
+                            .font(.custom("ChalkboardSE-Bold", size: 50))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.cyan],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+
+                        Text(step == .username ? "Create an account" : "Set your email & password")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 10)
+
+                    // MARK: - Progressive Form Fields with Slide Transition
+                    VStack(spacing: 16) {
+                        if step == .username {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Username")
+                                    .font(.caption.bold())
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+
+                                TextField("Create a username", text: $username)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .focused($isFieldFocused)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(16)
+                            }
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .leading).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
+
+                            Button {
+                                guard !username.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    errorMessage = nil
+                                    step = .password
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Next")
+                                        .font(.headline)
+                                    Image(systemName: "arrow.right")
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    LinearGradient(colors: [Color.cyan, Color.blue], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .shadow(color: .cyan.opacity(0.3), radius: 6, x: 0, y: 3)
+                            }
+                            .padding(.top, 8)
+
+                        } else {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Button {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            errorMessage = nil
+                                            step = .username
+                                        }
+                                    } label: {
+                                        Label("Back", systemImage: "chevron.left")
+                                            .font(.caption.bold())
+                                            .foregroundColor(.cyan)
+                                    }
+                                    Spacer()
+                                    Text(username)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
+                                .padding(.horizontal, 4)
+
+                                Text("Email")
+                                    .font(.caption.bold())
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+
+                                TextField("your@email.com", text: $email)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .keyboardType(.emailAddress)
+                                    .opacity(0.4)
+                                    .focused($isFieldFocused)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(16)
+
+                                Text("Password")
+                                    .font(.caption.bold())
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+                                    .padding(.top, 6)
+
+                                SecureField("Create a password", text: $password)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .focused($isFieldFocused)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(16)
+                            }
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .trailing).combined(with: .opacity)
+                            ))
+
+                            Button {
+                                Task {
+                                    isLoading = true
+                                    errorMessage = nil
+                                    do {
+                                        try await AuthManager.shared.signUp(username: username, email: email, password: password)
+                                    } catch {
+                                        errorMessage = error.localizedDescription
+                                    }
+                                    isLoading = false
+                                }
+                            } label: {
+                                HStack {
+                                    if isLoading {
+                                        ProgressView()
+                                            .tint(.white)
+                                    } else {
+                                        Text("Sign Up")
+                                            .font(.headline)
+                                    }
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    LinearGradient(colors: [Color.cyan, Color.blue], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .shadow(color: .cyan.opacity(0.3), radius: 6, x: 0, y: 3)
+                            }
+                            .disabled(isLoading || email.trimmingCharacters(in: .whitespaces).isEmpty || password.isEmpty)
+                            .padding(.top, 8)
+
+                            Text("By signing up, you agree to our [Terms of Service](https://danymal4.github.io/clamera-terms/)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .tint(.cyan)
+                                .padding(.top, 4)
+                        }
+                    }
+                    .frame(maxWidth: 350)
+                    .padding(.horizontal, 20)
+                    .transaction { $0.animation = nil }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                    }
+
+                    Spacer()
+
+                    // MARK: - Secondary Options (Fixed at bottom)
+                    VStack(spacing: 14) {
+                        Divider()
+                            .padding(.horizontal, 40)
+
+                        Button {
+                            showSignIn = true
+                        } label: {
+                            Text("Already have an account? Sign In")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.cyan)
+                        }
+
+                        Button {
+                            isGoogleSignInLoading = true
+                            Task {
+                                await AuthManager.shared.signInWithGoogle()
+                                await MainActor.run {
+                                    isGoogleSignInLoading = false
+                                }
+                            }
+                        } label: {
+                            ZStack {
+                                Image("GoogleIcon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 50)
+                                    .opacity(isGoogleSignInLoading ? 0 : 1)
+
+                                if isGoogleSignInLoading {
+                                    ProgressView()
+                                }
+                            }
+                        }
+                        .disabled(isGoogleSignInLoading)
+                        .frame(maxWidth: 350)
+                        .padding(.horizontal, 20)
+
+                        SignInWithAppleButton(.signUp) { request in
+                            let nonce = AuthManager.randomNonceString()
+                            appleSignInNonce = nonce
+                            request.requestedScopes = [.fullName, .email]
+                            request.nonce = AuthManager.sha256(nonce)
+                        } onCompletion: { result in
+                            switch result {
+                            case .success(let authorization):
+                                guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                                      let nonce = appleSignInNonce,
+                                      let identityToken = credential.identityToken,
+                                      let idTokenString = String(data: identityToken, encoding: .utf8) else {
+                                    print("Apple sign-in: missing credential/nonce/token")
+                                    return
+                                }
+                                Task {
+                                    await authManager.signInWithApple(idTokenString: idTokenString, nonce: nonce, fullName: credential.fullName)
+                                }
+                            case .failure(let error):
+                                print("Apple sign-in failed: \(error.localizedDescription)")
+                            }
+                        }
+                        .signInWithAppleButtonStyle(.black)
+                        .frame(maxWidth: 350, minHeight: 50, maxHeight: 50)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 20)
+                    }
+                    .padding(.bottom, 20)
+                }
+            }
+            .navigationDestination(isPresented: $showSignIn) {
+                SignInView()
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isFieldFocused = false
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    SignUpView()
+}

@@ -4,14 +4,14 @@
 //
 //  Created by Dany Malaeb on 8/31/26.
 //
-
+ 
 import SwiftUI
 import AuthenticationServices
-
+ 
 struct SignInView: View {
-    
+ 
     @EnvironmentObject var authManager: AuthManager
-    
+ 
     @State private var emailOrUsername = ""
     @State private var password = ""
     @State private var step: SignInStep = .email
@@ -19,9 +19,9 @@ struct SignInView: View {
     @State private var errorMessage: String?
     @State private var showSignUp = false
     @State private var showPassword = false // Controls visibility toggle
-    
+ 
     @State private var failedAttempts = 0
-    
+ 
     // Separate loading flag just for the Google button, so it can show its
     // own spinner without being tied to the email/password flow's isLoading.
     @State private var isGoogleSignInLoading = false
@@ -30,18 +30,18 @@ struct SignInView: View {
     // Apple returns.
     @State private var appleSignInNonce: String?
     @FocusState private var isFieldFocused: Bool
-    
+ 
     enum SignInStep {
         case email
         case password
     }
-    
+ 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color(.systemBackground)
                     .ignoresSafeArea()
-                 
+ 
                 VStack {
                     Spacer()
                     WaterView()
@@ -49,12 +49,12 @@ struct SignInView: View {
                         .opacity(0.4)
                         .ignoresSafeArea(edges: .bottom)
                 }
-                 
+ 
                 // MARK: - Rigid Content Container (Matched geometry, zero bouncing)
                 VStack(spacing: 24) {
                     Color.clear
                         .frame(height: 10)
-                     
+ 
                     // MARK: - Logo & Title Header
                     VStack(spacing: 12) {
                         Image("logo white")
@@ -62,7 +62,7 @@ struct SignInView: View {
                             .scaledToFit()
                             .frame(width: 110, height: 110)
                             .shadow(color: .cyan.opacity(0.4), radius: 10, x: 0, y: 5)
-                         
+ 
                         Text("Clamera")
                             .font(.custom("ChalkboardSE-Bold", size: 50))
                             .foregroundStyle(
@@ -72,13 +72,13 @@ struct SignInView: View {
                                     endPoint: .trailing
                                 )
                             )
-                         
+ 
                         Text(step == .email ? "Sign In To Your Account" : "Welcome Back!")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.bottom, 10)
-                     
+ 
                     // MARK: - Progressive Form Fields
                     VStack(spacing: 16) {
                         if step == .email {
@@ -87,7 +87,7 @@ struct SignInView: View {
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
-                                 
+ 
                                 TextField("Enter your email or username", text: $emailOrUsername)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
@@ -100,14 +100,14 @@ struct SignInView: View {
                                 insertion: .move(edge: .leading).combined(with: .opacity),
                                 removal: .move(edge: .leading).combined(with: .opacity)
                             ))
-                             
+ 
                             Button {
                                 let cleanedInput = emailOrUsername.trimmingCharacters(in: .whitespaces)
                                 guard !cleanedInput.isEmpty else { return }
-                                
+ 
                                 isLoading = true
                                 errorMessage = nil
-                                
+ 
                                 Task {
                                     let exists: Bool
                                     if cleanedInput.contains("@") {
@@ -116,7 +116,7 @@ struct SignInView: View {
                                         let profile = await FirestoreManager.shared.findUserByUsername(cleanedInput)
                                         exists = (profile != nil)
                                     }
-                                    
+ 
                                     await MainActor.run {
                                         isLoading = false
                                         if exists {
@@ -151,7 +151,7 @@ struct SignInView: View {
                             }
                             .disabled(isLoading)
                             .padding(.top, 8)
-                             
+ 
                         } else {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
@@ -173,12 +173,12 @@ struct SignInView: View {
                                         .lineLimit(1)
                                 }
                                 .padding(.horizontal, 4)
-                                 
+ 
                                 Text("Password")
                                     .font(.caption.bold())
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 4)
-                                 
+ 
                                 // Password field with visibility toggle
                                 HStack {
                                     if showPassword {
@@ -192,7 +192,7 @@ struct SignInView: View {
                                             .autocorrectionDisabled()
                                             .focused($isFieldFocused)
                                     }
-                                     
+ 
                                     Button {
                                         showPassword.toggle()
                                     } label: {
@@ -208,7 +208,7 @@ struct SignInView: View {
                                 insertion: .move(edge: .trailing).combined(with: .opacity),
                                 removal: .move(edge: .trailing).combined(with: .opacity)
                             ))
-                             
+ 
                             Button {
                                 handleSignIn()
                             } label: {
@@ -237,7 +237,7 @@ struct SignInView: View {
                     .frame(maxWidth: 350)
                     .padding(.horizontal, 20)
                     .transaction { $0.animation = nil }
-                     
+ 
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.caption)
@@ -245,7 +245,7 @@ struct SignInView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
-
+ 
                     if failedAttempts >= 3 {
                         Text("If you originally signed up using Google, tap \"Sign in with Google\" below instead of entering a password.")
                             .font(.caption)
@@ -253,26 +253,26 @@ struct SignInView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
-                     
+ 
                     Spacer()
-                     
+ 
                     // MARK: - Secondary Options (Fixed at bottom)
                     VStack(spacing: 14) {
                         Divider()
                             .padding(.horizontal, 40)
-                         
+ 
                         HStack {
                             Text("Don't have an account?")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                             
+ 
                             Button("Sign Up") {
                                 showSignUp = true
                             }
                             .font(.subheadline.bold())
                             .foregroundColor(.cyan)
                         }
-                         
+ 
                         Button {
                             isGoogleSignInLoading = true
                             Task {
@@ -288,7 +288,7 @@ struct SignInView: View {
                                     .scaledToFit()
                                     .frame(height: 50)
                                     .opacity(isGoogleSignInLoading ? 0 : 1)
-                                
+ 
                                 if isGoogleSignInLoading {
                                     ProgressView()
                                 }
@@ -297,7 +297,7 @@ struct SignInView: View {
                         .disabled(isGoogleSignInLoading)
                         .frame(maxWidth: 350)
                         .padding(.horizontal, 20)
-
+ 
                         SignInWithAppleButton(.signIn) { request in
                             let nonce = AuthManager.randomNonceString()
                             appleSignInNonce = nonce
@@ -321,7 +321,7 @@ struct SignInView: View {
                             }
                         }
                         .signInWithAppleButtonStyle(.black)
-                        .frame(maxWidth: 350, minHeight: 50)
+                        .frame(maxWidth: 350, minHeight: 50, maxHeight: 50)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .padding(.horizontal, 20)
                     }
@@ -341,11 +341,11 @@ struct SignInView: View {
             }
         }
     }
-     
+ 
     private func handleSignIn() {
         isLoading = true
         errorMessage = nil
-         
+ 
         Task {
             do {
                 try await AuthManager.shared.signIn(loginInput: emailOrUsername, password: password)
@@ -363,8 +363,9 @@ struct SignInView: View {
         }
     }
 }
-
+ 
 #Preview {
     SignInView()
         .environmentObject(AuthManager.shared)
 }
+ 
