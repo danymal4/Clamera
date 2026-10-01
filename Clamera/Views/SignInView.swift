@@ -247,7 +247,7 @@ struct SignInView: View {
                     }
  
                     if failedAttempts >= 3 {
-                        Text("If you originally signed up using Google, tap \"Sign in with Google\" below instead of entering a password.")
+                        Text("If you originally signed up using Apple or Google, tap \"Sign in with Apple\" or \"Sign in with Google\" below instead of entering a password.")
                             .font(.caption)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)

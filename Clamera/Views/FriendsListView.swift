@@ -4,25 +4,25 @@
 //
 //  Created by Isaac Clavijo on 3/25/26.
 //
-
+ 
 import SwiftUI
 import FirebaseFirestore
-
+ 
 struct FriendsListView: View {
     @ObservedObject var user: User
     @State private var selectedTab: FriendTab = .friends
-     
+ 
     @State private var friendObjects: [Friend] = []
     @State private var incomingProfiles: [(id: String, name: String, profilePic: String)] = []
     @State private var outgoingProfiles: [(id: String, name: String, profilePic: String)] = []
-     
+ 
     @State private var showAddFriend = false
     @State private var listenerRegistration: ListenerRegistration? = nil
-     
+ 
     enum FriendTab {
         case friends, pending
     }
-
+ 
     var body: some View {
         VStack(spacing: 0) {
             // Header Tabs
@@ -36,13 +36,13 @@ struct FriendsListView: View {
             }
             .padding(.horizontal)
             .padding(.top, 10)
-
+ 
             if selectedTab == .friends {
                 friendsContent
             } else {
                 pendingContent
             }
-             
+ 
             Spacer()
         }
         .toolbar {
@@ -68,25 +68,27 @@ struct FriendsListView: View {
         .onChange(of: user.friends) { loadFriendData() }
         .onChange(of: user.incomingRequests) { loadFriendData() }
         .onChange(of: user.outgoingRequests) { loadFriendData() }
+        .onChange(of: user.blockedUsers) { loadFriendData() }
     }
-
+ 
     private func startListeningToUserChanges() {
         guard !user.id.isEmpty else { return }
         listenerRegistration?.remove()
-        
+ 
         let db = Firestore.firestore()
         listenerRegistration = db.collection("users").document(user.id).addSnapshotListener { snapshot, error in
             guard let document = snapshot, document.exists, let data = document.data() else { return }
-            
+ 
             Task { @MainActor in
                 self.user.friends = data["friends"] as? [String] ?? self.user.friends
                 self.user.incomingRequests = data["incoming_requests"] as? [String] ?? self.user.incomingRequests
                 self.user.outgoingRequests = data["outgoing_requests"] as? [String] ?? self.user.outgoingRequests
+                self.user.blockedUsers = data["blocked_users"] as? [String] ?? self.user.blockedUsers
                 loadFriendData()
             }
         }
     }
-
+ 
     private var friendsContent: some View {
         List {
             if friendObjects.isEmpty {
@@ -94,7 +96,7 @@ struct FriendsListView: View {
                     Text("No friends added yet!")
                         .font(.headline)
                         .foregroundColor(.secondary)
-                     
+ 
                     Button {
                         showAddFriend = true
                     } label: {
@@ -137,7 +139,7 @@ struct FriendsListView: View {
                                     .background(Circle().fill(Color(.systemGray5)))
                                     .clipShape(Circle())
                             }
-                             
+ 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(friend.name)
                                     .font(.headline)
@@ -145,7 +147,7 @@ struct FriendsListView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
-                             
+ 
                             Spacer()
                         }
                         .padding(.vertical, 4)
@@ -165,7 +167,7 @@ struct FriendsListView: View {
         }
         .listStyle(.plain)
     }
-
+ 
     private var pendingContent: some View {
         List {
             if !incomingProfiles.isEmpty {
@@ -196,12 +198,12 @@ struct FriendsListView: View {
                                     .background(Circle().fill(Color(.systemGray5)))
                                     .clipShape(Circle())
                             }
-                             
+ 
                             Text(req.name)
                                 .font(.headline)
-                             
+ 
                             Spacer()
-                             
+ 
                             Button("Accept") {
                                 Task {
                                     await FirestoreManager.shared.acceptFriendRequest(senderId: req.id, currentUserId: user.id)
@@ -213,7 +215,7 @@ struct FriendsListView: View {
                             .buttonStyle(.borderedProminent)
                             .tint(.green)
                             .controlSize(.small)
-                             
+ 
                             Button("Decline") {
                                 Task {
                                     await FirestoreManager.shared.declineFriendRequest(senderId: req.id, currentUserId: user.id)
@@ -228,7 +230,7 @@ struct FriendsListView: View {
                     }
                 }
             }
-
+ 
             if !outgoingProfiles.isEmpty {
                 Section(header: Text("Sent Requests")) {
                     ForEach(outgoingProfiles, id: \.id) { req in
@@ -257,12 +259,12 @@ struct FriendsListView: View {
                                     .background(Circle().fill(Color(.systemGray5)))
                                     .clipShape(Circle())
                             }
-                             
+ 
                             Text(req.name)
                                 .font(.headline)
-                             
+ 
                             Spacer()
-                             
+ 
                             Button("Cancel") {
                                 Task {
                                     await FirestoreManager.shared.cancelFriendRequest(targetUserId: req.id, currentUserId: user.id)
@@ -279,7 +281,7 @@ struct FriendsListView: View {
                     }
                 }
             }
-             
+ 
             if incomingProfiles.isEmpty && outgoingProfiles.isEmpty {
                 Text("No pending requests.")
                     .foregroundColor(.secondary)
@@ -290,39 +292,43 @@ struct FriendsListView: View {
         }
         .listStyle(.insetGrouped)
     }
-
+ 
     private func loadFriendData() {
         Task {
             let fetched = await FirestoreManager.shared.fetchUsers(byIds: user.friends)
-             
+ 
+            // Blocked users never show up in Friends or Pending, even if a
+            // stale request still exists for them somewhere.
+            let blocked = Set(user.blockedUsers)
+ 
             var incomingData: [(id: String, name: String, profilePic: String)] = []
-            for id in user.incomingRequests {
+            for id in user.incomingRequests where !blocked.contains(id) {
                 if let profile = await FirestoreManager.shared.fetchFriendProfile(userId: id) {
                     incomingData.append((id: id, name: profile.username, profilePic: profile.profilePicture))
                 }
             }
-             
+ 
             var outgoingData: [(id: String, name: String, profilePic: String)] = []
-            for id in user.outgoingRequests {
+            for id in user.outgoingRequests where !blocked.contains(id) {
                 if let profile = await FirestoreManager.shared.fetchFriendProfile(userId: id) {
                     outgoingData.append((id: id, name: profile.username, profilePic: profile.profilePicture))
                 }
             }
-             
+ 
             await MainActor.run {
-                self.friendObjects = fetched
+                self.friendObjects = fetched.filter { !blocked.contains($0.id) }
                 self.incomingProfiles = incomingData
                 self.outgoingProfiles = outgoingData
             }
         }
     }
 }
-
+ 
 struct TabButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
-
+ 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
@@ -330,7 +336,7 @@ struct TabButton: View {
                     .font(.subheadline)
                     .fontWeight(isSelected ? .bold : .medium)
                     .foregroundColor(isSelected ? .primary : .secondary)
-                 
+ 
                 Rectangle()
                     .fill(isSelected ? Color.accentColor : Color.clear)
                     .frame(height: 2)
@@ -339,18 +345,19 @@ struct TabButton: View {
         .frame(maxWidth: .infinity)
     }
 }
-
+ 
 struct AddFriendSheet: View {
     @ObservedObject var user: User
     @Binding var isPresented: Bool
-     
+ 
     @State private var searchUsername = ""
     @State private var searchResult: (id: String, name: String, profilePic: String)? = nil
     @State private var errorMessage: String? = nil
     @State private var isLoading = false
     @State private var requestSent = false
+    @State private var isUnblocking = false
     @FocusState private var isSearchFieldFocused: Bool
-
+ 
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -360,19 +367,25 @@ struct AddFriendSheet: View {
                     .padding(.horizontal)
                     .padding(.top, 20)
                     .focused($isSearchFieldFocused)
-
+ 
                 Button("Search") {
                     Task {
                         isLoading = true
                         errorMessage = nil
                         searchResult = nil
-                         
+                        requestSent = false
+ 
                         let result = await FirestoreManager.shared.findUserByUsername(searchUsername)
                         await MainActor.run {
                             isLoading = false
                             if let result = result {
                                 if result.id == user.id {
                                     errorMessage = "You cannot add yourself."
+                                } else if user.blockedUsers.contains(result.id) {
+                                    // Show the card with an Unblock option instead
+                                    // of an error — this is the only way to undo a
+                                    // block in the app.
+                                    searchResult = result
                                 } else if user.friends.contains(result.id) {
                                     errorMessage = "You are already friends with this user."
                                 } else if user.outgoingRequests.contains(result.id) {
@@ -391,16 +404,16 @@ struct AddFriendSheet: View {
                 .buttonStyle(.borderedProminent)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal)
-
+ 
                 if isLoading {
                     ProgressView()
                 }
-
+ 
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                 }
-
+ 
                 if let result = searchResult {
                     VStack(spacing: 14) {
                         HStack(spacing: 12) {
@@ -428,14 +441,31 @@ struct AddFriendSheet: View {
                                     .background(Circle().fill(Color(.systemGray5)))
                                     .clipShape(Circle())
                             }
-
+ 
                             Text(result.name)
                                 .font(.headline)
-
+ 
                             Spacer()
                         }
-
-                        if requestSent {
+ 
+                        if user.blockedUsers.contains(result.id) {
+                            Button {
+                                Task { await unblockUser(result.id) }
+                            } label: {
+                                HStack {
+                                    if isUnblocking {
+                                        ProgressView()
+                                    } else {
+                                        Image(systemName: "hand.raised.slash.fill")
+                                        Text("Unblock")
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.orange)
+                            .disabled(isUnblocking)
+                        } else if requestSent {
                             Text("Sent")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
@@ -468,7 +498,7 @@ struct AddFriendSheet: View {
                     .cornerRadius(12)
                     .padding(.horizontal)
                 }
-
+ 
                 Spacer()
             }
             .navigationTitle("Add Friend")
@@ -485,6 +515,27 @@ struct AddFriendSheet: View {
             }
         }
     }
+ 
+    private func unblockUser(_ blockedId: String) async {
+        isUnblocking = true
+        let db = Firestore.firestore()
+        do {
+            try await db.collection("users").document(user.id).updateData([
+                "blocked_users": FieldValue.arrayRemove([blockedId])
+            ])
+            await MainActor.run {
+                user.blockedUsers.removeAll { $0 == blockedId }
+                isUnblocking = false
+                // Refresh the card so it now shows "Add Friend" instead.
+                searchResult = searchResult
+            }
+        } catch {
+            await MainActor.run {
+                isUnblocking = false
+                errorMessage = "Couldn't unblock this user right now. Please try again."
+            }
+        }
+    }
 }
 #Preview {
     NavigationView {
@@ -498,3 +549,4 @@ struct AddFriendSheet: View {
         }())
     }
 }
+ 
