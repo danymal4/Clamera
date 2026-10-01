@@ -154,12 +154,25 @@ struct FriendsListView: View {
                     }
                 }
                 .onDelete { indexSet in
-                    for index in indexSet {
-                        let friendId = user.friends[index]
+                    // The index here is a position in `friendObjects` (what's
+                    // actually on screen), not in `user.friends` — those two
+                    // arrays can be in a different order or length (friendObjects
+                    // is built from an async fetch and has blocked users
+                    // filtered out). Reading user.friends[index] used the wrong
+                    // array entirely. Resolve the real friend ID first.
+                    let idsToRemove = indexSet.compactMap { friendObjects.indices.contains($0) ? friendObjects[$0].id : nil }
+                    for friendId in idsToRemove {
                         Task {
                             await FirestoreManager.shared.removeFriend(friendId: friendId, currentUserId: user.id)
-                            user.friends.remove(at: index)
-                            loadFriendData()
+                            await MainActor.run {
+                                // Remove by value, not by index: the Firestore
+                                // snapshot listener in startListeningToUserChanges()
+                                // can already have updated user.friends by the time
+                                // this await returns, which is what made the old
+                                // index-based removal crash with "Index out of range".
+                                user.friends.removeAll { $0 == friendId }
+                                loadFriendData()
+                            }
                         }
                     }
                 }
@@ -376,9 +389,24 @@ struct AddFriendSheet: View {
                         requestSent = false
  
                         let result = await FirestoreManager.shared.findUserByUsername(searchUsername)
+ 
+                        // Check whether the person we found has blocked US —
+                        // this only lives on their own document, so it has
+                        // to be checked here rather than against anything on
+                        // our side. If they have, we show the same "User not
+                        // found" message as a real miss, so a blocked person
+                        // can't tell they've been blocked.
+                        var weAreBlockedByResult = false
+                        if let result, result.id != user.id {
+                            if let doc = try? await Firestore.firestore().collection("users").document(result.id).getDocument(),
+                               let theirBlockedUsers = doc.data()?["blocked_users"] as? [String] {
+                                weAreBlockedByResult = theirBlockedUsers.contains(user.id)
+                            }
+                        }
+ 
                         await MainActor.run {
                             isLoading = false
-                            if let result = result {
+                            if let result = result, !weAreBlockedByResult {
                                 if result.id == user.id {
                                     errorMessage = "You cannot add yourself."
                                 } else if user.blockedUsers.contains(result.id) {

@@ -21,6 +21,12 @@ struct FriendProfileView: View {
     @State private var showGiftSheet = false
     @State private var showReportSheet = false
     @State private var blockErrorMessage: String?
+    // True when the profile we're trying to view has blocked US. A block
+    // only ever writes to the blocker's own document (Firestore rules won't
+    // let us write to someone else's), so the viewer's side of the
+    // relationship can still look "friended" — this flag is what actually
+    // keeps a blocked viewer out, regardless of how they navigated here.
+    @State private var isBlockedByFriend = false
  
     private let maxContentWidth: CGFloat = 540
  
@@ -28,6 +34,8 @@ struct FriendProfileView: View {
         Group {
             if isLoading {
                 ProgressView("Loading profile...")
+            } else if isBlockedByFriend {
+                blockedUnavailableView
             } else if let friendUser {
                 ScrollView {
                     VStack(spacing: 28) {
@@ -287,12 +295,38 @@ struct FriendProfileView: View {
         .onAppear {
             Task {
                 let profile = await FirestoreManager.shared.fetchFriendProfile(userId: friendId)
+ 
+                // Ask Firestore directly whether this profile's owner has
+                // blocked us — don't rely on our own friends list, since a
+                // stale entry there is exactly how a blocked user would
+                // otherwise still get in here.
+                var viewerIsBlocked = false
+                if let doc = try? await Firestore.firestore().collection("users").document(friendId).getDocument(),
+                   let theirBlockedUsers = doc.data()?["blocked_users"] as? [String] {
+                    viewerIsBlocked = theirBlockedUsers.contains(user.id)
+                }
+ 
                 await MainActor.run {
                     self.friendUser = profile
+                    self.isBlockedByFriend = viewerIsBlocked
                     self.isLoading = false
                 }
             }
         }
+    }
+ 
+    // MARK: - Blocked State
+    private var blockedUnavailableView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "person.crop.circle.badge.xmark")
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
+            Text("This profile isn't available.")
+                .font(.headline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 100)
     }
  
     // MARK: - Block Action
