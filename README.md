@@ -27,16 +27,16 @@ Clamera lets you photograph a fish, automatically identifies the species using o
 
 Clamera started as a group project with classmates in Computer Science Seminar, a course created and taught at Lower Merion High School by Mr. Thomas Swope.
 
-Since June, 2026, I've been the sole developer: taking it from a class assignment to a published App Store app, including the entire authentication overhaul (username privacy fix, Sign In with Apple), the ad integration and AdMob setup, feature additions, numerous bug fixes, and UI/UX polish across the app.
+Since June 2026, I've been the sole developer: taking it from a class assignment to a published App Store app, including the entire authentication overhaul (username privacy fix, Making sure account data is saved, Sign In with Apple), the ad integration and AdMob setup, feature additions, numerous bug fixes, improving AI features, UI/UX polish across the app, and much more.
 
 The early commit history reflects the original group project; commits from June 20, 2026 onward are mine.
 
-I want to sincerely thank and acknowledge everyone else who contributed to this project along the way:
-- Thomas Swope (Teacher)
-- Peter Cherna (Mentor)
-- Isaac Clavijo (Student)
-- Ellis Kamplain (Student)
-- Kaes van Dolder (Student)
+I want to sincerely thank and acknowledge everyone else for their contributions to this project along the way:
+- Thomas Swope (Teacher) - Taught me everything I know
+- Peter Cherna (Mentor) - Guided our group through all challenges
+- Isaac Clavijo (Student) - Cybersecurity Specialist
+- Ellis Kamplain (Student) - Fish Data and UI Views
+- Kaes van Dolder (Student) - Foundational Functionality
 
 ## Screenshots
 
@@ -52,3 +52,6 @@ I want to sincerely thank and acknowledge everyone else who contributed to this 
   <img src="screenshots/fish-of-fame.png" width="180" />
   <img src="screenshots/shop.png" width="180" />
 </p>
+
+
+-Dany Malaeb
